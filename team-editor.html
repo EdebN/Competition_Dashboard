@@ -4,20 +4,20 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Team Editor Access</title>
-<style>
-:root{color-scheme:dark;--bg:#0b0e14;--panel:#111722;--line:#273247;--text:#edf2fa;--muted:#8e9bb0;--accent:#8b7cff;--mint:#55d6be}
-*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;padding:22px;background:radial-gradient(ellipse at 50% 0%,#20213c 0,transparent 50%),var(--bg);color:var(--text);font:15px/1.5 Inter,system-ui,-apple-system,sans-serif}
-.card{width:min(100%,460px);padding:30px;border:1px solid var(--line);border-radius:22px;background:rgba(17,23,34,.96);box-shadow:0 25px 80px #0006}
-.mark{display:grid;place-items:center;width:48px;height:48px;border-radius:15px;background:linear-gradient(135deg,var(--accent),var(--mint));color:#10131c;font-size:25px;font-weight:900}
-.eyebrow{margin:23px 0 8px;color:var(--mint);font-size:10px;font-weight:850;letter-spacing:.16em}
-h1{margin:0;font-size:30px;letter-spacing:-.04em}p{color:var(--muted);font-size:13px;line-height:1.7}
-label{display:block;margin:22px 0 7px;color:#b5c0d0;font-size:11px;font-weight:800;letter-spacing:.08em}
-input{width:100%;padding:15px;border:1px solid #344157;border-radius:11px;background:#0b1018;color:white;font-size:23px;letter-spacing:.28em;text-align:center;outline:none}
-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px #8b7cff22}
-button,.link{display:flex;justify-content:center;align-items:center;width:100%;margin-top:12px;padding:13px;border:1px solid var(--accent);border-radius:10px;background:var(--accent);color:white;font-size:11px;font-weight:900;letter-spacing:.08em;text-decoration:none;cursor:pointer}
-.secondary{background:transparent;border-color:#303b4c;color:#b9c5d6}
-.status{min-height:24px;margin-top:13px;font-size:12px;color:#ffb4a9}
-.note{margin-top:22px;padding-top:17px;border-top:1px solid var(--line);font-size:11px}
+<style>:root{color-scheme:dark;--bg:#08111e;--panel:#0d1a2b;--line:#263d57;--text:#edf3fb;--muted:#93a7c0;--accent:#e0b95a;--accent-bright:#f4d57f;--blue:#6ebce7}
+*{box-sizing:border-box}html{min-height:100%;background:var(--bg)}body{margin:0;min-height:100vh;display:grid;place-items:center;padding:24px;background:radial-gradient(ellipse at 50% 0%,#183454 0,transparent 54%),var(--bg);color:var(--text);font:15px/1.55 Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+.card{width:min(100%,480px);padding:clamp(24px,5vw,38px);border:1px solid #2b4662;border-radius:22px;background:linear-gradient(155deg,rgba(16,34,55,.98),rgba(10,22,37,.98));box-shadow:0 28px 90px #0006}
+.mark{display:grid;place-items:center;width:52px;height:52px;border-radius:15px;background:linear-gradient(145deg,var(--accent-bright),var(--blue));color:#091321;font-size:24px;font-weight:950;box-shadow:0 8px 26px #0003}
+.eyebrow{margin:26px 0 8px;color:var(--accent-bright);font-size:10px;font-weight:850;letter-spacing:.16em}
+h1{margin:0;font-size:clamp(28px,5vw,36px);line-height:1.1;letter-spacing:-.045em}p{color:var(--muted);font-size:13px;line-height:1.75}
+label{display:block;margin:24px 0 8px;color:#bdcde0;font-size:10px;font-weight:850;letter-spacing:.1em}
+input{width:100%;padding:15px;border:1px solid #36536f;border-radius:12px;background:#081522;color:white;font-size:23px;letter-spacing:.3em;text-align:center;outline:none}
+input:focus{border-color:var(--blue);box-shadow:0 0 0 4px #6ebce71c}
+button,.link{display:flex;justify-content:center;align-items:center;width:100%;margin-top:12px;padding:13px;border:1px solid var(--accent);border-radius:11px;background:var(--accent);color:#101b2a;font-size:11px;font-weight:900;letter-spacing:.07em;text-decoration:none;cursor:pointer;transition:background .15s,border-color .15s}
+button:hover,.link:hover{background:var(--accent-bright);border-color:var(--accent-bright)}
+.secondary{background:transparent;border-color:#354c66;color:#d0dceb}.secondary:hover{background:#172c45;color:white}
+.status{min-height:24px;margin-top:14px;font-size:12px;color:#ffb2a9}
+.note{margin-top:23px;padding-top:17px;border-top:1px solid var(--line);font-size:11px}
 </style>
 </head>
 <body>
@@ -36,7 +36,7 @@ button,.link{display:flex;justify-content:center;align-items:center;width:100%;m
   <p class="note">PINs are saved in the private competition Google Sheet and can be used across devices.</p>
 </main>
 <script>
-const API="https://script.google.com/macros/s/AKfycbwW5RA6AWjK5nfqBbSuwoJhGRoqj2RDTJZZ9yO9NGExJ6oYhkR8rzRvcXKlZRaRqlI/exec";
+const API="https://script.google.com/macros/s/AKfycbzEg-MU3h-j4RLxbX0UkHzHnRocPXEa9lDGg7uwYvATmnB1OFBqmMKdvpH8zHn_cKxh/exec";
 document.getElementById("accessForm").addEventListener("submit",event=>{
  event.preventDefault();
  const pin=document.getElementById("teamPin").value.trim();
