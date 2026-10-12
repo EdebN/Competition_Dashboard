@@ -1,3 +1,100 @@
+function calculate() {
+
+  const elo =
+    calculateElo();
+
+
+  const ladder =
+    calculateLadder(
+      elo.finalRatings
+    );
+
+
+  renderLadder(
+    ladder
+  );
+
+
+  renderEloTable(
+    elo.rows
+  );
+
+
+  updateGameResults();
+  renderHomeSpotlight();
+
+
+  if (
+    currentPage !== "home" &&
+    currentPage !== "matches" &&
+    currentPage !== "finals" &&
+    currentPage !== "admin"
+  ) {
+
+    renderTeamPage(
+      getTeamNameFromPage(
+        currentPage
+      )
+    );
+
+  }
+
+}
+
+
+/* =========================================================
+   START
+========================================================= */
+
+renderAdminPage();
+loadScoresFromSheet();
+loadCommunitySettings();
+loadSharedCompetitionSettings();
+function renderHomeSpotlight() {
+  const latestContainer = document.getElementById("home-latest-results");
+  const upcomingContainer = document.getElementById("home-upcoming-matches");
+  if (!latestContainer || !upcomingContainer) return;
+
+  const regular = getActiveRegularGames();
+  const latest = regular.filter(game => isPlayed(game)).sort((a, b) => b.id - a.id).slice(0, 3);
+  const upcoming = regular.filter(game => !isPlayed(game)).sort((a, b) => a.id - b.id).slice(0, 3);
+
+  const renderMatch = (game, played) => {
+    const score = played ? scores[game.id] : null;
+    const winner = played
+      ? (Number(score.home) === Number(score.away) ? "Draw" : Number(score.home) > Number(score.away) ? game.home : game.away)
+      : null;
+    return `<button type="button" class="home-match-item" data-match-id="${Number(game.id)}">
+      <span class="home-match-number">GAME ${Number(game.id)}</span>
+      <span class="home-match-teams">
+        <span class="${winner === game.home ? "home-match-winner" : ""}">${escapeHTML(getTeamDisplayName(game.home || "TBD"))}</span>
+        <span class="home-match-versus">${played ? escapeHTML(String(score.home)) + " – " + escapeHTML(String(score.away)) : "VS"}</span>
+        <span class="${winner === game.away ? "home-match-winner" : ""}">${escapeHTML(getTeamDisplayName(game.away || "TBD"))}</span>
+      </span>
+      <span class="home-match-arrow" aria-hidden="true">↗</span>
+    </button>`;
+  };
+
+  latestContainer.innerHTML = latest.length
+    ? latest.map(game => renderMatch(game, true)).join("")
+    : '<div class="home-empty-state">No completed matches yet.</div>';
+  upcomingContainer.innerHTML = upcoming.length
+    ? upcoming.map(game => renderMatch(game, false)).join("")
+    : '<div class="home-empty-state">All regular-season matches have been played.</div>';
+
+  document.querySelectorAll(".home-match-item").forEach(button => {
+    button.addEventListener("click", () => {
+      const id = Number(button.dataset.matchId);
+      if (typeof openMatchDetail === "function") {
+        showPage("matches");
+        openMatchDetail(id);
+      } else {
+        jumpToGame(id);
+      }
+    });
+  });
+}
+
 const TEAMS = [
   "Team A",
   "Team B",
@@ -3269,6 +3366,14 @@ let teamWheelRotation = 0;
 
 function showPage(pageName) {
   updateTeamNavNames();
+  const menu = document.getElementById("primary-nav");
+  const menuToggle = document.getElementById("menu-toggle");
+  if (menu && menuToggle) {
+    menu.hidden = true;
+    menuToggle.setAttribute("aria-expanded", "false");
+    menuToggle.setAttribute("aria-label", "Open navigation menu");
+    menuToggle.classList.remove("is-open");
+  }
   const isTeamProfile = /^team-[a-e]$/.test(pageName);
   const navPageName = isTeamProfile ? "teams" : pageName === "finals" ? "matches" : pageName;
   const page = document.getElementById(`${pageName}-page`);
@@ -3302,9 +3407,42 @@ function showPage(pageName) {
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
-document.querySelectorAll(".nav-button").forEach(button => {
+document.querySelectorAll("[data-page]").forEach(button => {
   button.addEventListener("click", () => showPage(button.dataset.page));
 });
+
+const menuToggle = document.getElementById("menu-toggle");
+const primaryNav = document.getElementById("primary-nav");
+if (menuToggle && primaryNav) {
+  menuToggle.addEventListener("click", () => {
+    const opening = primaryNav.hidden;
+    primaryNav.hidden = !opening;
+    menuToggle.setAttribute("aria-expanded", String(opening));
+    menuToggle.setAttribute("aria-label", opening ? "Close navigation menu" : "Open navigation menu");
+    menuToggle.classList.toggle("is-open", opening);
+  });
+  document.addEventListener("keydown", event => {
+    if (event.key === "Escape" && !primaryNav.hidden) {
+      primaryNav.hidden = true;
+      menuToggle.setAttribute("aria-expanded", "false");
+      menuToggle.setAttribute("aria-label", "Open navigation menu");
+      menuToggle.classList.remove("is-open");
+      menuToggle.focus();
+    }
+  });
+}
+
+const ladderExpand = document.getElementById("ladder-expand");
+if (ladderExpand) {
+  ladderExpand.addEventListener("click", () => {
+    const card = document.querySelector(".home-ladder-card");
+    if (!card) return;
+    const expanded = card.classList.toggle("ladder-expanded");
+    ladderExpand.innerHTML = expanded
+      ? 'Show compact ladder <span aria-hidden="true">↑</span>'
+      : 'Show full ladder <span aria-hidden="true">↓</span>';
+  });
+}
 
 function syncTeamWheelNames() {
   const names = getTeamNames();
@@ -4524,54 +4662,3 @@ function showSheetStatus(
    MAIN CALCULATION
 ========================================================= */
 
-function calculate() {
-
-  const elo =
-    calculateElo();
-
-
-  const ladder =
-    calculateLadder(
-      elo.finalRatings
-    );
-
-
-  renderLadder(
-    ladder
-  );
-
-
-  renderEloTable(
-    elo.rows
-  );
-
-
-  updateGameResults();
-
-
-  if (
-    currentPage !== "home" &&
-    currentPage !== "matches" &&
-    currentPage !== "finals" &&
-    currentPage !== "admin"
-  ) {
-
-    renderTeamPage(
-      getTeamNameFromPage(
-        currentPage
-      )
-    );
-
-  }
-
-}
-
-
-/* =========================================================
-   START
-========================================================= */
-
-renderAdminPage();
-loadScoresFromSheet();
-loadCommunitySettings();
-loadSharedCompetitionSettings();
