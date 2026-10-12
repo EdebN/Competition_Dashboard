@@ -4542,7 +4542,7 @@ function showSheetStatus(
   if (connected) {
 
     status.textContent =
-      "● LIVE RESULTS • Google Sheets";
+      "Results are up to date";
 
     status.style.color =
       "#52d273";
@@ -4552,7 +4552,7 @@ function showSheetStatus(
   else {
 
     status.textContent =
-      "● RESULTS SOURCE UNAVAILABLE";
+      "Results are currently unavailable";
 
     status.style.color =
       "#ff5964";
