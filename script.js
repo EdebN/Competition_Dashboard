@@ -3340,11 +3340,27 @@ if (ladderExpand) {
   ladderExpand.addEventListener("click", () => {
     const card = document.querySelector(".home-ladder-card");
     if (!card) return;
+    const tableWrap = card.querySelector(".table-wrap");
+    const wasExpanded = card.classList.contains("ladder-expanded");
+
+    // Reset horizontal scroll before shrinking the table. Safari can retain
+    // an obsolete offset and leave the compact ladder apparently blank.
+    if (!wasExpanded && tableWrap) tableWrap.scrollLeft = 0;
+
     const expanded = card.classList.toggle("ladder-expanded");
     ladderExpand.setAttribute("aria-expanded", String(expanded));
     ladderExpand.innerHTML = expanded
       ? 'Show compact view <span aria-hidden="true">↑</span>'
       : 'Show all statistics <span aria-hidden="true">↓</span>';
+
+    if (!expanded && tableWrap) {
+      tableWrap.scrollLeft = 0;
+      requestAnimationFrame(() => {
+        tableWrap.scrollLeft = 0;
+        const table = tableWrap.querySelector("table");
+        if (table) table.scrollLeft = 0;
+      });
+    }
   });
 }
 
