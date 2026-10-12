@@ -3006,7 +3006,7 @@ function renderAdminPage() {
   const moderationPanel = document.createElement("section");
   moderationPanel.className = "card admin-card social-moderation-panel";
   moderationPanel.id = "socialModerationPanel";
-  moderationPanel.innerHTML = '<div class="section-title">SOCIALS</div><div class="social-mod-heading"><div><h2>Post moderation</h2><p>Review new submissions, manage publication and control posting access.</p></div><button type="button" class="admin-button" id="socialModRefresh">REFRESH QUEUE</button></div><div id="socialModStatus" class="admin-info" role="status" aria-live="polite">Loading moderation queue…</div><div class="social-mod-tabs" role="tablist"><button type="button" class="social-mod-tab is-active" data-mod-tab="Unviewed">Unviewed <span id="socialModUnviewedCount">0</span></button><button type="button" class="social-mod-tab" data-mod-tab="Viewed">Viewed</button><button type="button" class="social-mod-tab" data-mod-tab="Bans">Posting bans</button><button type="button" class="social-mod-tab" data-mod-tab="Audit">Audit history</button></div><div id="socialModContent" class="social-mod-content"></div>';
+  moderationPanel.innerHTML = '<div class="section-title">SOCIALS</div><div class="social-mod-heading"><div><h2>Post moderation</h2><p>Review new submissions, manage publication and control posting access.</p></div><button type="button" class="admin-button" id="socialModRefresh">REFRESH QUEUE</button></div><section class="official-post-composer"><div class="official-post-brand"><span class="social-official-crest" aria-hidden="true"><svg viewBox="0 0 240 250" fill="none"><path d="M120 18L204 48V112C204 165 171 207 120 232C69 207 36 165 36 112V48L120 18Z" fill="#0A1728" stroke="#E0B95A" stroke-width="9"/><path d="M66 145L96 85H112L82 145H66Z" fill="#F4D57F"/><path d="M96 145L126 85H142L112 145H96Z" fill="#6EBCE7"/><path d="M126 145L156 85H172L142 145H126Z" fill="#F4D57F"/><path d="M74 160H166" stroke="#E0B95A" stroke-width="4" stroke-linecap="round"/></svg></span><div><strong>Competition Official</strong><span>Official account · published under the competition crest</span></div></div><form id="officialPostForm" class="official-post-form"><label>Headline<input class="admin-input" id="officialPostTitle" maxlength="120" minlength="3" required placeholder="Official announcement"></label><label>Category<select class="admin-input" id="officialPostCategory"><option>Announcements</option><option>Match reports</option><option>Team news</option></select></label><label>Post text<textarea class="admin-input" id="officialPostBody" maxlength="5000" minlength="10" required rows="4" placeholder="Write an official competition update…"></textarea></label><label>Image URL (optional)<input class="admin-input" id="officialPostImage" type="url" placeholder="https://…"></label><div class="official-post-actions"><span id="officialPostStatus" role="status" aria-live="polite">Official posts publish immediately.</span><button type="submit" class="admin-button">PUBLISH AS OFFICIAL</button></div></form></section><div id="socialModStatus" class="admin-info" role="status" aria-live="polite">Loading moderation queue…</div><div class="social-mod-tabs" role="tablist"><button type="button" class="social-mod-tab is-active" data-mod-tab="Unviewed">Unviewed <span id="socialModUnviewedCount">0</span></button><button type="button" class="social-mod-tab" data-mod-tab="Viewed">Viewed</button><button type="button" class="social-mod-tab" data-mod-tab="Bans">Posting bans</button><button type="button" class="social-mod-tab" data-mod-tab="Audit">Audit history</button></div><div id="socialModContent" class="social-mod-content"></div>';
   page.appendChild(moderationPanel);
   initSocialModerationPanel();
 
@@ -4735,7 +4735,7 @@ function renderSocialFeed() {
       (post.featured ? '<div class="social-featured-label">FEATURED STORY</div>' : '') +
       image + '<div class="social-post-content"><div class="social-post-meta"><span class="social-category">' + escapeHTML(post.category || "Team news") + '</span><span>' + escapeHTML(formatSocialDate(post.publishedAt)) + '</span></div>' +
       '<h3>' + escapeHTML(post.title) + '</h3><p>' + escapeHTML(post.body).replace(/\n/g, "<br>") + '</p>' +
-      '<div class="social-post-byline"><span class="social-team-dot"> ' + escapeHTML(post.teamId || "") + '</span><strong>' + escapeHTML(getTeamDisplayName("Team " + post.teamId) || ("Team " + post.teamId)) + '</strong></div></div></article>';
+      '<div class="social-post-byline">' + (post.teamId === "OFFICIAL" ? '<span class="social-official-crest" aria-hidden="true"><svg viewBox="0 0 240 250" fill="none"><path d="M120 18L204 48V112C204 165 171 207 120 232C69 207 36 165 36 112V48L120 18Z" fill="#0A1728" stroke="#E0B95A" stroke-width="9"/><path d="M66 145L96 85H112L82 145H66Z" fill="#F4D57F"/><path d="M96 145L126 85H142L112 145H96Z" fill="#6EBCE7"/><path d="M126 145L156 85H172L142 145H126Z" fill="#F4D57F"/><path d="M74 160H166" stroke="#E0B95A" stroke-width="4" stroke-linecap="round"/></svg></span><strong>Competition Official</strong><span class="social-verified-label">OFFICIAL</span>' : '<span class="social-team-dot">' + escapeHTML(post.teamId || "") + '</span><strong>' + escapeHTML(getTeamDisplayName("Team " + post.teamId) || ("Team " + post.teamId)) + '</strong>') + '</div></div></article>';
   }).join("");
 }
 document.querySelectorAll("[data-social-filter]").forEach(button => button.addEventListener("click", () => {
@@ -4765,6 +4765,37 @@ async function refreshSocialModeration() {
   }
 }
 function initSocialModerationPanel() {
+  document.getElementById("officialPostForm")?.addEventListener("submit", async event => {
+    event.preventDefault();
+    const form = event.currentTarget, button = form.querySelector('button[type="submit"]'), status = document.getElementById("officialPostStatus");
+    const title = document.getElementById("officialPostTitle").value.trim();
+    const body = document.getElementById("officialPostBody").value.trim();
+    const category = document.getElementById("officialPostCategory").value;
+    const imageUrl = document.getElementById("officialPostImage").value.trim();
+    if (!socialAdminSessionToken) { if (status) status.textContent = "Admin session expired. Lock and unlock Admin again."; return; }
+    if (imageUrl && !imageUrl.toLowerCase().startsWith("https://")) { if (status) status.textContent = "Image URLs must use HTTPS."; return; }
+    if (!confirm("Publish this immediately as Competition Official? It will be visible on the public Socials page.")) return;
+    button.disabled = true; button.textContent = "PUBLISHING…";
+    if (status) status.textContent = "Publishing and verifying the official post…";
+    try {
+      await postCommunityAction({ action: "submitOfficialSocialPost", sessionToken: socialAdminSessionToken, title, body, category, imageUrl });
+      let verified = false;
+      for (let attempt = 0; attempt < 6; attempt++) {
+        await new Promise(resolve => setTimeout(resolve, 650));
+        const result = await readCommunityApi("getSocialPosts");
+        if (result?.ok === true && Array.isArray(result.posts) && result.posts.some(post => post.teamId === "OFFICIAL" && post.title === title && post.body === body)) { verified = true; break; }
+      }
+      if (!verified) throw new Error("The post could not be verified in the public feed. Check the Apps Script deployment.");
+      form.reset();
+      if (status) status.textContent = "Published and verified on Socials as Competition Official.";
+      await loadSocialFeed();
+      await refreshSocialModeration();
+    } catch (error) {
+      if (status) status.textContent = "Could not verify publication: " + (error?.message || "Unknown error");
+    } finally {
+      button.disabled = false; button.textContent = "PUBLISH AS OFFICIAL";
+    }
+  });
   document.getElementById("socialModRefresh")?.addEventListener("click", refreshSocialModeration);
   document.querySelectorAll("[data-mod-tab]").forEach(button => button.addEventListener("click", () => {
     socialModerationTab = button.dataset.modTab;
@@ -4805,7 +4836,7 @@ function renderSocialModerationContent() {
     return;
   }
   if (socialModerationTab === "Audit") {
-    host.innerHTML = socialModerationData.audit.length ? socialModerationData.audit.map(item => '<article class="social-mod-audit"><strong>' + escapeHTML(item.action) + '</strong><span>' + escapeHTML(item.timestamp) + '</span><p>' + escapeHTML([item.teamId ? "Team " + item.teamId : "", item.postId ? "Post " + item.postId.slice(0, 8) : "", item.reason || ""].filter(Boolean).join(" · ")) + '</p></article>').join("") : '<div class="social-mod-empty">No moderation actions recorded yet.</div>';
+    host.innerHTML = socialModerationData.audit.length ? socialModerationData.audit.map(item => '<article class="social-mod-audit"><strong>' + escapeHTML(item.action) + '</strong><span>' + escapeHTML(item.timestamp) + '</span><p>' + escapeHTML([item.teamId ? (item.teamId === "OFFICIAL" ? "Competition Official" : "Team " + item.teamId) : "", item.postId ? "Post " + item.postId.slice(0, 8) : "", item.reason || ""].filter(Boolean).join(" · ")) + '</p></article>').join("") : '<div class="social-mod-empty">No moderation actions recorded yet.</div>';
     return;
   }
   const list = socialModerationTab === "Unviewed" ? unviewed : viewed;
