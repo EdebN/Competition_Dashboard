@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#08111e">
+<title>Team Posts · Competition Dashboard</title>
+<style>
+:root{color-scheme:dark;--bg:#08111e;--panel:#0d1a2b;--panel2:#12243a;--panel3:#172b43;--line:#263d57;--line2:#365675;--text:#edf3fb;--muted:#93a7c0;--gold:#e0b95a;--gold2:#f4d57f;--blue:#6ebce7;--good:#7ed9b1;--bad:#ff9f9f;--radius:16px}
+*{box-sizing:border-box}
+html{min-height:100%;background:var(--bg)}
+body{margin:0;min-height:100vh;color:var(--text);background:radial-gradient(ellipse at 70% -10%,#173354 0,transparent 48%),var(--bg);font:14px/1.55 Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+button,input,textarea,select{font:inherit}
+a{color:inherit;text-decoration:none}
+button{cursor:pointer}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:14px clamp(16px,4vw,42px);border-bottom:1px solid #263d57;background:#08111eeF;position:sticky;top:0;z-index:10;backdrop-filter:blur(18px)}
+.brand{display:flex;align-items:center;gap:11px;min-width:0}
+.brand-mark{display:grid;place-items:center;width:38px;height:38px;flex:0 0 38px;border-radius:12px;background:linear-gradient(145deg,var(--gold2),var(--blue));color:#091321;font-weight:950;font-size:19px}
+.brand strong{display:block;font-size:13px;letter-spacing:.04em}
+.brand small{display:block;color:var(--muted);font-size:10px;letter-spacing:.11em;font-weight:750;margin-top:2px}
+.toplinks{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.link-btn,.button{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:38px;padding:9px 13px;border:1px solid #304a66;border-radius:10px;background:#14273e;color:#dce7f4;font-size:11px;font-weight:850;letter-spacing:.02em}
+.link-btn:hover,.button:hover{background:#203b5a;border-color:#52769b}
+.button.primary{background:var(--gold);border-color:var(--gold);color:#101b2a}
+.button.primary:hover{background:var(--gold2);border-color:var(--gold2)}
+.button:disabled{opacity:.45;cursor:not-allowed}
+main{max-width:1240px;margin:auto;padding:clamp(22px,4vw,46px) clamp(16px,4vw,42px) 60px}
+.intro{display:flex;align-items:flex-end;justify-content:space-between;gap:26px;margin-bottom:26px}
+.kicker{margin:0 0 9px;color:var(--gold2);font-size:10px;font-weight:900;letter-spacing:.16em;text-transform:uppercase}
+h1{margin:0;font-size:clamp(28px,4.2vw,43px);line-height:1.08;letter-spacing:-.045em}
+.lede{max-width:610px;margin:12px 0 0;color:var(--muted);font-size:13px;line-height:1.75}
+.team-chip{display:inline-flex;align-items:center;gap:9px;padding:10px 12px;border:1px solid #365675;border-radius:12px;background:#102139;white-space:nowrap;color:#dce8f6;font-size:11px;font-weight:850}
+.team-dot{width:8px;height:8px;border-radius:50%;background:var(--gold);box-shadow:0 0 0 4px #e0b95a18}
+.layout{display:grid;grid-template-columns:minmax(0,1.22fr) minmax(320px,.78fr);align-items:start;gap:20px}
+.card{min-width:0;border:1px solid var(--line);border-radius:var(--radius);background:linear-gradient(155deg,rgba(16,34,55,.96),rgba(10,22,37,.97));box-shadow:0 16px 42px #0002}
+.card-head{padding:19px 21px;border-bottom:1px solid #223a54}
+.card-head h2{margin:0;font-size:15px;letter-spacing:-.02em}
+.card-head p{margin:5px 0 0;color:var(--muted);font-size:11px;line-height:1.65}
+form{padding:21px}
+.field{display:flex;flex-direction:column;gap:7px;margin-bottom:17px}
+.field label{color:#b7c8dc;font-size:10px;font-weight:850;letter-spacing:.08em;text-transform:uppercase}
+.field input,.field textarea,.field select{width:100%;min-width:0;padding:12px 13px;border:1px solid #304760;border-radius:10px;outline:none;background:#081522;color:var(--text);font-size:13px}
+.field input:focus,.field textarea:focus,.field select:focus{border-color:var(--blue);box-shadow:0 0 0 3px #6ebce71c}
+.field textarea{min-height:190px;resize:vertical;line-height:1.7}
+.field small{color:var(--muted);font-size:10px;line-height:1.6}
+.field-meta{display:flex;justify-content:space-between;gap:12px;color:var(--muted);font-size:10px}
+.field-meta output{font-variant-numeric:tabular-nums}
+.row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:13px}
+.form-actions{display:flex;align-items:center;justify-content:space-between;gap:14px;padding-top:5px}
+.form-note{max-width:280px;color:var(--muted);font-size:10px;line-height:1.55}
+.status{margin:0 21px 20px;padding:10px 12px;border:1px solid #2e4762;border-radius:10px;background:#0a1929;color:#a9bed4;font-size:11px;line-height:1.65}
+.status[hidden]{display:none}
+.status[data-state="success"]{border-color:#2e745f;background:#0b2825;color:#a3e7ca}
+.status[data-state="error"]{border-color:#7d414b;background:#301c29;color:#ffb6b6}
+.status[data-state="warning"]{border-color:#725d32;background:#292313;color:#f0d18a}
+.ban-panel{display:none;margin:20px 21px;padding:16px;border:1px solid #7d414b;border-radius:12px;background:#301c29;color:#ffb6b6;line-height:1.7;font-size:12px}
+.ban-panel.visible{display:block}
+.post-list{display:grid;gap:10px;padding:16px}
+.post-card{padding:15px;border:1px solid #2b435d;border-radius:12px;background:#0a1828}
+.post-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.post-card h3{margin:0;color:#edf3fb;font-size:13px;line-height:1.45}
+.post-card p{margin:8px 0 0;color:#9db0c6;font-size:11px;line-height:1.7;white-space:pre-line;overflow-wrap:anywhere}
+.post-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:12px;color:#849ab3;font-size:10px}
+.pill{display:inline-flex;align-items:center;padding:4px 7px;border:1px solid #354f6c;border-radius:6px;background:#14263b;color:#c5d5e7;font-size:9px;font-weight:900;letter-spacing:.04em;text-transform:uppercase}
+.pill.pending{border-color:#705f36;background:#2a2417;color:#efd28f}
+.pill.published{border-color:#2c6a58;background:#102b27;color:#9be4c6}
+.pill.rejected,.pill.removed{border-color:#77434b;background:#301c29;color:#ffb2b7}
+.post-note{margin-top:10px;padding:9px 10px;border-left:2px solid #bd646d;background:#211722;color:#e5a8ae;font-size:10px;line-height:1.6}
+.empty{padding:25px 15px;border:1px dashed #314b66;border-radius:11px;text-align:center;color:var(--muted);font-size:11px;line-height:1.7}
+.empty strong{display:block;margin-bottom:5px;color:#dfe9f5;font-size:13px}
+.panel-foot{padding:0 16px 16px;color:var(--muted);font-size:10px;line-height:1.65}
+#refreshPosts{float:right;padding:5px 8px;min-height:29px;font-size:10px}
+footer{padding:18px;text-align:center;color:#6f859e;font-size:10px}
+@media(max-width:900px){.layout{grid-template-columns:1fr}.posts-card{order:2}.intro{align-items:flex-start;flex-direction:column}.team-chip{align-self:flex-start}}
+@media(max-width:560px){.topbar{align-items:flex-start;flex-direction:column}.toplinks{width:100%;justify-content:flex-start}.toplinks .link-btn{flex:1}.row{grid-template-columns:1fr;gap:0}form{padding:16px}.card-head{padding:16px}.form-actions{align-items:stretch;flex-direction:column}.form-actions .button{width:100%}.form-note{max-width:none}.status{margin:0 16px 16px}.ban-panel{margin:16px}.post-top{flex-direction:column;gap:8px}}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="team-workspace.html" aria-label="Team workspace">
+    <span class="brand-mark">C</span><span><strong>TEAM SOCIALS</strong><small>POSTING WORKSPACE</small></span>
+  </a>
+  <nav class="toplinks" aria-label="Team tools">
+    <a class="link-btn" href="team-workspace.html">← Workspace</a>
+    <a class="link-btn" href="index.html">Competition dashboard ↗</a>
+  </nav>
+</header>
+<main>
+  <section class="intro">
+    <div>
+      <p class="kicker">Your team's voice</p>
+      <h1>Write the next story.</h1>
+      <p class="lede">Share announcements, match reports and team news with the competition. New submissions go to the moderation queue before they appear publicly.</p>
+    </div>
+    <div class="team-chip"><span class="team-dot"></span><span id="teamLabel">Team workspace</span></div>
+  </section>
+  <div class="layout">
+    <section class="card">
+      <header class="card-head"><h2>Create a post</h2><p>Give it a clear headline, the useful details, and an optional hosted image.</p></header>
+      <form id="postForm">
+        <div class="field">
+          <label for="postTitle">Headline</label>
+          <input id="postTitle" name="title" type="text" required minlength="3" maxlength="120" placeholder="What happened?" autocomplete="off">
+          <div class="field-meta"><span>3–120 characters</span><output id="titleCount">0 / 120</output></div>
+        </div>
+        <div class="row">
+          <div class="field"><label for="postCategory">Category</label><select id="postCategory" name="category"><option>Team news</option><option>Announcements</option><option>Match reports</option></select></div>
+          <div class="field"><label for="postImage">Image URL <span style="font-weight:500;text-transform:none">(optional)</span></label><input id="postImage" name="imageUrl" type="url" inputmode="url" placeholder="https://…" maxlength="1000"><small>Use a publicly accessible HTTPS image URL. Direct file uploads are not supported by the posting service yet.</small></div>
+        </div>
+        <div class="field">
+          <label for="postBody">Post</label>
+          <textarea id="postBody" name="body" required minlength="10" maxlength="5000" placeholder="Write the story. Include the key details and keep it readable." ></textarea>
+          <div class="field-meta"><span>10–5,000 characters</span><output id="bodyCount">0 / 5,000</output></div>
+        </div>
+        <div class="form-actions">
+          <span class="form-note">You'll see the post's review status here after submission. Publication is controlled by the competition moderators.</span>
+          <button id="submitPost" class="button primary" type="submit">Submit for review ↗</button>
+        </div>
+      </form>
+      <div id="postStatus" class="status" role="status" aria-live="polite" hidden></div>
+      <div id="banPanel" class="ban-panel" role="alert">Posting is currently disabled for this team. Contact the competition administrator if you believe this is a mistake.</div>
+    </section>
+    <section class="card posts-card">
+      <header class="card-head"><button id="refreshPosts" class="link-btn" type="button">Refresh</button><h2>Your submissions</h2><p>Track whether your posts are awaiting review or have been published.</p></header>
+      <div id="postList" class="post-list"><div class="empty"><strong>Loading your posts</strong>Connecting to the competition service…</div></div>
+      <div class="panel-foot">Only posts submitted by your team are shown here. A submitted post is not public until a moderator publishes it.</div>
+    </section>
+  </div>
+</main>
+<footer>Competition Dashboard · Team posting workspace</footer>
+<script>
+const API_URL="https://script.google.com/macros/s/AKfycbzEg-MU3h-j4RLxbX0UkHzHnRocPXEa9lDGg7uwYvATmnB1OFBqmMKdvpH8zHn_cKxh/exec";
+const TEAM_ID=sessionStorage.getItem("team-editor-authorized-team")||"";
+const SESSION_TOKEN=sessionStorage.getItem("team-editor-session-token")||"";
+const $=id=>document.getElementById(id);
+if(!["A","B","C","D","E"].includes(TEAM_ID)||!SESSION_TOKEN){
+ location.replace("team-editor.html");
+}
+$("teamLabel").textContent="TEAM "+TEAM_ID;
+function esc(value){return String(value??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+function apiRead(action,params={}){
+ return new Promise((resolve,reject)=>{
+  const callback="teamPostsApi_"+Date.now()+"_"+Math.floor(Math.random()*1e6);
+  const script=document.createElement("script");
+  const url=new URL(API_URL);
+  url.searchParams.set("action",action);
+  url.searchParams.set("callback",callback);
+  url.searchParams.set("_cacheBust",String(Date.now()));
+  Object.entries(params).forEach(([key,value])=>url.searchParams.set(key,String(value)));
+  const cleanup=()=>{delete window[callback];script.remove();};
+  window[callback]=data=>{cleanup();resolve(data);};
+  script.onerror=()=>{cleanup();reject(new Error("Could not contact the team posting service."));};
+  script.async=true;script.src=url.toString();document.head.appendChild(script);
+ });
+}
+async function postAction(payload){
+ await fetch(API_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=UTF-8"},body:JSON.stringify(payload)});
+}
+function showStatus(message,state="info"){
+ const node=$("postStatus");node.textContent=message;node.dataset.state=state;node.hidden=false;
+}
+function setSubmitting(submitting){
+ $("submitPost").disabled=submitting||!teamStatus||teamStatus.banned;
+ $("submitPost").textContent=submitting?"Submitting…":"Submit for review ↗";
+}
+let teamStatus=null;
+let loadGeneration=0;
+function dateLabel(value){
+ if(!value)return "Date unavailable";
+ const date=new Date(value);
+ if(Number.isNaN(date.getTime()))return "Date unavailable";
+ return date.toLocaleString(undefined,{day:"numeric",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit"});
+}
+function statusPill(status){
+ const value=String(status||"Pending");
+ const normalized=value.toLowerCase().replace(/[^a-z]/g,"");
+ const label=({"pending":"Pending review","published":"Published","rejected":"Rejected","removed":"Removed"}[normalized]||value);
+ const cls=["pending","published","rejected","removed"].includes(normalized)?normalized:"";
+ return '<span class="pill '+cls+'">'+esc(label)+'</span>';
+}
+function renderPosts(posts){
+ const host=$("postList");
+ if(!Array.isArray(posts)||!posts.length){host.innerHTML='<div class="empty"><strong>No posts yet</strong>Your submitted stories will appear here, along with their review status.</div>';return;}
+ host.innerHTML=posts.map(post=>{
+  const status=String(post.publicationStatus||"Pending");
+  const note=post.moderationNote?'<div class="post-note"><strong>Moderator note:</strong> '+esc(post.moderationNote)+'</div>':"";
+  const excerpt=String(post.body||"");
+  return '<article class="post-card"><div class="post-top"><h3>'+esc(post.title)+'</h3>'+statusPill(status)+'</div><p>'+esc(excerpt.length>260?excerpt.slice(0,257)+"…":excerpt)+'</p><div class="post-meta"><span class="pill">'+esc(post.category||"Team news")+'</span><span>Submitted '+esc(dateLabel(post.submittedAt))+'</span></div>'+note+'</article>';
+ }).join("");
+}
+async function loadStatus({quiet=false}={}){
+ const generation=++loadGeneration;
+ if(!quiet)$("postList").innerHTML='<div class="empty"><strong>Loading your posts</strong>Connecting to the competition service…</div>';
+ try{
+  const result=await apiRead("getTeamSocialStatus",{teamId:TEAM_ID,sessionToken:SESSION_TOKEN});
+  if(generation!==loadGeneration)return;
+  if(!result||result.ok!==true){
+   teamStatus=null;setSubmitting(false);
+   showStatus(result?.error||"Your team session expired. Sign in again to continue.","error");
+   $("postForm").querySelectorAll("input,textarea,select,button").forEach(el=>el.disabled=true);
+   $("refreshPosts").disabled=true;
+   return;
+  }
+  teamStatus=result;
+  const banned=Boolean(result.banned);
+  $("banPanel").classList.toggle("visible",banned);
+  $("postForm").querySelectorAll("input,textarea,select").forEach(el=>el.disabled=banned);
+  setSubmitting(false);
+  if(banned)showStatus("Posting is disabled for your team. Your existing submissions are still available below.","warning");
+  else if(!quiet&&$("postStatus").dataset.state!=="success")showStatus("Connected. New posts are submitted for moderation before publication.","info");
+  renderPosts(result.posts||[]);
+ }catch(error){
+  if(generation!==loadGeneration)return;
+  if(!quiet)$("postList").innerHTML='<div class="empty"><strong>Could not load posts</strong>'+esc(error.message)+' Refresh to try again.</div>';
+  showStatus(error.message,"error");
+  teamStatus=null;setSubmitting(false);
+ }
+}
+$("postTitle").addEventListener("input",()=>{$("titleCount").textContent=$("postTitle").value.length+" / 120";});
+$("postBody").addEventListener("input",()=>{$("bodyCount").textContent=$("postBody").value.length+" / 5,000";});
+$("refreshPosts").addEventListener("click",()=>loadStatus());
+$("postForm").addEventListener("submit",async event=>{
+ event.preventDefault();
+ if(!teamStatus||teamStatus.banned){showStatus("Posting is currently unavailable for this team.","error");return;}
+ const title=$("postTitle").value.trim(),body=$("postBody").value.trim(),category=$("postCategory").value,imageUrl=$("postImage").value.trim();
+ if(title.length<3||title.length>120){showStatus("Headline must be 3–120 characters.","error");return;}
+ if(body.length<10||body.length>5000){showStatus("Post text must be 10–5,000 characters.","error");return;}
+ if(imageUrl&&(!imageUrl.toLowerCase().startsWith("https://")||imageUrl.length>1000)){showStatus("Image URLs must use HTTPS and be no longer than 1,000 characters.","error");return;}
+ const knownIds=new Set((teamStatus.posts||[]).map(post=>post.postId));
+ const button=$("submitPost");setSubmitting(true);button.textContent="Submitting…";showStatus("Sending your post and verifying the submission…","info");
+ try{
+  await postAction({action:"submitSocialPost",teamId:TEAM_ID,sessionToken:SESSION_TOKEN,title,body,category,imageUrl});
+  let verifiedPost=null,lastError=null;
+  for(let attempt=0;attempt<8;attempt++){
+   await new Promise(resolve=>setTimeout(resolve,500+attempt*250));
+   try{
+    const result=await apiRead("getTeamSocialStatus",{teamId:TEAM_ID,sessionToken:SESSION_TOKEN});
+    if(result?.ok!==true)throw new Error(result?.error||"Could not read the submission status.");
+    teamStatus=result;
+    if(result.banned)throw new Error("Posting is currently disabled for this team.");
+    verifiedPost=(result.posts||[]).find(post=>!knownIds.has(post.postId)&&post.title===title&&post.body===body)||null;
+    if(verifiedPost)break;
+   }catch(error){lastError=error;}
+  }
+  if(!verifiedPost)throw lastError||new Error("The submission could not be verified. Refresh your posts before trying again to avoid submitting it twice.");
+  $("postForm").reset();$("titleCount").textContent="0 / 120";$("bodyCount").textContent="0 / 5,000";
+  teamStatus={...teamStatus,posts:[verifiedPost,...(teamStatus.posts||[]).filter(post=>post.postId!==verifiedPost.postId)]};
+  renderPosts(teamStatus.posts);
+  showStatus("Post submitted successfully. It is now awaiting moderator review.","success");
+ }catch(error){
+  showStatus("Could not verify your post: "+(error?.message||"Unknown error")+". Refresh your submissions before retrying.","error");
+ }finally{setSubmitting(false);}
+});
+loadStatus();
+</script>
+</body>
+</html>
