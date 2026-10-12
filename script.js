@@ -4572,7 +4572,6 @@ function renderHomeSpotlight() {
   if (!latestContainer || !upcomingContainer) return;
 
   const regular = getActiveRegularGames();
-  const latest = regular.filter(game => isPlayed(game)).sort((a, b) => b.id - a.id).slice(0, 3);
   const upcoming = regular.filter(game => !isPlayed(game)).sort((a, b) => a.id - b.id).slice(0, 4);
 
   const renderMatch = (game, played) => {
@@ -4591,9 +4590,6 @@ function renderHomeSpotlight() {
     </button>`;
   };
 
-  latestContainer.innerHTML = latest.length
-    ? latest.map(game => renderMatch(game, true)).join("")
-    : '<div class="home-empty-state">No completed matches yet.</div>';
   upcomingContainer.innerHTML = upcoming.length
     ? upcoming.map(game => renderMatch(game, false)).join("")
     : '<div class="home-empty-state">All regular-season matches have been played.</div>';
