@@ -92,15 +92,15 @@ footer{padding:18px;text-align:center;color:#6f859e;font-size:10px}
 <main>
   <section class="intro">
     <div>
-      <p class="kicker">Your team's voice</p>
-      <h1>Write the next story.</h1>
-      <p class="lede">Share announcements, match reports and team news with the competition. New submissions go to the moderation queue before they appear publicly.</p>
+      <p class="kicker">TEAM SOCIALS</p>
+      <h1>Create a team post.</h1>
+      <p class="lede">Submit team news, match reports or announcements for the competition feed. Posts are reviewed by a moderator before publication.</p>
     </div>
     <div class="team-chip"><span class="team-dot"></span><span id="teamLabel">Team workspace</span></div>
   </section>
   <div class="layout">
     <section class="card">
-      <header class="card-head"><h2>Create a post</h2><p>Give it a clear headline, the useful details, and an optional hosted image.</p></header>
+      <header class="card-head"><h2>Create a post</h2><p>Add a headline and the details you want to share.</p></header>
       <form id="postForm">
         <div class="field">
           <label for="postTitle">Headline</label>
@@ -110,7 +110,7 @@ footer{padding:18px;text-align:center;color:#6f859e;font-size:10px}
         <div class="field"><label for="postCategory">Category</label><select id="postCategory" name="category"><option>Team news</option><option>Announcements</option><option>Match reports</option></select></div>
         <div class="field">
           <label for="postBody">Post</label>
-          <textarea id="postBody" name="body" required minlength="10" maxlength="5000" placeholder="Write the story. Include the key details and keep it readable." ></textarea>
+          <textarea id="postBody" name="body" required minlength="10" maxlength="5000" placeholder="Add the main details of your update." ></textarea>
           <div class="field-meta"><span>10–5,000 characters</span><output id="bodyCount">0 / 5,000</output></div>
         </div>
         <div class="form-actions">
@@ -122,7 +122,7 @@ footer{padding:18px;text-align:center;color:#6f859e;font-size:10px}
       <div id="banPanel" class="ban-panel" role="alert">Posting is currently disabled for this team. Contact the competition administrator if you believe this is a mistake.</div>
     </section>
     <section class="card posts-card">
-      <header class="card-head"><button id="refreshPosts" class="link-btn" type="button">Refresh</button><h2>Your submissions</h2><p>Track whether your posts are awaiting review or have been published.</p></header>
+      <header class="card-head"><button id="refreshPosts" class="link-btn" type="button">Refresh</button><h2>Your submissions</h2><p>Check the review status of each post.</p></header>
       <div id="postList" class="post-list"><div class="empty"><strong>Loading your posts</strong>Connecting to the competition service…</div></div>
       <div class="panel-foot">Only posts submitted by your team are shown here. A submitted post is not public until a moderator publishes it.</div>
     </section>
