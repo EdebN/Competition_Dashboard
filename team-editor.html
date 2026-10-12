@@ -19,20 +19,6 @@ button:hover,.link:hover{background:var(--accent-bright);border-color:var(--acce
 .status{min-height:24px;margin-top:14px;font-size:12px;color:#ffb2a9}
 .note{margin-top:23px;padding-top:17px;border-top:1px solid var(--line);font-size:11px}
 
-/* AURA MOTION SYSTEM */
-@keyframes aura-enter{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
-@keyframes aura-pulse{0%,100%{box-shadow:0 0 0 0 rgba(224,185,90,0)}50%{box-shadow:0 0 0 4px rgba(224,185,90,.055)}}
-html{scroll-behavior:smooth}
-body{animation:aura-enter 420ms cubic-bezier(.2,.75,.25,1) both}
-.card,.post-card,.team-chip,.brand-mark,.link-btn,.button,.team-stat,.workspace-card,.tool-card,.studio-panel,.block-item,.canvas-block{transition:transform 220ms cubic-bezier(.2,.75,.25,1),border-color 220ms ease,box-shadow 220ms ease,background-color 220ms ease,color 150ms ease}
-.card:hover,.post-card:hover,.workspace-card:hover,.tool-card:hover,.studio-panel:hover{transform:translateY(-2px);border-color:rgba(224,185,90,.34);box-shadow:0 14px 34px rgba(0,0,0,.2),0 0 0 1px rgba(224,185,90,.035)}
-.button:active,.link-btn:active{transform:translateY(1px) scale(.985)}
-.brand-mark{transition:transform 260ms cubic-bezier(.2,.75,.25,1),filter 260ms ease}
-.brand:hover .brand-mark{transform:rotate(-5deg) scale(1.04);filter:brightness(1.08)}
-button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:2px solid rgba(244,213,127,.8);outline-offset:3px}
-::selection{background:rgba(224,185,90,.28);color:#fff}
-@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:.01ms!important}}
-
 </style>
 </head>
 <body>
