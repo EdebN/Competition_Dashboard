@@ -3313,7 +3313,7 @@ function setPrimaryMenuOpen(open) {
   window.__primaryMenuCloseTimer = setTimeout(() => {
     menu.hidden = true;
     menu.classList.remove("is-closing");
-  }, 240);
+  }, 400);
 }
 
 let pageTransitionTimer = null;
