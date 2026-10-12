@@ -101,10 +101,13 @@ function positionMatchFilterIndicator(page, previousRect = null) {
  const filters=page.querySelector(".match-filters");
  const active=filters?.querySelector(".match-filter[data-filter].active");
  if(!filters||!active)return;
- const indicator=document.createElement("span");
- indicator.className="match-filter-indicator";
- indicator.setAttribute("aria-hidden","true");
- filters.prepend(indicator);
+ let indicator=filters.querySelector(".match-filter-indicator");
+ if(!indicator){
+  indicator=document.createElement("span");
+  indicator.className="match-filter-indicator";
+  indicator.setAttribute("aria-hidden","true");
+  filters.prepend(indicator);
+ }
  const rect=filters.getBoundingClientRect();
  const target={left:active.offsetLeft,top:active.offsetTop,width:active.offsetWidth,height:active.offsetHeight};
  if(previousRect){
