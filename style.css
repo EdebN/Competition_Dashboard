@@ -1996,3 +1996,49 @@ main { gap:22px; }
 @media(prefers-reduced-motion:reduce) {
   .page:not(#home-page) { animation:none; }
 }
+
+/* HOME CLEANUP: compact radar graphic, clear navigation, and useful ladder toggle */
+.header-season { display:none !important; }
+.home-hero { grid-template-columns:minmax(0,1.3fr) minmax(210px,.7fr); min-height:285px; }
+.hero-graphic.hero-radar { width:min(100%,250px); aspect-ratio:1; justify-self:center; margin:0 auto; }
+.radar-ring { position:absolute; left:50%; top:50%; aspect-ratio:1; border:1px solid rgba(224,185,90,.22); border-radius:50%; translate:-50% -50%; }
+.radar-ring-outer { width:100%; }
+.radar-ring-middle { width:72%; border-color:rgba(105,158,206,.25); }
+.radar-ring-inner { width:42%; border-color:rgba(224,185,90,.3); }
+.radar-cross { position:absolute; left:50%; top:50%; background:rgba(118,151,183,.18); translate:-50% -50%; }
+.radar-cross-x { width:100%; height:1px; }
+.radar-cross-y { width:1px; height:100%; }
+.radar-sweep { position:absolute; inset:0; border-radius:50%; background:conic-gradient(from 205deg,transparent 0deg,rgba(65,155,203,.12) 35deg,rgba(65,155,203,.0) 78deg,transparent 360deg); }
+.radar-core { position:absolute; left:50%; top:50%; display:grid; place-content:center; justify-items:center; width:31%; aspect-ratio:1; border:1px solid rgba(224,185,90,.65); border-radius:50%; background:radial-gradient(circle at 35% 25%,#1e3853,#0a1728 75%); box-shadow:0 0 28px rgba(224,185,90,.12); translate:-50% -50%; }
+.radar-core strong { color:#f6d985; font-size:clamp(25px,3.5vw,37px); line-height:1; letter-spacing:-.06em; }
+.radar-core span { margin-top:4px; color:#8fa2b9; font-size:7px; font-weight:900; letter-spacing:.16em; }
+.radar-node { position:absolute; width:8px; height:8px; border:2px solid #0b1929; border-radius:50%; background:#e0b95a; box-shadow:0 0 0 3px rgba(224,185,90,.12),0 0 12px rgba(224,185,90,.35); }
+.radar-node-a { left:47%; top:0; }
+.radar-node-b { right:7%; top:25%; background:#69bde7; box-shadow:0 0 0 3px rgba(105,189,231,.12),0 0 12px rgba(105,189,231,.3); }
+.radar-node-c { right:17%; bottom:10%; }
+.radar-node-d { left:13%; bottom:20%; background:#69bde7; box-shadow:0 0 0 3px rgba(105,189,231,.12),0 0 12px rgba(105,189,231,.3); }
+.radar-node-e { left:9%; top:25%; }
+.radar-label { position:absolute; left:50%; color:#8196ae; font-size:7px; font-weight:900; letter-spacing:.16em; white-space:nowrap; translate:-50% 0; }
+.radar-label-top { top:-13px; }
+.radar-label-bottom { bottom:-13px; color:#d2b568; }
+.home-match-columns { grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr); }
+.home-subheading { flex-wrap:wrap; }
+.latest-results-link { margin-left:auto; padding:0; border:0; background:transparent; color:#d8b866; font:inherit; font-size:9px; font-weight:900; cursor:pointer; }
+.latest-results-link:hover { color:#ffe6a0; }
+.home-ladder-card .text-action { margin-top:12px; padding:10px 12px; border:1px solid #33465b; border-radius:9px; background:#142338; color:#e4c66e; }
+.home-ladder-card .text-action:hover { border-color:#d8b866; background:#192c43; }
+.home-ladder-card.ladder-expanded table { min-width:900px; }
+.home-ladder-card:not(.ladder-expanded) th:nth-child(7),.home-ladder-card:not(.ladder-expanded) td:nth-child(7),
+.home-ladder-card:not(.ladder-expanded) th:nth-child(8),.home-ladder-card:not(.ladder-expanded) td:nth-child(8),
+.home-ladder-card:not(.ladder-expanded) th:nth-child(9),.home-ladder-card:not(.ladder-expanded) td:nth-child(9),
+.home-ladder-card:not(.ladder-expanded) th:nth-child(10),.home-ladder-card:not(.ladder-expanded) td:nth-child(10),
+.home-ladder-card:not(.ladder-expanded) th:nth-child(13),.home-ladder-card:not(.ladder-expanded) td:nth-child(13) { display:none; }
+.ccm-11__pointer { top:calc(50% - min(220px, 44vw) + 20px); rotate:0deg; clip-path:polygon(0 0,100% 0,50% 100%); }
+@media(max-width:560px) {
+  .home-hero { grid-template-columns:1fr; min-height:0; }
+  .hero-graphic.hero-radar { width:min(64%,190px); margin:18px auto 12px; }
+  .radar-label { font-size:6px; }
+  .home-match-columns { grid-template-columns:1fr; }
+  .ccm-11__pointer { top:calc(50% - min(170px, 43vw) + 20px); rotate:0deg; }
+}
+@media(prefers-reduced-motion:reduce) { .radar-sweep { display:none; } }
