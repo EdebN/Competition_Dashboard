@@ -3762,19 +3762,56 @@ function renderPublishedTeamPage(container, design, team) {
     "<style>.published-team-page{box-sizing:border-box;width:100%;min-height:100%;background:var(--published-page-bg);padding:var(--published-page-padding);border-radius:16px}.published-page-title{margin:0 0 22px;font-size:clamp(24px,4vw,40px);line-height:1.15;color:#182033}.published-page-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}.published-page-block{min-width:0;overflow-wrap:anywhere}.published-page-block img{max-width:100%}@media(max-width:720px){.published-page-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.published-page-block{grid-column:span 2!important}}@media(max-width:420px){.published-team-page{padding:16px}}</style>" +
     "<div class='published-team-page' style='--published-page-bg:" + pageBg + ";--published-page-padding:" + pagePadding + "px'>" +
     titleHTML + "<div class='published-page-grid'>" + blocksHTML + "</div></div>";
+  renderTeamNewsSection(container, String(team.team || "").slice(-1).toUpperCase());
 }
-
+function renderTeamNewsSection(container, teamId) {
+  const id = String(teamId || "").toUpperCase();
+  if (!container || !["A", "B", "C", "D", "E"].includes(id)) return;
+  const sectionId = "team-public-news-" + id;
+  container.querySelector("#" + sectionId)?.remove();
+  const posts = (Array.isArray(socialFeedPosts) ? socialFeedPosts : [])
+    .filter(post => String(post.teamId || "").toUpperCase() === id && post.publicationStatus === "Published")
+    .slice()
+    .sort((a, b) => Number(Boolean(b.featured)) - Number(Boolean(a.featured)) || (new Date(b.publishedAt || 0).getTime() || 0) - (new Date(a.publishedAt || 0).getTime() || 0))
+    .slice(0, 3);
+  if (!posts.length) return;
+  if (!document.getElementById("team-public-news-styles")) {
+    const style = document.createElement("style");
+    style.id = "team-public-news-styles";
+    style.textContent = ".team-public-news{margin-top:22px;padding:clamp(17px,3vw,26px);border:1px solid #293f58;border-radius:16px;background:#0b1726;color:#edf3fb}.team-public-news-head{display:flex;justify-content:space-between;align-items:end;gap:14px;margin-bottom:17px}.team-public-news-eyebrow{margin:0 0 5px;color:#e0b95a;font-size:9px;font-weight:900;letter-spacing:.16em;text-transform:uppercase}.team-public-news-head h2{margin:0;font-size:clamp(19px,2.6vw,26px);letter-spacing:-.035em}.team-public-news-count{color:#93a7c0;font-size:10px;white-space:nowrap}.team-public-news-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.team-public-news-card{overflow:hidden;min-width:0;border:1px solid #2b435d;border-radius:12px;background:#102036}.team-public-news-card.is-featured{border-color:#846e3e;box-shadow:inset 0 2px #e0b95a}.team-public-news-image{display:block;width:100%;aspect-ratio:16/9;object-fit:cover;background:#08111e}.team-public-news-copy{padding:13px}.team-public-news-meta{display:flex;align-items:center;gap:7px;flex-wrap:wrap;color:#93a7c0;font-size:9px;font-weight:850;letter-spacing:.06em;text-transform:uppercase}.team-public-news-featured{color:#f4d57f}.team-public-news-copy h3{margin:9px 0 7px;font-size:13px;line-height:1.45}.team-public-news-copy p{margin:0;color:#adbed1;font-size:11px;line-height:1.65;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden;white-space:pre-line;overflow-wrap:anywhere}.team-public-news-date{display:block;margin-top:12px;color:#8096af;font-size:9px}@media(max-width:700px){.team-public-news-grid{grid-template-columns:1fr}.team-public-news-card{display:grid;grid-template-columns:minmax(100px,.36fr) minmax(0,1fr)}.team-public-news-image{height:100%;min-height:130px;aspect-ratio:auto}.team-public-news-copy{padding:12px}.team-public-news-copy p{-webkit-line-clamp:3}}";
+    document.head.appendChild(style);
+  }
+  const cards = posts.map(post => {
+    const imageUrl = /^https:\/\//i.test(String(post.imageUrl || "")) ? post.imageUrl : "";
+    const image = imageUrl ? "<img class='team-public-news-image' src='" + escapeHTML(imageUrl) + "' alt='' loading='lazy' referrerpolicy='no-referrer'>" : "";
+    const featured = post.featured ? "<span class='team-public-news-featured'>◆ Featured</span>" : "";
+    return "<article class='team-public-news-card" + (post.featured ? " is-featured" : "") + "'>" + image + "<div class='team-public-news-copy'><div class='team-public-news-meta'>" + featured + "<span>" + escapeHTML(post.category || "Team news") + "</span></div><h3>" + escapeHTML(post.title) + "</h3><p>" + escapeHTML(post.body) + "</p><time class='team-public-news-date' datetime='" + escapeHTML(post.publishedAt || "") + "'>" + escapeHTML(formatSocialDate(post.publishedAt)) + "</time></div></article>";
+  }).join("");
+  const section = document.createElement("section");
+  section.id = sectionId;
+  section.className = "team-public-news";
+  section.innerHTML = "<div class='team-public-news-head'><div><p class='team-public-news-eyebrow'>TEAM " + id + " · UPDATES</p><h2>Latest stories</h2></div><span class='team-public-news-count'>" + posts.length + (posts.length === 1 ? " published story" : " published stories") + "</span></div><div class='team-public-news-grid'>" + cards + "</div>";
+  container.appendChild(section);
+}
+function refreshRenderedTeamNews() {
+  ["A", "B", "C", "D", "E"].forEach(id => {
+    const container = document.getElementById("team-" + id.toLowerCase() + "-page");
+    if (container && (container.querySelector(".team-hero") || container.querySelector(".published-team-page"))) renderTeamNewsSection(container, id);
+  });
+}
 function loadPublishedTeamPage(teamName, container, team) {
   const teamId = String(teamName).slice(-1).toUpperCase();
   if (!/^[A-E]$/.test(teamId)) return;
   if (publishedTeamPageCache.has(teamId)) {
     const design = publishedTeamPageCache.get(teamId);
     if (design) renderPublishedTeamPage(container, design, team);
+    else renderTeamNewsSection(container, teamId);
     return;
   }
   if (publishedTeamPageRequests.has(teamId)) {
     publishedTeamPageRequests.get(teamId).then(design => {
       if (design) renderPublishedTeamPage(container, design, team);
+      else renderTeamNewsSection(container, teamId);
     }).catch(() => {});
     return;
   }
@@ -3782,14 +3819,15 @@ function loadPublishedTeamPage(teamName, container, team) {
     const design = result && result.ok && result.design && Array.isArray(result.design.blocks) ? result.design : null;
     publishedTeamPageCache.set(teamId, design);
     if (design) renderPublishedTeamPage(container, design, team);
+    else renderTeamNewsSection(container, teamId);
     return design;
   }).catch(error => {
     console.warn("Could not load published page for Team " + teamId + "; showing the original page.", error);
+    renderTeamNewsSection(container, teamId);
     throw error;
   }).finally(() => publishedTeamPageRequests.delete(teamId));
   publishedTeamPageRequests.set(teamId, request);
 }
-
 function renderTeamPage(teamName) {
   console.log("RENDERING TEAM:", teamName);
   const container =
@@ -4687,6 +4725,8 @@ function calculate() {
    START
 ========================================================= */
 
+let socialFeedPosts = [];
+let socialFeedFilter = "All posts";
 renderAdminPage();
 loadScoresFromSheet();
 loadCommunitySettings();
@@ -4695,8 +4735,6 @@ loadSocialFeed();
 
 
 /* PUBLIC SOCIAL FEED */
-let socialFeedPosts = [];
-let socialFeedFilter = "All posts";
 function formatSocialDate(value) {
   if (!value) return "Recently";
   const date = new Date(value);
@@ -4712,6 +4750,7 @@ async function loadSocialFeed() {
     if (!result || result.ok !== true || !Array.isArray(result.posts)) throw new Error(result?.error || "Feed unavailable.");
     socialFeedPosts = result.posts;
     renderSocialFeed();
+    refreshRenderedTeamNews();
   } catch (error) {
     feed.innerHTML = '<div class="social-feed-empty"><strong>News feed unavailable</strong><span>The feed service may need to be deployed or configured.</span><button type="button" class="admin-button" id="socialFeedRetry">TRY AGAIN</button></div>';
     if (count) count.textContent = "Connection unavailable";
