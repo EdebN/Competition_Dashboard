@@ -3260,8 +3260,15 @@ async function unlockAdmin() {
     adminToken = token;
     socialAdminSessionToken = "";
     try {
-      const session = await readCommunityApi("getModerationSession", { adminToken: token });
-      if (session && session.ok && session.sessionToken) socialAdminSessionToken = session.sessionToken;
+      const nonce = Array.from(crypto.getRandomValues(new Uint8Array(24))).map(byte => byte.toString(16).padStart(2, "0")).join("");
+      await postCommunityAction({ action: "createModerationSession", adminToken: token, nonce });
+      for (let attempt = 0; attempt < 5 && !socialAdminSessionToken; attempt++) {
+        await new Promise(resolve => setTimeout(resolve, 350));
+        try {
+          const session = await readCommunityApi("getModerationSession", { nonce });
+          if (session && session.ok && session.sessionToken) socialAdminSessionToken = session.sessionToken;
+        } catch {}
+      }
     } catch (sessionError) {
       console.warn("Social moderation session could not be created:", sessionError);
     }
