@@ -90,8 +90,12 @@ function formMarkup(t,list){
 }
 function withMatchViewTransition(update) {
  const reduceMotion=window.matchMedia("(prefers-reduced-motion: reduce)").matches;
- if(document.startViewTransition&&!reduceMotion) document.startViewTransition(update);
- else update();
+ const page=document.getElementById("matches-page");
+ if(document.startViewTransition&&!reduceMotion&&page) {
+   page.style.viewTransitionName="dashboard-page";
+   const transition=document.startViewTransition(update);
+   transition.finished.finally(()=>{page.style.viewTransitionName="";});
+ } else update();
 }
 function renderMatchCentre(){
  const page=document.getElementById("matches-page");if(!page)return;
