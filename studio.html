@@ -189,7 +189,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
 .toolbar-more>summary{list-style:none;display:flex;align-items:center;justify-content:center;height:31px;padding:0 10px;border:1px solid #dce2e9;border-radius:7px;background:#f8fafc;color:#293b52;font-size:11px;font-weight:850;cursor:pointer;white-space:nowrap}
 .toolbar-more>summary::-webkit-details-marker{display:none}
 .toolbar-more[open]>summary{background:#eaf2fa;border-color:#b9d4ed}
-.toolbar-more-panel{position:absolute;top:calc(100% + 9px);right:0;width:min(410px,calc(100vw - 24px));max-height:min(65vh,540px);overflow:auto;padding:14px;border:1px solid #d6dee8;border-radius:12px;background:#fff;color:#182333;box-shadow:0 16px 42px #14253c30}
+.toolbar-more-panel{position:fixed;z-index:75;top:0;left:0;right:auto;width:min(410px,calc(100vw - 24px));max-height:min(65vh,540px);overflow:auto;padding:14px;border:1px solid #d6dee8;border-radius:12px;background:#fff;color:#182333;box-shadow:0 16px 42px #14253c30}
 .toolbar-panel-heading{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 9px;color:#53647a;font-size:10px;font-weight:900;letter-spacing:.1em;text-transform:uppercase}
 .toolbar-panel-heading:not(:first-child){margin-top:15px;padding-top:13px;border-top:1px solid #e5e9ef}
 .toolbar-more-panel .field{gap:5px;margin:0 0 10px}
@@ -541,6 +541,13 @@ function renderToolbar(){
  html+='</div></details><button type="button" class="toolbar-icon-button" id="tb-duplicate" title="Duplicate element" aria-label="Duplicate element">▢</button><button type="button" class="toolbar-icon-button toolbar-delete" id="tb-delete" title="Delete element" aria-label="Delete element">×</button></div>';
  floatingToolbar.innerHTML=html;
  floatingToolbar.hidden=false;
+ const moreMenu=floatingToolbar.querySelector(".toolbar-more");
+ moreMenu?.addEventListener("toggle",()=>{
+  if(moreMenu.open)requestAnimationFrame(positionMorePanel);
+ });
+ moreMenu?.querySelector("summary")?.addEventListener("click",()=>{
+  requestAnimationFrame(positionMorePanel);
+ });
 
  const bindValue=(id,key,parse=value=>value,{live=true}={})=>{
   const input=$(id);if(!input)return;
@@ -684,6 +691,23 @@ function startElementResize(event,id,axis,handle){
  window.addEventListener("pointercancel",onCancel,{once:true});
  try{handle.setPointerCapture(event.pointerId);}catch(error){}
 }
+function positionMorePanel(){
+ const menu=floatingToolbar?.querySelector(".toolbar-more");
+ const panel=menu?.querySelector(".toolbar-more-panel");
+ const summary=menu?.querySelector("summary");
+ if(!menu||!panel||!summary||!menu.open)return;
+ panel.style.left="0px";panel.style.top="0px";panel.style.right="auto";
+ const trigger=summary.getBoundingClientRect();
+ const box=panel.getBoundingClientRect();
+ const margin=12,gap=8;
+ let left=trigger.right-box.width;
+ left=Math.max(margin,Math.min(left,window.innerWidth-box.width-margin));
+ let top=trigger.bottom+gap;
+ if(top+box.height>window.innerHeight-margin)top=trigger.top-box.height-gap;
+ top=Math.max(margin,Math.min(top,window.innerHeight-box.height-margin));
+ panel.style.left=Math.round(left)+"px";
+ panel.style.top=Math.round(top)+"px";
+}
 function positionToolbar(){
  if(!floatingToolbar||floatingToolbar.hidden)return;
  const b=blocks.find(x=>x.id===selected);
@@ -703,6 +727,7 @@ function positionToolbar(){
  top=Math.max(minTop,Math.min(top,window.innerHeight-toolbarRect.height-8));
  floatingToolbar.style.left=Math.round(left)+"px";
  floatingToolbar.style.top=Math.round(top)+"px";
+ positionMorePanel();
 }
 function add(type){const b=makeBlock(type);blocks.push(b);selected=b.id;pushHistory();render();}
 document.querySelectorAll("[data-add]").forEach(btn=>btn.addEventListener("click",()=>add(btn.dataset.add)));
