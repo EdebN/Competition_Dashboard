@@ -90,7 +90,7 @@ function doGet(e) {
     } else if (action === "getTeamSocialStatus") {
       result = readTeamSocialStatus_(params.teamId, params.sessionToken);
     } else if (action === "getModerationSession") {
-      result = createModerationSession_(params.adminToken);
+      result = consumeModerationSession_(params.nonce);
     } else if (action === "getModerationQueue") {
       if (!getModerationSession_(params.sessionToken)) result = { ok: false, error: "Admin session expired." };
       else result = { ok: true, posts: readModerationPosts_(), bans: readSocialBans_(), audit: readSocialAudit_() };
@@ -135,7 +135,7 @@ function doPost(e) {
     });
   }
 
-  if (!["updateTeamSettings", "updateCompetitionSettings", "updateTeamEditorPin", "saveTeamPageDesign", "publishTeamPage", "revertTeamPage", "submitFeatureRequest", "submitMatchVote", "submitSocialPost", "moderateSocialPost", "markSocialPostViewed", "setSocialPostingBan"].includes(body.action)) {
+  if (!["updateTeamSettings", "updateCompetitionSettings", "updateTeamEditorPin", "saveTeamPageDesign", "publishTeamPage", "revertTeamPage", "submitFeatureRequest", "submitMatchVote", "submitSocialPost", "createModerationSession", "moderateSocialPost", "markSocialPostViewed", "setSocialPostingBan"].includes(body.action)) {
     return jsonResponse_({
       ok: false,
       service: SERVICE_NAME,
@@ -145,6 +145,7 @@ function doPost(e) {
 
   if (body.action === "submitFeatureRequest") return submitFeatureRequest_(body);
   if (body.action === "submitSocialPost") return submitSocialPost_(body);
+  if (body.action === "createModerationSession") return requestModerationSession_(body);
   if (["moderateSocialPost", "markSocialPostViewed", "setSocialPostingBan"].includes(body.action)) return handleSocialModeration_(body);
   if (body.action === "submitMatchVote") return submitMatchVote_(body);
   if (body.action === "saveTeamPageDesign") return saveTeamPageDesign_(body);
@@ -769,7 +770,8 @@ function readModerationPosts_(){return allSocialPosts_().sort((a,b)=>String(b.su
 function readSocialBans_(){const sh=socialBansSheet_(),n=sh.getLastRow(),out={};if(n<2)return out;sh.getRange(2,1,n-1,4).getDisplayValues().forEach(r=>{const id=String(r[0]).toUpperCase();if(TEAM_IDS.includes(id))out[id]={banned:String(r[1]).toLowerCase()==="true",reason:String(r[2]||""),updatedAt:String(r[3]||"")};});return out;}
 function readSocialAudit_(){const sh=socialAuditSheet_(),n=sh.getLastRow();if(n<2)return [];return sh.getRange(Math.max(2,n-99),1,Math.min(100,n-1),6).getDisplayValues().reverse().map(r=>({timestamp:r[0],action:r[1],postId:r[2],teamId:r[3],actor:r[4],reason:r[5]}));}
 function logSocial_(action,id,team,actor,reason){socialAuditSheet_().appendRow([new Date(),action,id||"",team||"",actor||"Admin",String(reason||"").slice(0,500)]);}
-function createModerationSession_(token){const expected=PropertiesService.getScriptProperties().getProperty("ADMIN_TOKEN");if(!expected||String(token||"")!==expected)return {ok:false,error:"Admin token rejected."};const t=Utilities.getUuid().replace(/-/g,"")+Utilities.getUuid().replace(/-/g,"");CacheService.getScriptCache().put("socialAdminSession:"+t,"admin",1800);return {ok:true,sessionToken:t,expiresIn:1800};}
+function requestModerationSession_(b){const expected=PropertiesService.getScriptProperties().getProperty("ADMIN_TOKEN"),nonce=String(b.nonce||"");if(!expected||String(b.adminToken||"")!==expected)return jsonResponse_({ok:false,error:"Admin token rejected."});if(!/^[a-f0-9]{32,64}$/.test(nonce))return jsonResponse_({ok:false,error:"Invalid session challenge."});const t=Utilities.getUuid().replace(/-/g,"")+Utilities.getUuid().replace(/-/g,"");const cache=CacheService.getScriptCache();cache.put("socialAdminSession:"+t,"admin",1800);cache.put("socialSessionExchange:"+nonce,t,60);return jsonResponse_({ok:true,queued:true});}
+function consumeModerationSession_(nonce){const n=String(nonce||"");if(!/^[a-f0-9]{32,64}$/.test(n))return {ok:false,error:"Invalid session challenge."};const cache=CacheService.getScriptCache(),key="socialSessionExchange:"+n,t=cache.get(key);if(!t)return {ok:false,error:"Session exchange pending. Try again."};cache.remove(key);return {ok:true,sessionToken:t,expiresIn:1800};}
 function getModerationSession_(token){return /^[a-f0-9]{64}$/.test(String(token||""))&&CacheService.getScriptCache().get("socialAdminSession:"+token)==="admin";}
 function findSocialPost_(id){const sh=socialPostsSheet_(),n=sh.getLastRow();if(n<2)return {sheet:sh,row:0};const ids=sh.getRange(2,1,n-1,1).getDisplayValues();for(let i=0;i<ids.length;i++)if(ids[i][0]===String(id))return {sheet:sh,row:i+2};return {sheet:sh,row:0};}
 function submitSocialPost_(b){const team=String(b.teamId||"").toUpperCase(),title=String(b.title||"").trim(),body=String(b.body||"").trim(),category=String(b.category||"Team news"),image=String(b.imageUrl||"").trim();if(!TEAM_IDS.includes(team)||getSessionTeam_(b.sessionToken)!==team)return jsonResponse_({ok:false,error:"Team Studio session expired."});if(title.length<3||title.length>120)return jsonResponse_({ok:false,error:"Headline must be 3–120 characters."});if(body.length<10||body.length>5000)return jsonResponse_({ok:false,error:"Post text must be 10–5000 characters."});if(!["Announcements","Match reports","Team news"].includes(category))return jsonResponse_({ok:false,error:"Invalid category."});if(image&&(!image.toLowerCase().startsWith("https://")||image.length>1000))return jsonResponse_({ok:false,error:"Image must be an HTTPS URL."});const bans=readSocialBans_();if(bans[team]&&bans[team].banned)return jsonResponse_({ok:false,error:"This team is blocked from submitting posts."});const lock=LockService.getScriptLock();if(!lock.tryLock(5000))return jsonResponse_({ok:false,error:"Service busy."});try{const sh=socialPostsSheet_();if(sh.getLastRow()>5000)return jsonResponse_({ok:false,error:"Post archive is full."});const id=Utilities.getUuid(),now=new Date();sh.appendRow([id,now,team,title,body,image,category,"Unviewed","Pending","",now,"",false]);logSocial_("Submitted",id,team,"Team "+team,"");return jsonResponse_({ok:true,saved:true,postId:id});}catch(e){console.error(e);return jsonResponse_({ok:false,error:"Could not save post."});}finally{lock.releaseLock();}}
