@@ -2552,3 +2552,169 @@ main { gap:22px; }
   #socials-page .social-post p { font-size:13px; }
   #socials-page .social-feed-footer { padding:14px 16px; }
 }
+
+
+
+/* BUILT-IN TEAM PROFILE: aligned with the dashboard's dark slate theme */
+.team-page {
+  color: #f4f7fb;
+}
+.team-page > .team-hero {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  margin-bottom: 16px;
+  padding: clamp(24px, 4vw, 42px);
+  border: 1px solid #293747;
+  border-radius: 18px;
+  background:
+    radial-gradient(ellipse at 90% 0%, rgba(224, 185, 90, .13), transparent 48%),
+    linear-gradient(135deg, #141c27 0%, #10141b 62%, #0c1119 100%);
+}
+.team-page > .team-hero::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  right: -44px;
+  bottom: -100px;
+  width: 230px;
+  height: 230px;
+  border: 1px solid rgba(224, 185, 90, .13);
+  border-radius: 50%;
+  box-shadow: 0 0 0 24px rgba(224, 185, 90, .025), 0 0 0 50px rgba(224, 185, 90, .02);
+  pointer-events: none;
+}
+.team-page .team-page-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 15px;
+  padding: 6px 9px;
+  border: 1px solid rgba(224, 185, 90, .3);
+  border-radius: 999px;
+  background: rgba(224, 185, 90, .07);
+  color: #e0b95a;
+  font-size: 9px;
+  letter-spacing: .16em;
+}
+.team-page .team-page-label::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #e0b95a;
+  box-shadow: 0 0 9px rgba(224, 185, 90, .55);
+}
+.team-page .team-page-name {
+  max-width: 850px;
+  font-size: clamp(30px, 5vw, 46px);
+  line-height: 1.06;
+  letter-spacing: -.05em;
+}
+.team-page .team-page-subtitle {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 13px;
+  color: #a4b1c2;
+  font-size: 12px;
+  font-weight: 600;
+}
+.team-page .team-stat-grid {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0 0 20px;
+}
+.team-page .team-stat {
+  min-width: 0;
+  padding: 17px 16px;
+  border: 1px solid #222e3b;
+  border-radius: 13px;
+  background: linear-gradient(155deg, #121923, #0d1219);
+  transition: border-color .16s ease, transform .16s ease, background .16s ease;
+}
+.team-page .team-stat:hover {
+  transform: translateY(-2px);
+  border-color: #3a4858;
+  background: linear-gradient(155deg, #17212d, #101720);
+}
+.team-page .team-stat-label {
+  color: #8d9aac;
+  font-size: 9px;
+  letter-spacing: .13em;
+}
+.team-page .team-stat-value {
+  margin-top: 9px;
+  color: #f4f7fb;
+  font-size: clamp(20px, 2.1vw, 27px);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -.04em;
+}
+.team-page > .card {
+  margin-bottom: 16px;
+  padding: clamp(17px, 2.5vw, 25px);
+  border: 1px solid #222e3b;
+  border-radius: 15px;
+  background: linear-gradient(155deg, #111822, #0d1219);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, .12);
+}
+.team-page > .card > .section-title {
+  margin-bottom: 7px;
+  color: #d0ad55;
+  font-size: 9px;
+  letter-spacing: .16em;
+}
+.team-page > .card > h2 {
+  margin-bottom: 18px;
+  color: #f4f7fb;
+  font-size: clamp(18px, 2.3vw, 22px);
+  letter-spacing: -.035em;
+}
+.team-page .team-form-item,
+.team-page .team-match-row,
+.team-page .team-elo-row {
+  border-color: #202b38;
+  border-radius: 10px;
+  background: #0a0f16;
+}
+.team-page .team-form-item:hover,
+.team-page .team-match-row:hover,
+.team-page .team-elo-row:hover {
+  border-color: #56677a;
+  background: #141c27;
+}
+.team-page .team-form-game,
+.team-page .team-match-game,
+.team-page .team-elo-game {
+  color: #8593a5;
+}
+.team-page .team-form-opponent,
+.team-page .team-match-opponent,
+.team-page .team-elo-opponent {
+  color: #e2e9f2;
+}
+.team-page .team-form-score,
+.team-page .team-match-score,
+.team-page .team-elo-score,
+.team-page .team-elo-after {
+  color: #f4f7fb;
+  font-variant-numeric: tabular-nums;
+}
+.team-page .empty {
+  border-color: #293747;
+  background: rgba(8, 12, 18, .35);
+}
+@media (max-width: 1100px) {
+  .team-page .team-stat-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 700px) {
+  .team-page .team-stat-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .team-page > .team-hero { padding: 23px 19px; }
+  .team-page > .card { padding: 16px; }
+  .team-page .team-stat { padding: 14px 12px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .team-page .team-stat { transition: none; }
+  .team-page .team-stat:hover { transform: none; }
+}
+
