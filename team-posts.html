@@ -106,10 +106,7 @@ footer{padding:18px;text-align:center;color:#6f859e;font-size:10px}
           <input id="postTitle" name="title" type="text" required minlength="3" maxlength="120" placeholder="What happened?" autocomplete="off">
           <div class="field-meta"><span>3–120 characters</span><output id="titleCount">0 / 120</output></div>
         </div>
-        <div class="row">
-          <div class="field"><label for="postCategory">Category</label><select id="postCategory" name="category"><option>Team news</option><option>Announcements</option><option>Match reports</option></select></div>
-          <div class="field"><label for="postImage">Image URL <span style="font-weight:500;text-transform:none">(optional)</span></label><input id="postImage" name="imageUrl" type="url" inputmode="url" placeholder="https://…" maxlength="1000"><small>Use a publicly accessible HTTPS image URL. Posts without images are fine.</small></div>
-        </div>
+        <div class="field"><label for="postCategory">Category</label><select id="postCategory" name="category"><option>Team news</option><option>Announcements</option><option>Match reports</option></select></div>
         <div class="field">
           <label for="postBody">Post</label>
           <textarea id="postBody" name="body" required minlength="10" maxlength="5000" placeholder="Write the story. Include the key details and keep it readable." ></textarea>
@@ -227,14 +224,14 @@ $("refreshPosts").addEventListener("click",()=>loadStatus());
 $("postForm").addEventListener("submit",async event=>{
  event.preventDefault();
  if(!teamStatus||teamStatus.banned){showStatus("Posting is currently unavailable for this team.","error");return;}
- const title=$("postTitle").value.trim(),body=$("postBody").value.trim(),category=$("postCategory").value,imageUrl=$("postImage").value.trim();
+ const title=$("postTitle").value.trim(),body=$("postBody").value.trim(),category=$("postCategory").value;
  if(title.length<3||title.length>120){showStatus("Headline must be 3–120 characters.","error");return;}
  if(body.length<10||body.length>5000){showStatus("Post text must be 10–5,000 characters.","error");return;}
- if(imageUrl&&(!imageUrl.toLowerCase().startsWith("https://")||imageUrl.length>1000)){showStatus("Image URLs must use HTTPS and be no longer than 1,000 characters.","error");return;}
+ 
  const knownIds=new Set((teamStatus.posts||[]).map(post=>post.postId));
  const button=$("submitPost");setSubmitting(true);button.textContent="Submitting…";showStatus("Sending your post and verifying the submission…","info");
  try{
-  await postAction({action:"submitSocialPost",teamId:TEAM_ID,sessionToken:SESSION_TOKEN,title,body,category,imageUrl});
+  await postAction({action:"submitSocialPost",teamId:TEAM_ID,sessionToken:SESSION_TOKEN,title,body,category});
   let verifiedPost=null,lastError=null;
   for(let attempt=0;attempt<8;attempt++){
    await new Promise(resolve=>setTimeout(resolve,500+attempt*250));
