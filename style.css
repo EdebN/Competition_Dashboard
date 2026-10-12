@@ -2916,11 +2916,12 @@ select {
   animation: dashboard-view-in 190ms var(--motion-ease) both;
 }
 @keyframes dashboard-view-out {
-  to { opacity: 0; }
+  from { opacity: 1; transform: translateX(0); }
+  to { opacity: .72; transform: translateX(-18px); }
 }
 @keyframes dashboard-view-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from { opacity: .72; transform: translateX(18px); }
+  to { opacity: 1; transform: translateX(0); }
 }
 
 /* Ladder: animate its measured height, not just the visibility of extra rows. */
@@ -3030,4 +3031,33 @@ select {
 
 @media (prefers-reduced-motion: reduce) {
   #matches-page .match-filter.active { transition: none; }
+}
+
+
+/* Sliding interactions: one moving indicator, never a duplicate page snapshot. */
+#matches-page .match-filters { position: relative; isolation: isolate; }
+#matches-page .match-filter-indicator {
+  position: absolute; z-index: 0; border: 1px solid #303b48; border-radius: 7px;
+  background: #1a222c; pointer-events: none;
+  transition: left 240ms cubic-bezier(.2,.7,.25,1), top 240ms cubic-bezier(.2,.7,.25,1),
+              width 240ms cubic-bezier(.2,.7,.25,1), height 240ms cubic-bezier(.2,.7,.25,1);
+}
+#matches-page .match-filters > .match-filter[data-filter] {
+  position: relative; z-index: 1; border-color: transparent; background: transparent;
+}
+#matches-page .match-filters > .match-filter[data-filter].active {
+  border-color: transparent; background: transparent; color: #fff;
+}
+#socials-page .social-feed-filters { position: relative; }
+#socials-page .social-filter-indicator {
+  position: absolute; z-index: 0; height: 3px; border-radius: 3px 3px 0 0;
+  background: #e0b95a; pointer-events: none;
+  transition: left 250ms cubic-bezier(.2,.7,.25,1), top 250ms cubic-bezier(.2,.7,.25,1),
+              width 250ms cubic-bezier(.2,.7,.25,1);
+}
+#socials-page .social-filter { position: relative; z-index: 1; }
+#socials-page .social-filter.is-active::after { content: none !important; }
+@media (prefers-reduced-motion: reduce) {
+  #matches-page .match-filter-indicator, #socials-page .social-filter-indicator { transition: none !important; }
+  ::view-transition-old(dashboard-page), ::view-transition-new(dashboard-page) { animation: none !important; }
 }
