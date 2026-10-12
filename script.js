@@ -3289,24 +3289,62 @@ let currentPage = "home";
 let selectedTeamIndex = 0;
 let teamWheelRotation = 0;
 
+function setPrimaryMenuOpen(open) {
+  const menu = document.getElementById("primary-nav");
+  const toggle = document.getElementById("menu-toggle");
+  if (!menu || !toggle) return;
+  clearTimeout(window.__primaryMenuCloseTimer);
+
+  if (open) {
+    menu.hidden = false;
+    menu.classList.remove("is-closing");
+    toggle.setAttribute("aria-expanded", "true");
+    toggle.setAttribute("aria-label", "Close navigation menu");
+    toggle.classList.add("is-open");
+    requestAnimationFrame(() => menu.classList.add("is-open"));
+    return;
+  }
+
+  menu.classList.remove("is-open");
+  menu.classList.add("is-closing");
+  toggle.setAttribute("aria-expanded", "false");
+  toggle.setAttribute("aria-label", "Open navigation menu");
+  toggle.classList.remove("is-open");
+  window.__primaryMenuCloseTimer = setTimeout(() => {
+    menu.hidden = true;
+    menu.classList.remove("is-closing");
+  }, 240);
+}
+
+let pageTransitionTimer = null;
+
 function showPage(pageName) {
   updateTeamNavNames();
-  const menu = document.getElementById("primary-nav");
-  const menuToggle = document.getElementById("menu-toggle");
-  if (menu && menuToggle) {
-    menu.hidden = true;
-    menuToggle.setAttribute("aria-expanded", "false");
-    menuToggle.setAttribute("aria-label", "Open navigation menu");
-    menuToggle.classList.remove("is-open");
-  }
+  setPrimaryMenuOpen(false);
+
   const isTeamProfile = /^team-[a-e]$/.test(pageName);
   const navPageName = isTeamProfile ? "teams" : pageName === "finals" ? "matches" : pageName;
   const page = document.getElementById(`${pageName}-page`);
   const button = document.querySelector(`.nav-button[data-page="${navPageName}"]`);
   if (!page || !button) return;
 
-  document.querySelectorAll(".page").forEach(item => item.classList.remove("active-page"));
+  const outgoing = document.querySelector(".page.active-page");
+  document.querySelectorAll(".page.is-leaving").forEach(item => item.classList.remove("is-leaving"));
+  if (pageTransitionTimer) clearTimeout(pageTransitionTimer);
+
+  if (outgoing && outgoing !== page) {
+    outgoing.classList.remove("active-page");
+    outgoing.classList.add("is-leaving");
+    pageTransitionTimer = setTimeout(() => {
+      outgoing.classList.remove("is-leaving");
+    }, 260);
+  }
+
+  document.querySelectorAll(".page").forEach(item => {
+    if (item !== page && item !== outgoing) item.classList.remove("active-page");
+  });
   document.querySelectorAll(".nav-button").forEach(item => item.classList.remove("active"));
+  page.classList.remove("is-leaving");
   page.classList.add("active-page");
   button.classList.add("active");
   currentPage = pageName;
@@ -3340,18 +3378,11 @@ const menuToggle = document.getElementById("menu-toggle");
 const primaryNav = document.getElementById("primary-nav");
 if (menuToggle && primaryNav) {
   menuToggle.addEventListener("click", () => {
-    const opening = primaryNav.hidden;
-    primaryNav.hidden = !opening;
-    menuToggle.setAttribute("aria-expanded", String(opening));
-    menuToggle.setAttribute("aria-label", opening ? "Close navigation menu" : "Open navigation menu");
-    menuToggle.classList.toggle("is-open", opening);
+    setPrimaryMenuOpen(!primaryNav.classList.contains("is-open"));
   });
   document.addEventListener("keydown", event => {
-    if (event.key === "Escape" && !primaryNav.hidden) {
-      primaryNav.hidden = true;
-      menuToggle.setAttribute("aria-expanded", "false");
-      menuToggle.setAttribute("aria-label", "Open navigation menu");
-      menuToggle.classList.remove("is-open");
+    if (event.key === "Escape" && primaryNav.classList.contains("is-open")) {
+      setPrimaryMenuOpen(false);
       menuToggle.focus();
     }
   });
@@ -3365,9 +3396,44 @@ if (ladderExpand) {
     const tableWrap = card.querySelector(".table-wrap");
     const expanded = !card.classList.contains("ladder-expanded");
 
-    // Always restore the default left edge before changing the table layout.
-    if (tableWrap) tableWrap.scrollLeft = 0;
-    card.classList.toggle("ladder-expanded", expanded);
+    if (!tableWrap) {
+      card.classList.toggle("ladder-expanded", expanded);
+    } else {
+      const startHeight = tableWrap.getBoundingClientRect().height;
+      tableWrap.style.maxHeight = startHeight + "px";
+      tableWrap.classList.add("is-height-animating");
+      if (expanded) {
+        card.classList.add("ladder-expanded");
+      } else {
+        // Measure the compact layout without leaving it on screen.
+        card.classList.remove("ladder-expanded");
+        const targetHeight = tableWrap.scrollHeight;
+        card.classList.add("ladder-expanded");
+        requestAnimationFrame(() => {
+          tableWrap.style.maxHeight = startHeight + "px";
+          requestAnimationFrame(() => {
+            card.classList.remove("ladder-expanded");
+            tableWrap.style.maxHeight = targetHeight + "px";
+          });
+        });
+      }
+
+      if (expanded) {
+        requestAnimationFrame(() => {
+          tableWrap.style.maxHeight = tableWrap.scrollHeight + "px";
+        });
+      }
+
+      const finishHeightAnimation = event => {
+        if (event.propertyName !== "max-height") return;
+        tableWrap.removeEventListener("transitionend", finishHeightAnimation);
+        tableWrap.classList.remove("is-height-animating");
+        tableWrap.style.maxHeight = "";
+        tableWrap.scrollLeft = 0;
+      };
+      tableWrap.addEventListener("transitionend", finishHeightAnimation);
+    }
+
     ladderExpand.setAttribute("aria-expanded", String(expanded));
     ladderExpand.innerHTML = expanded
       ? 'Compact view <span aria-hidden="true">←</span>'
