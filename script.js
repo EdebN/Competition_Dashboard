@@ -3380,59 +3380,8 @@ if (menuToggle && primaryNav) {
   });
 }
 
-const ladderExpand = document.getElementById("ladder-expand");
-if (ladderExpand) {
-  ladderExpand.addEventListener("click", () => {
-    const card = document.querySelector(".home-ladder-card");
-    const tableWrap = card?.querySelector(".table-wrap");
-    if (!card || !tableWrap || tableWrap.dataset.animating === "true") return;
+// The competition ladder is permanently expanded; no toggle is required.
 
-    const expanded = !card.classList.contains("ladder-expanded");
-    const startHeight = tableWrap.getBoundingClientRect().height;
-    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    tableWrap.dataset.animating = "true";
-    tableWrap.classList.add("is-height-animating");
-
-    let targetHeight;
-    if (expanded) {
-      card.classList.add("ladder-expanded");
-      targetHeight = tableWrap.scrollHeight;
-    } else {
-      card.classList.remove("ladder-expanded");
-      targetHeight = tableWrap.scrollHeight;
-      card.classList.add("ladder-expanded");
-    }
-
-    tableWrap.style.height = startHeight + "px";
-    tableWrap.style.maxHeight = "none";
-    tableWrap.getBoundingClientRect();
-
-    const finish = () => {
-      if (!expanded) card.classList.remove("ladder-expanded");
-      tableWrap.style.height = "";
-      tableWrap.style.maxHeight = "";
-      tableWrap.classList.remove("is-height-animating");
-      delete tableWrap.dataset.animating;
-      tableWrap.scrollLeft = 0;
-    };
-
-    if (reduceMotion || Math.abs(targetHeight - startHeight) < 1) {
-      finish();
-    } else {
-      const animation = tableWrap.animate(
-        [{ height: startHeight + "px" }, { height: targetHeight + "px" }],
-        { duration: 360, easing: "cubic-bezier(.2,.7,.25,1)" }
-      );
-      animation.onfinish = finish;
-      animation.oncancel = finish;
-    }
-
-    ladderExpand.setAttribute("aria-expanded", String(expanded));
-    ladderExpand.innerHTML = expanded
-      ? 'Compact view <span aria-hidden="true">←</span>'
-      : 'More stats <span aria-hidden="true">→</span>';
-  });
-}
 
 function syncTeamWheelNames() {
   const names = getTeamNames();
@@ -4846,17 +4795,17 @@ function renderSocialFeed() {
   }).join("");
 }
 document.querySelectorAll("[data-social-filter]").forEach(button => button.addEventListener("click", () => {
-  const applySocialFilter = () => {
-    socialFeedFilter = button.dataset.socialFilter || "All posts";
-    document.querySelectorAll("[data-social-filter]").forEach(item => item.classList.toggle("is-active", item === button));
-    renderSocialFeed();
-  };
+  const filter = button.dataset.socialFilter || "All posts";
+  if (filter === socialFeedFilter) return;
+  socialFeedFilter = filter;
+  document.querySelectorAll("[data-social-filter]").forEach(item => item.classList.toggle("is-active", item === button));
+  // Do not transition the document root: that causes the entire screen to flash.
+  const shell = document.querySelector("#socials-page .social-feed-shell");
   const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  if (document.startViewTransition && !reduceMotion) {
-    document.startViewTransition(applySocialFilter);
-  } else {
-    applySocialFilter();
+  if (shell && shell.animate && !reduceMotion) {
+    shell.animate([{opacity:.82},{opacity:1}], {duration:180,easing:"ease-out"});
   }
+  renderSocialFeed();
 }));
 
 /* ADMIN SOCIAL MODERATION */
