@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Competition Dashboard</title>
-  <link rel="stylesheet" href="style.css?v=redesign-pointer-clearance-20261012">
+  <link rel="stylesheet" href="style.css?v=home-shell-20261012">
 </head>
 
 <body>
@@ -12,19 +12,29 @@
   <div class="app">
 
     <header class="topbar">
+      <button class="brand-lockup" type="button" data-page="home" aria-label="Competition Dashboard home">
+        <span class="brand-mark" aria-hidden="true">C</span>
+        <span class="brand-copy">
+          <span class="brand-kicker">THE COMPETITION</span>
+          <span class="subtitle">Competition Dashboard</span>
+        </span>
+      </button>
 
-      <div>
-        <div class="subtitle">Competition Dashboard</div>
+      <div class="header-actions">
+        <span class="header-season"><span class="status-dot"></span> LIVE COMPETITION</span>
+        <button class="menu-toggle" id="menu-toggle" type="button" aria-expanded="false" aria-controls="primary-nav" aria-label="Open navigation menu">
+          <span></span><span></span><span></span>
+        </button>
       </div>
 
-      <nav class="page-nav" aria-label="Main navigation">
-        <button class="nav-button active" data-page="home">HOME</button>
-        <button class="nav-button" data-page="teams">TEAMS</button>
-        <button class="nav-button" data-page="matches">MATCHES</button>
-        <button class="nav-button" data-page="socials">SOCIALS</button>
-        <button class="nav-button" data-page="admin">ADMIN</button>
+      <nav class="page-nav" id="primary-nav" aria-label="Main navigation" hidden>
+        <button class="nav-button active" data-page="home">Home</button>
+        <button class="nav-button" data-page="teams">Teams</button>
+        <button class="nav-button" data-page="matches">Matches</button>
+        <button class="nav-button" data-page="socials">Socials</button>
+        <div class="nav-menu-divider"></div>
+        <button class="nav-button nav-admin" data-page="admin">Admin portal <span aria-hidden="true">↗</span></button>
       </nav>
-
     </header>
 
 
@@ -33,32 +43,53 @@
       <!-- HOME -->
 
       <div id="home-page" class="page active-page">
-
-        <section class="card">
-
-          <div class="section-title">
-            STANDINGS
+        <section class="home-hero">
+          <div class="home-hero-copy">
+            <div class="hero-eyebrow"><span class="hero-line"></span> THE SEASON, AT A GLANCE</div>
+            <h1>Every match<br><span>moves the ladder.</span></h1>
+            <p>Follow the standings, track the latest results and see what comes next.</p>
+            <div class="hero-actions">
+              <button type="button" class="hero-primary" data-page="matches">Explore matches <span aria-hidden="true">↗</span></button>
+              <button type="button" class="hero-secondary" data-page="teams">Meet the teams</button>
+            </div>
           </div>
-
-          <h2>Ladder</h2>
-
-          <div id="ladder"></div>
-
+          <div class="hero-graphic" aria-hidden="true">
+            <div class="hero-orbit hero-orbit-one"></div>
+            <div class="hero-orbit hero-orbit-two"></div>
+            <div class="hero-core">C<span>·</span></div>
+            <div class="hero-coordinate hero-coordinate-top">COMPETITION<br>EST. SEASON</div>
+            <div class="hero-coordinate hero-coordinate-bottom">5 TEAMS <span>/</span> ONE LADDER</div>
+          </div>
+          <div class="hero-index"><span>01</span> OVERVIEW <i></i> <span>02</span> MATCHDAY</div>
         </section>
 
+        <section class="home-content-grid">
+          <section class="card home-ladder-card">
+            <div class="home-section-heading">
+              <div><div class="section-title">THE TABLE</div><h2>Competition ladder</h2></div>
+              <span class="home-section-index">01 / STANDINGS</span>
+            </div>
+            <div id="ladder"></div>
+            <button type="button" class="text-action" id="ladder-expand">Show full ladder <span aria-hidden="true">↓</span></button>
+          </section>
 
-        <section class="card">
-
-          <div class="section-title">
-            MATCHES
-          </div>
-
-          <h2>Games</h2>
-
-          <div id="games"></div>
-
+          <section class="card home-match-card">
+            <div class="home-section-heading">
+              <div><div class="section-title">THE ACTION</div><h2>Matchday</h2></div>
+              <button type="button" class="text-action compact-action" data-page="matches">All matches <span aria-hidden="true">↗</span></button>
+            </div>
+            <div class="home-match-columns">
+              <section class="home-match-group">
+                <div class="home-subheading"><span class="match-status-dot result-dot"></span> LATEST RESULTS</div>
+                <div id="home-latest-results" class="home-match-list"><div class="empty">Loading results…</div></div>
+              </section>
+              <section class="home-match-group">
+                <div class="home-subheading"><span class="match-status-dot upcoming-dot"></span> UP NEXT</div>
+                <div id="home-upcoming-matches" class="home-match-list"><div class="empty">Loading fixtures…</div></div>
+              </section>
+            </div>
+          </section>
         </section>
-
 
         <section class="card elo-card">
 
@@ -166,7 +197,7 @@
 
   </div>
 
-  <script src="script.js?v=redesign-wheel-20261012"></script>
+  <script src="script.js?v=home-shell-20261012"></script>
   <script src="match-page.js?v=match-polls-20261010b"></script>
 
 </body>
