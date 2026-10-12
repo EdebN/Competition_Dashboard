@@ -30,14 +30,21 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
 .primary{background:var(--accent);border-color:var(--accent);color:#101b2a;font-weight:850}
 .primary:hover:not(:disabled){background:var(--accent-bright);border-color:var(--accent-bright);color:#101b2a}
 #publishTeamPageBtn{box-shadow:0 5px 18px #e0b95a20}
-.workspace{display:grid;grid-template-columns:76px minmax(0,1fr) 310px;min-height:calc(100vh - 64px);align-items:stretch}
-.sidebar{padding:14px 12px;background:rgba(13,26,43,.96);border-right:1px solid var(--line);min-width:0}
-.left-tools{padding:10px 8px;display:flex;flex-direction:column;align-items:stretch;gap:7px}
-.tool{width:100%;min-height:64px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;text-align:center;padding:7px 4px;border-radius:10px;background:transparent;border-color:transparent;color:#b9c9dc}
+.workspace{display:grid;grid-template-columns:224px minmax(0,1fr) 300px;min-height:calc(100vh - 64px);align-items:stretch}
+.sidebar{padding:14px 12px;background:rgba(13,26,43,.97);border-right:1px solid var(--line);min-width:0}
+.left-tools{padding:18px 14px;display:flex;flex-direction:column;align-items:stretch;gap:10px;overflow-y:auto}
+.tool-search{width:100%;background:#081522;color:var(--text);border:1px solid #304760;border-radius:10px;padding:11px 12px;font-size:12px}
+.tool-search:focus{outline:2px solid var(--accent2);outline-offset:1px}
+.tool-category{font-size:10px;font-weight:850;letter-spacing:.12em;text-transform:uppercase;color:#8fa7c1;margin:9px 0 0}
+.tool-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.tool{min-width:0;min-height:82px;display:flex;flex-direction:column;align-items:flex-start;justify-content:space-between;gap:12px;text-align:left;padding:12px;border-radius:11px;background:#12243a;border:1px solid #243e59;color:#d5e1ef}
 .tool span:first-child{font-size:23px;line-height:1;color:var(--accent-bright)}
-.tool small{font-size:10px;font-weight:700;color:inherit}
-.tool:hover:not(:disabled){background:#1a3049;border-color:#35516e;color:white}
-.tool:active:not(:disabled){background:#263d57}
+.tool small{font-size:11px;font-weight:750;color:inherit}
+.tool:hover:not(:disabled){background:#1a3049;border-color:#6383a4;color:white;transform:translateY(-1px)}
+.tool:active:not(:disabled){background:#263d57;transform:translateY(0)}
+.tool[hidden]{display:none!important}
+.tool-empty{display:none;color:var(--muted);font-size:11px;padding:10px 2px;line-height:1.6}
+.tool-empty.visible{display:block}
 .sidebar.right{padding:0;background:#0d1a2b;border-right:0;border-left:1px solid var(--line);display:flex;flex-direction:column;gap:0}
 .eyebrow{font-size:10px;font-weight:850;color:#a9bed4;letter-spacing:.13em;text-transform:uppercase;margin:2px 0 12px}
 .field{display:flex;flex-direction:column;gap:6px;margin:0 0 14px;min-width:0}
@@ -49,17 +56,17 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
 .field input[type=color]{height:40px;padding:4px}
 .field input[type=range]{padding:0;accent-color:var(--accent)}
 .two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
-.stage{min-width:0;min-height:calc(100vh - 64px);display:flex;flex-direction:column;background:radial-gradient(ellipse at 50% 0%,rgba(34,67,103,.28),transparent 62%)}
-.stagebar{min-height:54px;display:flex;align-items:center;justify-content:space-between;gap:14px;padding:10px 20px;border-bottom:1px solid #213750;color:var(--muted);font-size:12px}
+.stage{min-width:0;min-height:calc(100vh - 64px);display:flex;flex-direction:column;background-color:#dce4ef;background-image:radial-gradient(#b7c4d4 0.8px,transparent 0.8px);background-size:18px 18px;color:#24364d}
+.stagebar{min-height:58px;display:flex;align-items:center;justify-content:space-between;gap:14px;padding:10px 20px;border-bottom:1px solid #c1cddd;background:#eaf0f7;color:#4d6179;font-size:12px}
 .stagebar-main{display:flex;align-items:center;gap:10px;min-width:0}
-.live-dot{width:8px;height:8px;border-radius:50%;background:var(--success);box-shadow:0 0 0 4px #7ed9b11a;flex:0 0 auto}
-#workspaceStatus{display:inline-flex;align-items:center;gap:7px;color:var(--accent-bright);font-size:11px;font-weight:750}
-#workspaceStatus[data-state="dirty"]{color:var(--accent-bright)}
-#workspaceStatus[data-state="error"]{color:var(--danger)}
-#workspaceStatus[data-state="saved"]{color:var(--success)}
+.live-dot{width:8px;height:8px;border-radius:50%;background:#269b70;box-shadow:0 0 0 4px #269b701a;flex:0 0 auto}
+#workspaceStatus{display:inline-flex;align-items:center;gap:7px;color:#87641b;font-size:11px;font-weight:800}
+#workspaceStatus[data-state="dirty"]{color:#87641b}
+#workspaceStatus[data-state="error"]{color:#b33c4a}
+#workspaceStatus[data-state="saved"]{color:#187b58}
 #blockCount{white-space:nowrap}
-.viewport{padding:clamp(18px,3vw,36px);overflow:auto;flex:1;display:flex;justify-content:center;align-items:flex-start;min-width:0}
-.page{width:100%;max-width:900px;min-height:700px;background:#0b1726;color:var(--text);border:1px solid #31465f;border-radius:12px;padding:30px;box-shadow:0 25px 80px #0003;transition:width .2s;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));align-content:start;align-items:stretch;gap:16px}
+.viewport{padding:clamp(22px,4vw,48px);overflow:auto;flex:1;display:flex;justify-content:center;align-items:flex-start;min-width:0}
+.page{width:100%;max-width:900px;min-height:700px;background:#0b1726;color:var(--text);border:1px solid #c2cbd8;border-radius:3px;padding:30px;box-shadow:0 18px 55px #21344d35,0 2px 6px #21344d20;transition:width .2s;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));align-content:start;align-items:stretch;gap:16px}
 .page.mobile{grid-template-columns:minmax(0,1fr);max-width:390px}
 .page.mobile .block{grid-column:1/-1!important}
 .page.tablet{max-width:720px}
@@ -103,9 +110,9 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
 #socialPostStatus{color:var(--accent2);font-size:12px;line-height:1.6;margin:4px 0}
 .muted{color:var(--muted)}
 
-@media(max-width:1180px){.workspace{grid-template-columns:76px minmax(0,1fr)}.right{grid-column:2/-1;border-left:0;border-top:1px solid var(--line);display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:0}.right-section{min-width:0}.stage{min-height:700px}}
-@media(max-width:760px){.top{position:relative;align-items:flex-start;flex-direction:column;padding:14px}.brand{min-width:0}.top-actions{justify-content:flex-start;width:100%}.top-actions button{flex:1 1 auto}.workspace{grid-template-columns:1fr}.left-tools{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));grid-template-rows:auto auto auto;gap:5px;padding:10px 12px;border-right:0;border-bottom:1px solid var(--line)}.left-tools .eyebrow{grid-column:1/-1;margin:0 0 4px}.tool{min-height:58px;padding:7px 3px}.tool span:first-child{font-size:20px}.tool small{font-size:10px}.stage{min-height:580px}.right{grid-column:auto;display:block}.right-section+ .right-section{border-top:1px solid var(--line)}.viewport{padding:14px}.page{padding:18px;gap:12px;min-height:560px}.stagebar{padding:10px 14px;align-items:flex-start;flex-direction:column}.stagebar-main{flex-wrap:wrap}}
-@media(max-width:480px){.left-tools{grid-template-columns:repeat(5,minmax(0,1fr));padding:8px}.tool{min-height:54px}.top-actions button{font-size:11px;padding:8px}.page{padding:13px}.two{gap:8px}.right-section{padding:16px 13px}}
+@media(max-width:1180px){.workspace{grid-template-columns:210px minmax(0,1fr)}.right{grid-column:2/-1;border-left:0;border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0}.right-section{min-width:0}.stage{min-height:700px}}
+@media(max-width:760px){.top{position:relative;align-items:flex-start;flex-direction:column;padding:14px}.brand{min-width:0}.top-actions{justify-content:flex-start;width:100%}.top-actions button{flex:1 1 auto}.workspace{grid-template-columns:1fr}.left-tools{display:flex;gap:9px;padding:12px;border-right:0;border-bottom:1px solid var(--line);overflow:visible}.left-tools .eyebrow{margin:0}.tool-grid{grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}.tool-category{margin-top:2px}.tool{min-height:64px;padding:9px 8px;gap:8px}.tool span:first-child{font-size:19px}.tool small{font-size:10px}.tool-search{padding:9px 10px}.stage{min-height:580px}.right{grid-column:auto;display:block}.right-section+ .right-section{border-top:1px solid var(--line)}.viewport{padding:14px}.page{padding:18px;gap:12px;min-height:560px}.stagebar{padding:10px 14px;align-items:flex-start;flex-direction:column}.stagebar-main{flex-wrap:wrap}}
+@media(max-width:480px){.tool-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.tool{min-height:58px;padding:8px}.top-actions button{font-size:11px;padding:8px}.page{padding:13px}.two{gap:8px}.right{display:block}.right-section{padding:16px 13px}}
 </style>
 </head>
 <body>
@@ -119,21 +126,29 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
   </div>
 </header>
 <div class="workspace">
-<aside class="sidebar left-tools" aria-label="Design tools">
-  <div class="eyebrow" style="text-align:center;font-size:9px">Design</div>
-  <button class="tool" data-add="heading" title="Add heading"><span>H₁</span><small>Heading</small></button>
-  <button class="tool" data-add="text" title="Add text"><span>¶</span><small>Text</small></button>
-  <button class="tool" data-add="image" title="Add image"><span>▧</span><small>Image</small></button>
-  <button class="tool" data-add="button" title="Add button"><span>▰</span><small>Button</small></button>
-  <button class="tool" data-add="card" title="Add card"><span>▣</span><small>Card</small></button>
-  <button class="tool" data-add="stat" title="Add competition statistic"><span>↗</span><small>Stat</small></button>
-  <button class="tool" data-add="divider" title="Add divider"><span>━</span><small>Line</small></button>
-  <button class="tool" data-add="spacer" title="Add spacing"><span>↕</span><small>Space</small></button>
-  <button class="tool" data-add="badge" title="Add badge"><span>✳</span><small>Badge</small></button>
-  <button class="tool" data-add="quote" title="Add quote"><span>❝</span><small>Quote</small></button>
+<aside class="sidebar left-tools" aria-label="Design elements">
+  <div><div class="eyebrow" style="margin-bottom:5px">Add to your page</div><div class="muted" style="font-size:11px">Choose an element to place it on the canvas.</div></div>
+  <input id="toolSearch" class="tool-search" type="search" placeholder="Search elements" aria-label="Search design elements">
+  <div class="tool-category">Text</div>
+  <div class="tool-grid">
+    <button class="tool" data-add="heading" title="Add heading"><span>H₁</span><small>Heading</small></button>
+    <button class="tool" data-add="text" title="Add text"><span>¶</span><small>Body text</small></button>
+    <button class="tool" data-add="quote" title="Add quote"><span>❝</span><small>Quote</small></button>
+    <button class="tool" data-add="badge" title="Add badge"><span>✳</span><small>Badge</small></button>
+  </div>
+  <div class="tool-category">Elements</div>
+  <div class="tool-grid">
+    <button class="tool" data-add="image" title="Add image"><span>▧</span><small>Image</small></button>
+    <button class="tool" data-add="button" title="Add button"><span>▰</span><small>Button</small></button>
+    <button class="tool" data-add="card" title="Add card"><span>▣</span><small>Card</small></button>
+    <button class="tool" data-add="stat" title="Add competition statistic"><span>↗</span><small>Stat</small></button>
+    <button class="tool" data-add="divider" title="Add divider"><span>━</span><small>Line</small></button>
+    <button class="tool" data-add="spacer" title="Add spacing"><span>↕</span><small>Space</small></button>
+  </div>
+  <div id="toolEmpty" class="tool-empty">No matching elements. Try a shorter search.</div>
 </aside>
 <section class="stage">
-  <div class="stagebar"><div class="stagebar-main"><span class="live-dot" aria-hidden="true"></span><strong>Page canvas</strong><span id="blockCount" class="muted"></span></div><span id="workspaceStatus" data-state="saved" role="status" aria-live="polite">Ready to edit</span><span class="muted">Select a block to edit · Drag to reorder</span></div>
+  <div class="stagebar"><div class="stagebar-main"><span class="live-dot" aria-hidden="true"></span><strong>Page canvas</strong><span id="blockCount" class="muted"></span></div><span id="workspaceStatus" data-state="saved" role="status" aria-live="polite">Ready to edit</span><span class="muted">Select an element to edit · Drag to reorder</span></div>
   <div class="viewport"><main id="canvas" class="page" aria-label="Page canvas"></main></div>
 </section>
 <aside class="sidebar right" aria-label="Element settings">
@@ -329,6 +344,8 @@ function renderInspector(){
 }
 function add(type){const b=makeBlock(type);blocks.push(b);selected=b.id;pushHistory();render();}
 document.querySelectorAll("[data-add]").forEach(btn=>btn.addEventListener("click",()=>add(btn.dataset.add)));
+const toolSearch=$("toolSearch"),toolEmpty=$("toolEmpty");
+toolSearch?.addEventListener("input",()=>{const q=toolSearch.value.trim().toLowerCase();let visible=0;document.querySelectorAll("[data-add]").forEach(btn=>{const match=!q||(btn.dataset.add+" "+btn.innerText+" "+btn.title).toLowerCase().includes(q);btn.hidden=!match;if(match)visible++;});document.querySelectorAll(".tool-category").forEach(label=>{const grid=label.nextElementSibling;label.hidden=!!q&&(!grid||!Array.from(grid.querySelectorAll("[data-add]")).some(btn=>!btn.hidden));if(grid?.classList.contains("tool-grid"))grid.hidden=!!q&&!Array.from(grid.querySelectorAll("[data-add]")).some(btn=>!btn.hidden);});toolEmpty?.classList.toggle("visible",visible===0);});
 $("upBtn").onclick=()=>move(-1);$("downBtn").onclick=()=>move(1);
 function move(dir){const i=blocks.findIndex(b=>b.id===selected),j=i+dir;if(i<0||j<0||j>=blocks.length)return;[blocks[i],blocks[j]]=[blocks[j],blocks[i]];pushHistory();render();}
 $("duplicateBtn").onclick=()=>{const i=blocks.findIndex(b=>b.id===selected);if(i<0)return;const copy={...structuredClone(blocks[i]),id:"b"+(++seq)};blocks.splice(i+1,0,copy);selected=copy.id;pushHistory();render();};
