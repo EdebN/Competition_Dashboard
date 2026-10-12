@@ -24,7 +24,7 @@ const DEFAULT_GAMES_PER_TEAM = 16;
 
 const FINALS_COUNT = 4;
 
-const COMMUNITY_API_URL = "https://script.google.com/macros/s/AKfycbzEg-MU3h-j4RLxbX0UkHzHnRocPXEa9lDGg7uwYvATmnB1OFBqmMKdvpH8zHn_cKxh/exec";
+const COMMUNITY_API_URL = "https://script.google.com/macros/s/AKfycby_GcgQ3aOPdgIy4N1XNo2HBYXR6FzANhhXez7z-P9oWQls8mXrR801ZaG0ClyO5hqN/exec";
 
 const SHEET_URL =
   "https://docs.google.com/spreadsheets/d/e/2PACX-1vT2tLmAB4OB6uWLeBeCSWLMarzK9RjelvVTJRGqsm94yVijiT25leyXnPWhJybPtoyMKUgfBL6tTzFe/pub?output=csv";
