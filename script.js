@@ -2636,6 +2636,7 @@ function renderFinalsPage() {
 }
 let adminToken = "";
 let adminUnlocked = false;
+let socialAdminSessionToken = "";
 function renderAdminPage() {
 
   const page =
@@ -3002,6 +3003,13 @@ function renderAdminPage() {
   `;
 
 
+  const moderationPanel = document.createElement("section");
+  moderationPanel.className = "card admin-card social-moderation-panel";
+  moderationPanel.id = "socialModerationPanel";
+  moderationPanel.innerHTML = '<div class="section-title">SOCIALS</div><div class="social-mod-heading"><div><h2>Post moderation</h2><p>Review new submissions, manage publication and control posting access.</p></div><button type="button" class="admin-button" id="socialModRefresh">REFRESH QUEUE</button></div><div id="socialModStatus" class="admin-info" role="status" aria-live="polite">Loading moderation queue…</div><div class="social-mod-tabs" role="tablist"><button type="button" class="social-mod-tab is-active" data-mod-tab="Unviewed">Unviewed <span id="socialModUnviewedCount">0</span></button><button type="button" class="social-mod-tab" data-mod-tab="Viewed">Viewed</button><button type="button" class="social-mod-tab" data-mod-tab="Bans">Posting bans</button><button type="button" class="social-mod-tab" data-mod-tab="Audit">Audit history</button></div><div id="socialModContent" class="social-mod-content"></div>';
+  page.appendChild(moderationPanel);
+  initSocialModerationPanel();
+
   const pageAccessTeams = document.getElementById("pageAccessTeams");
   if (pageAccessTeams) {
     const accents = ["#8b7cff", "#55d6be", "#ffb86b", "#ff729f", "#7bb7ff"];
@@ -3250,6 +3258,13 @@ async function unlockAdmin() {
 
     // Keep the original token in memory for authenticated backend writes.
     adminToken = token;
+    socialAdminSessionToken = "";
+    try {
+      const session = await readCommunityApi("getModerationSession", { adminToken: token });
+      if (session && session.ok && session.sessionToken) socialAdminSessionToken = session.sessionToken;
+    } catch (sessionError) {
+      console.warn("Social moderation session could not be created:", sessionError);
+    }
     adminUnlocked = true;
     renderAdminPage();
   } catch (err) {
@@ -4669,3 +4684,146 @@ renderAdminPage();
 loadScoresFromSheet();
 loadCommunitySettings();
 loadSharedCompetitionSettings();
+loadSocialFeed();
+
+
+/* PUBLIC SOCIAL FEED */
+let socialFeedPosts = [];
+let socialFeedFilter = "All posts";
+function formatSocialDate(value) {
+  if (!value) return "Recently";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "Recently";
+  return date.toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" });
+}
+async function loadSocialFeed() {
+  const feed = document.getElementById("social-feed");
+  const count = document.getElementById("social-feed-count");
+  if (!feed) return;
+  try {
+    const result = await readCommunityApi("getSocialPosts");
+    if (!result || result.ok !== true || !Array.isArray(result.posts)) throw new Error(result?.error || "Feed unavailable.");
+    socialFeedPosts = result.posts;
+    renderSocialFeed();
+  } catch (error) {
+    feed.innerHTML = '<div class="social-feed-empty"><strong>News feed unavailable</strong><span>The feed service may need to be deployed or configured.</span><button type="button" class="admin-button" id="socialFeedRetry">TRY AGAIN</button></div>';
+    if (count) count.textContent = "Connection unavailable";
+    document.getElementById("socialFeedRetry")?.addEventListener("click", loadSocialFeed);
+    console.error("Could not load Socials:", error);
+  }
+}
+function renderSocialFeed() {
+  const feed = document.getElementById("social-feed");
+  const count = document.getElementById("social-feed-count");
+  if (!feed) return;
+  const posts = socialFeedPosts.filter(p => socialFeedFilter === "All posts" || p.category === socialFeedFilter);
+  if (count) count.textContent = socialFeedPosts.length + (socialFeedPosts.length === 1 ? " published story" : " published stories");
+  if (!posts.length) {
+    feed.innerHTML = '<div class="social-feed-empty"><strong>No stories here yet</strong><span>Published announcements and match reports will appear here after moderation.</span></div>';
+    return;
+  }
+  feed.innerHTML = posts.map((post, index) => {
+    const image = /^https:\/\//i.test(String(post.imageUrl || "")) ? '<img class="social-post-image" src="' + escapeHTML(post.imageUrl) + '" alt="" loading="lazy" referrerpolicy="no-referrer">' : "";
+    return '<article class="social-post' + (post.featured ? ' is-featured' : '') + '">' +
+      (post.featured ? '<div class="social-featured-label">FEATURED STORY</div>' : '') +
+      image + '<div class="social-post-content"><div class="social-post-meta"><span class="social-category">' + escapeHTML(post.category || "Team news") + '</span><span>' + escapeHTML(formatSocialDate(post.publishedAt)) + '</span></div>' +
+      '<h3>' + escapeHTML(post.title) + '</h3><p>' + escapeHTML(post.body).replace(/\n/g, "<br>") + '</p>' +
+      '<div class="social-post-byline"><span class="social-team-dot"> ' + escapeHTML(post.teamId || "") + '</span><strong>' + escapeHTML(getTeamDisplayName("Team " + post.teamId) || ("Team " + post.teamId)) + '</strong></div></div></article>';
+  }).join("");
+}
+document.querySelectorAll("[data-social-filter]").forEach(button => button.addEventListener("click", () => {
+  socialFeedFilter = button.dataset.socialFilter || "All posts";
+  document.querySelectorAll("[data-social-filter]").forEach(item => item.classList.toggle("is-active", item === button));
+  renderSocialFeed();
+}));
+
+/* ADMIN SOCIAL MODERATION */
+let socialModerationData = { posts: [], bans: {}, audit: [] };
+let socialModerationTab = "Unviewed";
+async function refreshSocialModeration() {
+  const status = document.getElementById("socialModStatus");
+  if (!socialAdminSessionToken) {
+    if (status) status.textContent = "Moderation session unavailable. Re-lock and unlock Admin after deploying the Apps Script changes.";
+    return;
+  }
+  if (status) status.textContent = "Refreshing moderation data…";
+  try {
+    const result = await readCommunityApi("getModerationQueue", { sessionToken: socialAdminSessionToken });
+    if (!result || result.ok !== true) throw new Error(result?.error || "Moderation queue unavailable.");
+    socialModerationData = { posts: result.posts || [], bans: result.bans || {}, audit: result.audit || [] };
+    renderSocialModerationContent();
+    if (status) status.textContent = "Queue refreshed from the shared spreadsheet.";
+  } catch (error) {
+    if (status) status.textContent = "Could not load moderation queue: " + (error?.message || "Unknown error");
+  }
+}
+function initSocialModerationPanel() {
+  document.getElementById("socialModRefresh")?.addEventListener("click", refreshSocialModeration);
+  document.querySelectorAll("[data-mod-tab]").forEach(button => button.addEventListener("click", () => {
+    socialModerationTab = button.dataset.modTab;
+    document.querySelectorAll("[data-mod-tab]").forEach(item => item.classList.toggle("is-active", item === button));
+    renderSocialModerationContent();
+  }));
+  refreshSocialModeration();
+}
+function socialModAction(payload) {
+  const status = document.getElementById("socialModStatus");
+  if (status) status.textContent = "Sending moderation action…";
+  return postCommunityAction({ ...payload, sessionToken: socialAdminSessionToken }).then(() =>
+    new Promise(resolve => setTimeout(resolve, 650))
+  ).then(refreshSocialModeration);
+}
+function renderSocialModerationContent() {
+  const host = document.getElementById("socialModContent");
+  const unviewed = socialModerationData.posts.filter(p => p.reviewStatus !== "Viewed");
+  const viewed = socialModerationData.posts.filter(p => p.reviewStatus === "Viewed");
+  const count = document.getElementById("socialModUnviewedCount");
+  if (count) count.textContent = String(unviewed.length);
+  if (!host) return;
+  if (socialModerationTab === "Bans") {
+    host.innerHTML = TEAMS.map(team => {
+      const id = team.slice(-1), ban = socialModerationData.bans[id] || { banned: false, reason: "" };
+      return '<article class="social-mod-ban"><div><strong>' + escapeHTML(getTeamDisplayName(team)) + '</strong><span>' + (ban.banned ? 'Posting blocked' : 'Posting enabled') + '</span>' + (ban.banned ? '<p>' + escapeHTML(ban.reason || "No reason recorded") + '</p>' : '') + '</div><button type="button" class="admin-button" data-ban-team="' + id + '" data-ban-state="' + (!ban.banned) + '">' + (ban.banned ? 'LIFT BAN' : 'BAN POSTING') + '</button></article>';
+    }).join("");
+    host.querySelectorAll("[data-ban-team]").forEach(button => button.addEventListener("click", async () => {
+      const teamId = button.dataset.banTeam, banned = button.dataset.banState === "true";
+      if (banned && !confirm("Block Team " + teamId + " from submitting social posts? This does not affect fixtures, results or the team profile.")) return;
+      const reason = prompt(banned ? "Reason for the posting ban:" : "Reason for lifting the posting ban:", "");
+      if (reason === null) return;
+      if (banned && reason.trim().length < 4) { alert("Enter a clear reason of at least four characters."); return; }
+      await socialModAction({ action: "setSocialPostingBan", teamId, banned, reason });
+    }));
+    return;
+  }
+  if (socialModerationTab === "Audit") {
+    host.innerHTML = socialModerationData.audit.length ? socialModerationData.audit.map(item => '<article class="social-mod-audit"><strong>' + escapeHTML(item.action) + '</strong><span>' + escapeHTML(item.timestamp) + '</span><p>' + escapeHTML([item.teamId ? "Team " + item.teamId : "", item.postId ? "Post " + item.postId.slice(0, 8) : "", item.reason || ""].filter(Boolean).join(" · ")) + '</p></article>').join("") : '<div class="social-mod-empty">No moderation actions recorded yet.</div>';
+    return;
+  }
+  const list = socialModerationTab === "Unviewed" ? unviewed : viewed;
+  host.innerHTML = list.length ? list.map(post => '<article class="social-mod-post" data-post-card="' + escapeHTML(post.postId) + '"><div class="social-mod-post-top"><div><span class="social-category">' + escapeHTML(post.category) + '</span><span class="social-mod-status">' + escapeHTML(post.publicationStatus) + '</span></div><time>' + escapeHTML(formatSocialDate(post.submittedAt)) + '</time></div><h3>' + escapeHTML(post.title) + '</h3><p class="social-mod-summary">' + escapeHTML(post.body.slice(0, 170)) + (post.body.length > 170 ? "…" : "") + '</p><div class="social-mod-post-bottom"><span>Team ' + escapeHTML(post.teamId) + ' · ' + escapeHTML(post.reviewStatus) + '</span><button type="button" class="admin-button" data-open-post="' + escapeHTML(post.postId) + '">OPEN POST</button></div><div class="social-mod-detail" hidden><p>' + escapeHTML(post.body).replace(/\n/g, "<br>") + '</p>' + (post.imageUrl ? '<p>Image URL: <a href="' + escapeHTML(post.imageUrl) + '" target="_blank" rel="noopener noreferrer">Open image</a></p>' : '') + '<label>Moderation note <input class="admin-input" data-note-for="' + escapeHTML(post.postId) + '" maxlength="500" placeholder="Reason for rejection/removal"></label><div class="social-mod-actions"><button type="button" class="admin-button" data-decision="publish" data-post="' + escapeHTML(post.postId) + '">PUBLISH</button><button type="button" class="admin-button" data-decision="feature" data-post="' + escapeHTML(post.postId) + '">FEATURE</button><button type="button" class="admin-button" data-decision="reject" data-post="' + escapeHTML(post.postId) + '">REJECT</button>' + (post.publicationStatus === "Published" ? '<button type="button" class="admin-button" data-decision="remove" data-post="' + escapeHTML(post.postId) + '">REMOVE</button><button type="button" class="admin-button" data-decision="unfeature" data-post="' + escapeHTML(post.postId) + '">UNFEATURE</button>' : '') + '</div></div></article>').join("") : '<div class="social-mod-empty">' + (socialModerationTab === "Unviewed" ? "No unviewed posts. The inbox is behaving for once." : "No viewed posts yet.") + '</div>';
+  host.querySelectorAll("[data-open-post]").forEach(button => button.addEventListener("click", async () => {
+    const id = button.dataset.openPost, card = host.querySelector('[data-post-card="' + CSS.escape(id) + '"]'), detail = card?.querySelector(".social-mod-detail");
+    if (!detail) return;
+    detail.hidden = !detail.hidden;
+    button.textContent = detail.hidden ? "OPEN POST" : "CLOSE POST";
+    if (!detail.hidden) {
+      const post = socialModerationData.posts.find(p => p.postId === id);
+      if (post && post.reviewStatus !== "Viewed") {
+        await socialModAction({ action: "markSocialPostViewed", postId: id });
+        socialModerationTab = "Viewed";
+        document.querySelectorAll("[data-mod-tab]").forEach(item => item.classList.toggle("is-active", item.dataset.modTab === "Viewed"));
+      }
+    }
+  }));
+  host.querySelectorAll("[data-decision]").forEach(button => button.addEventListener("click", async () => {
+    const decision = button.dataset.decision, postId = button.dataset.post;
+    const note = host.querySelector('[data-note-for="' + CSS.escape(postId) + '"]')?.value.trim() || "";
+    if (["reject", "remove"].includes(decision) && note.length < 4) { alert("Add a moderation reason before rejecting or removing a post."); return; }
+    if (["reject", "remove"].includes(decision) && !confirm(decision.toUpperCase() + " this post?")) return;
+    await socialModAction({ action: "moderateSocialPost", decision, postId, reason: note });
+    if (decision === "publish" || decision === "feature") {
+      socialModerationTab = "Viewed";
+      document.querySelectorAll("[data-mod-tab]").forEach(item => item.classList.toggle("is-active", item.dataset.modTab === "Viewed"));
+    }
+  }));
+}
