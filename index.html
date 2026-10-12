@@ -17,43 +17,12 @@
         <div class="subtitle">Competition Dashboard</div>
       </div>
 
-      <nav class="page-nav">
-
-        <button class="nav-button active" data-page="home">
-          HOME
-        </button>
-
-        <button class="nav-button" data-page="team-a">
-          TEAM A
-        </button>
-
-        <button class="nav-button" data-page="team-b">
-          TEAM B
-        </button>
-
-        <button class="nav-button" data-page="team-c">
-          TEAM C
-        </button>
-
-        <button class="nav-button" data-page="team-d">
-          TEAM D
-        </button>
-
-        <button class="nav-button" data-page="team-e">
-          TEAM E
-        </button>
-
+      <nav class="page-nav" aria-label="Main navigation">
+        <button class="nav-button active" data-page="home">HOME</button>
+        <button class="nav-button" data-page="teams">TEAMS</button>
         <button class="nav-button" data-page="matches">MATCHES</button>
-
-        <button class="nav-button" data-page="finals">
-          FINALS
-        </button>
-
-        <button class="nav-button" data-page="admin">
-          ADMIN
-        </button>
-
-
+        <button class="nav-button" data-page="socials">SOCIALS</button>
+        <button class="nav-button" data-page="admin">ADMIN</button>
       </nav>
 
     </header>
@@ -126,7 +95,54 @@
       </div>
 
 
-      <!-- TEAM PAGES -->
+      <!-- TEAM SELECTOR -->
+      <section id="teams-page" class="page">
+        <section class="teams-intro">
+          <div class="section-title">THE COMPETITION</div>
+          <h1>Choose your team</h1>
+          <p>Select a team on the wheel to explore its profile, form and rating.</p>
+        </section>
+        <section class="ccm-11" aria-label="Team selector">
+          <div class="ccm-11__stage">
+            <div class="ccm-11__pointer" aria-hidden="true"></div>
+            <nav class="ccm-11__machine" style="--n:5" aria-label="Teams">
+              <ul class="ccm-11__wheel">
+                <li style="--i:0"><button type="button" class="ccm-11__stop is-active" aria-pressed="true" data-team-index="0">Team A</button></li>
+                <li style="--i:1"><button type="button" class="ccm-11__stop" aria-pressed="false" data-team-index="1">Team B</button></li>
+                <li style="--i:2"><button type="button" class="ccm-11__stop" aria-pressed="false" data-team-index="2">Team C</button></li>
+                <li style="--i:3"><button type="button" class="ccm-11__stop" aria-pressed="false" data-team-index="3">Team D</button></li>
+                <li style="--i:4"><button type="button" class="ccm-11__stop" aria-pressed="false" data-team-index="4">Team E</button></li>
+              </ul>
+              <div class="ccm-11__face">
+                <em>Selected team</em>
+                <strong class="ccm-11__current">Team A</strong>
+                <button type="button" class="ccm-11__view-profile">View Profile <span aria-hidden="true">↗</span></button>
+                <div class="ccm-11__steer">
+                  <button type="button" class="ccm-11__prev" aria-label="Previous team">←</button>
+                  <button type="button" class="ccm-11__next" aria-label="Next team">→</button>
+                </div>
+              </div>
+              <p class="ccm-11__live" aria-live="polite"></p>
+            </nav>
+          </div>
+        </section>
+      </section>
+
+      <!-- SOCIALS -->
+      <section id="socials-page" class="page">
+        <section class="socials-intro">
+          <div class="section-title">FROM AROUND THE COMPETITION</div>
+          <h1>Socials</h1>
+          <p>Team announcements, match reports and competition news will live here.</p>
+        </section>
+        <section class="card socials-placeholder">
+          <div class="section-title">NEWS FEED</div>
+          <h2>Coming into view</h2>
+          <p>The feed will be connected to the moderated team-post system in a later stage.</p>
+        </section>
+      </section>
+
+      <!-- TEAM PROFILE PAGES -->
 
       <div id="team-a-page" class="page team-page"></div>
       <div id="team-b-page" class="page team-page"></div>
