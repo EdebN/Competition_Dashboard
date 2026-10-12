@@ -2852,87 +2852,78 @@ select {
 }
 
 
-/* MOTION SYSTEM 2: animate layout changes, not just opacity */
+/* MOTION SYSTEM: continuous, restrained, and tied to user intent */
 :root {
-  --motion-fast: 160ms;
-  --motion-ui: 240ms;
-  --motion-layout: 380ms;
-  --motion-page: 280ms;
-  --motion-ease: cubic-bezier(.22,.72,.18,1);
+  --motion-fast: 150ms;
+  --motion-ui: 220ms;
+  --motion-layout: 340ms;
+  --motion-ease: cubic-bezier(.2,.7,.25,1);
 }
 
-/* The menu remains in the layout tree while opening/closing, so it can move. */
+/* Menu: animate its actual reveal, then remove it from interaction when closed. */
 .page-nav {
-  overflow: hidden;
+  overflow: clip;
   max-height: 0;
   opacity: 0;
   visibility: hidden;
-  transform: translateY(-10px) scale(.975);
+  transform: translateY(-6px);
   transform-origin: top right;
   pointer-events: none;
   transition:
     max-height var(--motion-layout) var(--motion-ease),
     opacity var(--motion-ui) ease,
-    transform var(--motion-layout) var(--motion-ease),
+    transform var(--motion-ui) var(--motion-ease),
     visibility 0s linear var(--motion-layout);
 }
 .page-nav.is-open {
   max-height: 460px;
   opacity: 1;
   visibility: visible;
-  transform: translateY(0) scale(1);
+  transform: translateY(0);
   pointer-events: auto;
   transition:
     max-height var(--motion-layout) var(--motion-ease),
     opacity var(--motion-ui) ease,
-    transform var(--motion-layout) var(--motion-ease),
+    transform var(--motion-ui) var(--motion-ease),
     visibility 0s;
 }
 .page-nav.is-closing {
   opacity: 0;
-  transform: translateY(-7px) scale(.985);
+  transform: translateY(-4px);
   visibility: visible;
   pointer-events: none;
   transition:
     max-height var(--motion-layout) var(--motion-ease),
-    opacity 180ms ease,
-    transform 220ms var(--motion-ease),
-    visibility 0s linear 220ms;
+    opacity 150ms ease,
+    transform 180ms var(--motion-ease),
+    visibility 0s linear 180ms;
 }
 .page-nav[hidden] { display: none !important; }
 .menu-toggle span {
-  transition:
-    transform 260ms var(--motion-ease),
-    opacity 150ms ease,
-    width 220ms var(--motion-ease);
+  transition: transform 240ms var(--motion-ease), opacity 140ms ease;
 }
 
-/* Page changes have a directional hand-off instead of a hard swap. */
-main { position: relative; }
-.page.active-page {
-  position: relative;
-  z-index: 1;
-  animation: dashboard-page-enter var(--motion-page) var(--motion-ease) both;
+/* Native View Transitions preserve continuity between the old and new page states. */
+.page.active-page { view-transition-name: dashboard-page; }
+::view-transition-group(dashboard-page) {
+  animation-duration: 200ms;
+  animation-timing-function: var(--motion-ease);
 }
-.page.is-leaving {
-  display: block;
-  position: absolute;
-  z-index: 0;
-  inset: 0 auto auto 0;
-  width: 100%;
-  pointer-events: none;
-  animation: dashboard-page-exit 210ms cubic-bezier(.4,0,.8,.4) both;
+::view-transition-old(dashboard-page) {
+  animation: dashboard-view-out 150ms ease both;
 }
-@keyframes dashboard-page-enter {
-  from { opacity: 0; transform: translateY(12px) scale(.992); filter: blur(2px); }
-  to { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+::view-transition-new(dashboard-page) {
+  animation: dashboard-view-in 190ms var(--motion-ease) both;
 }
-@keyframes dashboard-page-exit {
-  from { opacity: 1; transform: translateY(0) scale(1); }
-  to { opacity: 0; transform: translateY(-5px) scale(.997); }
+@keyframes dashboard-view-out {
+  to { opacity: 0; }
+}
+@keyframes dashboard-view-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
-/* The ladder wrapper animates its real height; rows no longer pop into existence. */
+/* Ladder: animate its measured height, not just the visibility of extra rows. */
 .home-ladder-card .table-wrap {
   transition: max-height var(--motion-layout) var(--motion-ease);
 }
@@ -2940,44 +2931,51 @@ main { position: relative; }
   overflow-y: hidden;
 }
 .home-ladder-card.ladder-expanded tbody tr:nth-child(n+6) {
-  animation: ladder-row-arrive 260ms var(--motion-ease) both;
+  animation: ladder-row-arrive 210ms var(--motion-ease) both;
 }
-.home-ladder-card.ladder-expanded tbody tr:nth-child(6) { animation-delay: 45ms; }
-.home-ladder-card.ladder-expanded tbody tr:nth-child(7) { animation-delay: 75ms; }
-.home-ladder-card.ladder-expanded tbody tr:nth-child(8) { animation-delay: 105ms; }
-.home-ladder-card.ladder-expanded tbody tr:nth-child(9) { animation-delay: 135ms; }
-.home-ladder-card.ladder-expanded tbody tr:nth-child(10) { animation-delay: 165ms; }
+.home-ladder-card.ladder-expanded tbody tr:nth-child(6) { animation-delay: 20ms; }
+.home-ladder-card.ladder-expanded tbody tr:nth-child(7) { animation-delay: 40ms; }
+.home-ladder-card.ladder-expanded tbody tr:nth-child(8) { animation-delay: 60ms; }
+.home-ladder-card.ladder-expanded tbody tr:nth-child(9) { animation-delay: 80ms; }
+.home-ladder-card.ladder-expanded tbody tr:nth-child(10) { animation-delay: 100ms; }
+@keyframes ladder-row-arrive {
+  from { opacity: .45; }
+  to { opacity: 1; }
+}
 
-/* Social filter controls respond as a coordinated strip, not isolated buttons. */
-.social-feed-filters {
-  position: relative;
+/* Social filter underline is a shared element: it travels to the selected tab. */
+#socials-page .social-filter.is-active::after {
+  view-transition-name: social-filter-indicator;
+}
+::view-transition-group(social-filter-indicator) {
+  animation-duration: 230ms;
+  animation-timing-function: var(--motion-ease);
+}
+::view-transition-old(social-filter-indicator),
+::view-transition-new(social-filter-indicator) {
+  height: 100%;
+  animation: none;
+  mix-blend-mode: normal;
 }
 .social-filter {
-  transition:
-    color var(--motion-ui) var(--motion-ease),
-    background-color var(--motion-ui) var(--motion-ease),
-    border-color var(--motion-ui) var(--motion-ease),
-    transform var(--motion-fast) var(--motion-ease);
+  transition: color var(--motion-ui) var(--motion-ease), background-color var(--motion-ui) var(--motion-ease);
 }
-.social-filter:active { transform: scale(.97); }
-.social-filter.is-active { box-shadow: inset 0 -1px 0 rgba(244,213,127,.24); }
 
 @media (prefers-reduced-motion: reduce) {
   .page-nav,
   .page-nav.is-open,
   .page-nav.is-closing,
   .menu-toggle span,
-  .page.active-page,
-  .page.is-leaving,
   .home-ladder-card .table-wrap,
   .home-ladder-card.ladder-expanded tbody tr:nth-child(n+6),
-  .social-filter {
+  .social-filter,
+  ::view-transition-group(dashboard-page),
+  ::view-transition-old(dashboard-page),
+  ::view-transition-new(dashboard-page),
+  ::view-transition-group(social-filter-indicator),
+  ::view-transition-old(social-filter-indicator),
+  ::view-transition-new(social-filter-indicator) {
     animation: none !important;
     transition: none !important;
-    filter: none !important;
-  }
-  .page.active-page,
-  .page.is-leaving {
-    transform: none !important;
   }
 }
