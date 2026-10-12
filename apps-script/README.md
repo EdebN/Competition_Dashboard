@@ -31,6 +31,14 @@ The public endpoint must be readable without signing in. Therefore, only public 
 
 The Team Page Studio supports team-authenticated shared drafts, publishing, and feature requests. A successful PIN check issues a short-lived (6-hour) session token in the browser session. The token permits writes only for that team. Drafts are stored in the private **Team Page Designs** tab; published layouts are stored separately in **Published Team Pages**; feature suggestions are appended to **Feature Requests**. Shared design JSON is capped at 45,000 characters, so use hosted image URLs rather than embedded uploads. A team page continues to use its original built-in layout until a team manager clicks **Update team page** in Studio. Publishing replaces only that team's public page; draft saves alone never change the live page.
 
+## Team post photo uploads
+
+The Team Posts page accepts JPG, PNG, and WebP uploads. The browser resizes images to a maximum 1600-pixel edge and sends a compressed JPEG (up to 2.5 MB). The first upload automatically creates a private Drive folder named **Competition Dashboard Team Images** and stores its ID in the `SOCIAL_IMAGE_FOLDER_ID` Script Property. No folder ID needs to be configured manually.
+
+Uploaded images remain private while a post is awaiting moderation. Publishing or featuring that post makes the image viewable by anyone with its link; rejecting or removing a published post makes the uploaded image private again. Because published photos are public, teams should only upload images approved for public display.
+
+The updated `Code.gs` must be copied into the bound Apps Script project and deployed as a **New version** before file uploads will work. The browser checks the API capability and explains when the deployed service is still old.
+
 ## 3. API contract
 
 ### Public read
