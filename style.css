@@ -2218,3 +2218,6 @@ main { gap:22px; }
  .social-mod-audit { grid-template-columns:1fr; }
  .social-mod-audit p { grid-column:auto; }
 }
+
+.social-mod-nav-count { display:inline-grid; place-items:center; min-width:18px; height:18px; padding:0 5px; margin-left:6px; border-radius:6px; background:#b84953; color:#fff; font-size:10px; font-weight:900; line-height:1; }
+.social-mod-nav-count[hidden] { display:none; }
