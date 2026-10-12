@@ -142,9 +142,58 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
 #socialPostStatus{color:var(--accent2);font-size:12px;line-height:1.6;margin:4px 0}
 .muted{color:var(--muted)}
 
-@media(max-width:1180px){.sidebar.right{position:static;max-height:none;overflow:visible}.workspace{grid-template-columns:210px minmax(0,1fr)}.right{grid-column:2/-1;border-left:0;border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0}.right-section{min-width:0}.stage{min-height:700px}}
+@media(max-width:1180px){.sidebar.right{position:static;max-height:none;overflow:visible}.workspace{grid-template-columns:210px minmax(0,1fr)}.right{grid-column:2/-1;border-left:0;border-top:1px solid var(--line);display:block}.right-section{min-width:0}.stage{min-height:700px}}
 @media(max-width:760px){.top{position:relative;align-items:flex-start;flex-direction:column;padding:14px}.brand{min-width:0}.top-actions{justify-content:flex-start;width:100%}.top-actions button{flex:1 1 auto}.workspace{grid-template-columns:1fr}.left-tools{display:flex;gap:9px;padding:12px;border-right:0;border-bottom:1px solid var(--line);overflow:visible}.left-tools .eyebrow{margin:0}.tool-grid{grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}.tool-category{margin-top:2px}.tool{min-height:64px;padding:9px 8px;gap:8px}.tool span:first-child{font-size:19px}.tool small{font-size:10px}.tool-search{padding:9px 10px}.stage{min-height:580px}.right{grid-column:auto;display:block}.right-section+ .right-section{border-top:1px solid var(--line)}.viewport{padding:14px}.page{padding:18px;gap:12px;min-height:560px}.stagebar{padding:10px 14px;align-items:flex-start;flex-direction:column}.stagebar-main{flex-wrap:wrap}}
 @media(max-width:480px){.tool-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.tool{min-height:58px;padding:8px}.top-actions button{font-size:11px;padding:8px}.page{padding:13px}.two{gap:8px}.right{display:block}.right-section{padding:16px 13px}}
+
+/* Contextual Canva-style element toolbar */
+.floating-toolbar{position:fixed;z-index:55;display:block;width:max-content;max-width:calc(100vw - 24px);padding:7px;border:1px solid #d5dce5;border-radius:13px;background:#fff;color:#182333;box-shadow:0 12px 36px #16263c35,0 2px 7px #16263c18;visibility:visible}
+.floating-toolbar[hidden]{display:none!important}
+.toolbar-main{display:flex;align-items:center;gap:5px;min-width:0;max-width:100%;overflow-x:auto;scrollbar-width:thin}
+.toolbar-type{display:flex;align-items:center;gap:6px;padding:0 9px 0 5px;margin-right:2px;border-right:1px solid #e0e5eb;color:#607087;font-size:10px;font-weight:850;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap}
+.toolbar-type-mark{display:grid;place-items:center;width:25px;height:25px;border-radius:7px;background:#edf2f7;color:#25384f;font-size:12px;font-weight:900}
+.toolbar-separator{width:1px;height:25px;flex:0 0 1px;background:#e0e5eb;margin:0 3px}
+.toolbar-number{width:58px;height:31px;padding:5px 6px;border:1px solid #dce2e9;border-radius:7px;background:#f8fafc;color:#182333;font-size:12px;font-weight:700}
+.toolbar-number:focus,.toolbar-text:focus,.toolbar-more-panel input:focus,.toolbar-more-panel textarea:focus,.toolbar-more-panel select:focus{outline:2px solid #7ab9ee;outline-offset:1px;border-color:#80b8e8}
+.toolbar-control-label{display:flex;align-items:center;gap:5px;color:#68778b;font-size:10px;font-weight:800;white-space:nowrap}
+.toolbar-color{width:31px;height:31px;position:relative;display:grid;place-items:center;border:1px solid #dce2e9;border-radius:7px;background:#f8fafc;cursor:pointer;flex:0 0 31px}
+.toolbar-color span{position:absolute;font-size:14px;font-weight:900;color:#26354a;pointer-events:none}
+.toolbar-color input{width:100%;height:100%;padding:3px;border:0;background:transparent;opacity:0;cursor:pointer}
+.toolbar-color::after{content:"";position:absolute;left:6px;right:6px;bottom:4px;height:4px;border-radius:3px;background:var(--swatch,#24384f);pointer-events:none}
+.toolbar-color input::-webkit-color-swatch-wrapper{padding:0}
+.toolbar-color input::-webkit-color-swatch{border:0;border-radius:3px}
+.toolbar-icon-button{display:inline-flex;align-items:center;justify-content:center;gap:5px;min-width:31px;height:31px;padding:0 8px;border:1px solid transparent;border-radius:7px;background:transparent;color:#34465d;font-size:12px;font-weight:800;white-space:nowrap}
+.toolbar-icon-button:hover:not(:disabled){background:#edf2f7;border-color:#dbe3ec;color:#182333}
+.toolbar-icon-button[aria-pressed="true"]{background:#e4effb;border-color:#c6ddf3;color:#145b9d}
+.toolbar-icon-button.toolbar-delete{color:#b42e43}
+.toolbar-icon-button.toolbar-delete:hover:not(:disabled){background:#fff0f1;border-color:#f2cdd2;color:#a51f35}
+.toolbar-icon-button:disabled{opacity:.3}
+.toolbar-text{width:145px;min-width:70px;height:31px;padding:5px 8px;border:1px solid #dce2e9;border-radius:7px;background:#f8fafc;color:#182333;font-size:12px}
+.toolbar-select{max-width:138px;height:31px;padding:4px 7px;border:1px solid #dce2e9;border-radius:7px;background:#f8fafc;color:#182333;font-size:11px}
+.toolbar-more{position:relative;flex:0 0 auto}
+.toolbar-more>summary{list-style:none;display:flex;align-items:center;justify-content:center;height:31px;padding:0 10px;border:1px solid #dce2e9;border-radius:7px;background:#f8fafc;color:#293b52;font-size:11px;font-weight:850;cursor:pointer;white-space:nowrap}
+.toolbar-more>summary::-webkit-details-marker{display:none}
+.toolbar-more[open]>summary{background:#eaf2fa;border-color:#b9d4ed}
+.toolbar-more-panel{position:absolute;top:calc(100% + 9px);right:0;width:min(410px,calc(100vw - 24px));max-height:min(65vh,540px);overflow:auto;padding:14px;border:1px solid #d6dee8;border-radius:12px;background:#fff;color:#182333;box-shadow:0 16px 42px #14253c30}
+.toolbar-panel-heading{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 9px;color:#53647a;font-size:10px;font-weight:900;letter-spacing:.1em;text-transform:uppercase}
+.toolbar-panel-heading:not(:first-child){margin-top:15px;padding-top:13px;border-top:1px solid #e5e9ef}
+.toolbar-more-panel .field{gap:5px;margin:0 0 10px}
+.toolbar-more-panel .field:last-child{margin-bottom:0}
+.toolbar-more-panel .field label,.toolbar-more-panel .field>span{color:#697a8e;font-size:9px}
+.toolbar-more-panel .field input,.toolbar-more-panel .field textarea,.toolbar-more-panel .field select{width:100%;background:#f8fafc;color:#182333;border:1px solid #dce2e9;border-radius:7px;padding:8px 9px;font-size:12px}
+.toolbar-more-panel .field textarea{min-height:76px;resize:vertical}
+.toolbar-more-panel .field input[type=color]{height:34px;padding:3px}
+.toolbar-more-panel .field input[type=range]{padding:0}
+.toolbar-grid-two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.toolbar-inline-note{margin-top:5px;color:#78869a;font-size:10px;line-height:1.55}
+.toolbar-check{display:flex;align-items:center;gap:7px;margin:3px 0 10px;color:#53647a;font-size:11px}
+.toolbar-check input{accent-color:#2368a8}
+.toolbar-upload{width:100%;height:35px;border:1px dashed #b5c6d8;border-radius:8px;background:#f4f8fc;color:#29445f;font-size:11px;font-weight:800}
+.toolbar-upload:hover:not(:disabled){background:#e9f2fb;border-color:#8fb2d6}
+.toolbar-textarea{width:100%;min-height:84px;resize:vertical;padding:9px;border:1px solid #dce2e9;border-radius:7px;background:#f8fafc;color:#182333;font:12px/1.5 inherit}
+.toolbar-more-panel .field-note{font-size:10px;color:#78869a;line-height:1.55}
+@media(max-width:1180px){.sidebar.right{position:static;max-height:none;overflow:visible}.workspace{grid-template-columns:210px minmax(0,1fr)}.right{grid-column:2/-1;border-left:0;border-top:1px solid var(--line);display:block}.stage{min-height:700px}}
+@media(max-width:760px){.right{grid-column:auto;display:block}.floating-toolbar{max-width:calc(100vw - 12px);padding:5px}.toolbar-main{gap:3px}.toolbar-type{padding-right:5px}.toolbar-more-panel{right:-4px;width:min(360px,calc(100vw - 20px))}.toolbar-text{width:105px}.toolbar-number{width:50px}.toolbar-icon-button{min-width:29px;padding:0 6px}}
 </style>
 </head>
 <body>
@@ -183,27 +232,19 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
   <div class="stagebar"><div class="stagebar-main"><span class="live-dot" aria-hidden="true"></span><strong>Page canvas</strong><span id="blockCount" class="muted"></span></div><span id="workspaceStatus" data-state="saved" role="status" aria-live="polite">Ready to edit</span><span class="muted">Select an element to edit · Drag to reorder</span></div>
   <div class="viewport"><main id="canvas" class="page" aria-label="Page canvas"></main></div>
 </section>
-<aside class="sidebar right" aria-label="Element settings">
-  <section class="right-section">
-    <div class="eyebrow">Properties</div>
-    <div id="inspector" class="inspector-empty">Select an element on the canvas to edit its content, style and spacing.</div>
-  </section>
-  <section class="right-section">
-    <div class="eyebrow">Arrange</div>
-    <div class="minirow"><button id="upBtn" title="Move earlier">↑ Up</button><button id="downBtn" title="Move later">↓ Down</button></div>
-    <div class="minirow"><button id="duplicateBtn">Duplicate</button><button id="deleteBtn" class="danger">Delete</button></div>
-    <div class="hint">Control stacking order here. Width, position and alignment live with the selected element’s properties.</div>
-  </section>
+<aside class="sidebar right" aria-label="Page settings">
   <section class="right-section">
     <div class="eyebrow">Page settings</div>
     <div class="field"><label for="pageTitle">Page title</label><input id="pageTitle" value="My page"></div>
     <div class="field"><label for="pageBg">Canvas background</label><input id="pageBg" type="color" value="#0b1726"></div>
     <div class="field"><label for="pagePadding">Page padding</label><input id="pagePadding" type="range" min="8" max="64" value="30"></div>
     <div class="field"><label for="pageWidth">Preview device</label><select id="pageWidth"><option value="desktop">Desktop · 900 px</option><option value="tablet">Tablet · 720 px</option><option value="mobile">Mobile · 390 px</option></select></div>
+    <div class="hint">Select an element to open its floating editing toolbar directly above it.</div>
   </section>
 </aside>
 </div>
 </div>
+<div id="floatingToolbar" class="floating-toolbar" role="toolbar" aria-label="Selected element controls" hidden></div>
 <input id="imageFile" class="file" type="file" accept="image/*">
 <input id="jsonFile" class="file" type="file" accept=".json,application/json">
 <div id="toast" class="toast" role="status"></div>
@@ -225,7 +266,7 @@ const studioDraftKey = validStudioTeam ? "canvas-studio-draft-team-" + validStud
 (() => {
 const $=id=>document.getElementById(id);
 const STUDIO_API="https://script.google.com/macros/s/AKfycbzEg-MU3h-j4RLxbX0UkHzHnRocPXEa9lDGg7uwYvATmnB1OFBqmMKdvpH8zHn_cKxh/exec";
-const canvas=$("canvas"), inspector=$("inspector");
+const canvas=$("canvas"), floatingToolbar=$("floatingToolbar");
 let blocks=[], selected=null, seq=0, history=[], historyIndex=-1, suppressHistory=false, pendingImageTarget=null;
 const defaults={
  heading:{text:"A bold headline",tag:"h1",fontSize:42,color:"#edf2fa",bg:"transparent",align:"left",padding:8,radius:0,width:100},
@@ -345,123 +386,170 @@ function render(options={}){
   canvas.appendChild(el);
  });
  $("blockCount").textContent="· "+blocks.length+" block"+(blocks.length===1?"":"s");
- if(!options.keepInspector)renderInspector();updateSelectionActions();updateHistoryButtons();refreshStatPreviews();
+ if(!options.keepToolbar)renderToolbar();updateHistoryButtons();refreshStatPreviews();positionToolbar();
 }
 canvas.addEventListener("click",()=>select(null));
+const viewport=document.querySelector(".viewport");
+viewport?.addEventListener("scroll",positionToolbar,{passive:true});
+window.addEventListener("scroll",positionToolbar,{passive:true});
+window.addEventListener("resize",positionToolbar);
 function select(id){selected=id;render();const el=canvas.querySelector('[data-id="'+id+'"]');if(el&&id)el.scrollIntoView({block:"nearest",behavior:"smooth"});}
 function updateProp(key,value){const b=blocks.find(x=>x.id===selected);if(!b)return;b[key]=value;pushHistory();render();}
 function field(label,key,value,type="text",extra={}){let id="prop-"+key;let input;if(type==="textarea")input='<textarea id="'+id+'">'+esc(value)+'</textarea>';else input='<input id="'+id+'" type="'+type+'" value="'+esc(value)+'" '+(extra.min!==undefined?'min="'+extra.min+'"':'')+' '+(extra.max!==undefined?'max="'+extra.max+'"':'')+' '+(extra.step!==undefined?'step="'+extra.step+'"':'')+'>';return '<div class="field"><label for="'+id+'">'+label+'</label>'+input+'</div>';}
-function renderInspector(){
+function renderToolbar(){
  const b=blocks.find(x=>x.id===selected);
- if(!b){
-  inspector.innerHTML='<div class="selection-empty"><div class="selection-empty-icon">✳</div><div><strong>Nothing selected</strong><p>Choose a block on the canvas to edit its content, appearance and layout.</p></div></div>';
-  return;
- }
- const index=blocks.findIndex(x=>x.id===b.id)+1;
- const textTypes=["heading","text","button","card","stat","quote","badge"];
+ if(!b){floatingToolbar.hidden=true;floatingToolbar.innerHTML="";return;}
  const fontTypes=["heading","text","button","card","stat","quote","badge"];
- const radiusTypes=["image","button","card","stat","quote","badge"];
- const paddingTypes=["button","card","stat","quote","badge","divider"];
- const alignTypes=["heading","text","button","card","stat","quote"];
  const fillTypes=["button","card","stat","quote","badge"];
  const colorTypes=["heading","text","button","card","stat","quote","badge","divider"];
+ const alignTypes=["heading","text","button","card","stat","quote"];
  const contentTypes=["heading","text","button","card","stat","quote","badge"];
- let content='';
- if(b.type==="stat"){
-  content+='<div class="field"><label for="prop-metric">Competition statistic</label><select id="prop-metric">'+STAT_METRICS.map(m=>'<option value="'+m.key+'" '+((b.metric||"wins")===m.key?"selected":"")+'>'+m.label+'</option>').join("")+'</select><div class="field-note">The live value is supplied by competition data when the page is published.</div></div>';
-  content+=field("Card label","text",b.text||"","text");
- }else if(b.type==="image"){
-  content+=field("Image description","text",b.alt||"","textarea");
-  content+='<div class="field"><label for="prop-src">Image source URL</label><input id="prop-src" type="text" value="'+esc(b.src||"")+'" placeholder="Paste an image URL"></div>';
-  content+='<div class="field"><button class="inspector-upload" id="uploadImageBtn" type="button">＋ Upload image</button><div class="field-note">Uploads are embedded in the draft and exported design. Keep images under 8 MB.</div></div>';
- }else if(b.type==="spacer"){
-  content+=field("Height","height",b.height,"number",{min:8,max:500,step:4});
- }else if(b.type==="divider"){
-  content+='<div class="field-note">A simple separator. Change its colour and spacing under Appearance.</div>';
- }else if(contentTypes.includes(b.type)){
-  content+=field(b.type==="heading"?"Heading text":b.type==="button"?"Button label":b.type==="badge"?"Badge text":b.type==="quote"?"Quote text":b.type==="card"?"Card content":"Text content","text",b.text||"","textarea");
+ const index=blocks.findIndex(x=>x.id===b.id)+1;
+ const label=b.type.charAt(0).toUpperCase()+b.type.slice(1);
+ const mark={heading:"H",text:"T",image:"▧",button:"▰",card:"▣",stat:"↗",divider:"━",spacer:"↕",badge:"✳",quote:"❝"}[b.type]||"•";
+ let html='<div class="toolbar-main"><span class="toolbar-type"><span class="toolbar-type-mark">'+mark+'</span>'+esc(label)+' · '+index+'/'+blocks.length+'</span>';
+ if(fontTypes.includes(b.type)){
+  html+='<label class="toolbar-control-label" title="Font size">Size <input class="toolbar-number" id="tb-fontSize" aria-label="Font size" type="number" min="8" max="100" value="'+esc(b.fontSize||16)+'"></label>';
  }
- let html='<div class="inspector-head"><div class="inspector-title"><strong>'+esc(b.type)+' properties</strong><span>Element '+index+' of '+blocks.length+'</span></div><span class="inspector-type">'+esc(b.type)+'</span></div>';
- html+='<details class="property-group" open><summary>Content <span>What it says</span></summary><div class="property-body">'+(content||'<div class="field-note">This element has no editable text content.</div>')+'</div></details>';
- let appearance='';
- if(fontTypes.includes(b.type))appearance+='<div class="field"><label for="prop-fontSize">Font size</label><input id="prop-fontSize" type="number" value="'+esc(b.fontSize)+'" min="8" max="100" step="1"><div class="field-note">Measured in pixels.</div></div>';
  if(colorTypes.includes(b.type)){
-  if(b.type==="divider"){
-   appearance+=field("Line colour","color",b.color,"color");
-  }else if(textTypes.includes(b.type)){
-   appearance+='<div class="two">'+field("Text colour","color",b.color,"color");
-   if(fillTypes.includes(b.type))appearance+=field("Fill colour","bg",b.bg==="transparent"?(b.lastBg||"#0b1726"):b.bg,"color");
-   appearance+='</div>';
-   if(fillTypes.includes(b.type))appearance+='<label class="check-field"><input id="prop-noFill" type="checkbox" '+(b.bg==="transparent"?"checked":"")+'> No background fill</label>';
-  }
+  const colorTitle=b.type==="divider"?"Line colour":"Text colour";
+  const symbol=b.type==="divider"?"━":"A";
+  html+='<label class="toolbar-color" title="'+colorTitle+'" style="--swatch:'+esc(b.color||"#26384f")+'"><span>'+symbol+'</span><input id="tb-color" type="color" aria-label="'+colorTitle+'" value="'+esc(b.color||"#26384f")+'"></label>';
  }
- if(radiusTypes.includes(b.type))appearance+='<div class="field"><label for="prop-radius">Corner rounding</label><input id="prop-radius" type="number" value="'+esc(b.radius)+'" min="0" max="100" step="1"></div>';
- if(paddingTypes.includes(b.type)){
-  if(b.type==="divider")appearance+=field("Vertical spacing","padding",b.padding,"number",{min:0,max:100,step:1});
-  else appearance+=field("Inner spacing","padding",b.padding,"number",{min:0,max:100,step:1});
+ if(fillTypes.includes(b.type)){
+  html+='<label class="toolbar-color" title="Background colour" style="--swatch:'+esc(b.bg==="transparent"?(b.lastBg||"#ffffff"):b.bg)+'"><span>▰</span><input id="tb-bg" type="color" aria-label="Background colour" value="'+esc(b.bg==="transparent"?(b.lastBg||"#ffffff"):b.bg)+'"></label>';
+  html+='<button type="button" class="toolbar-icon-button" id="tb-toggleFill" title="Toggle background fill" aria-label="Toggle background fill" aria-pressed="'+(b.bg==="transparent"?"false":"true")+'">'+(b.bg==="transparent"?"No fill":"Fill")+'</button>';
  }
- if(b.type==="spacer")appearance+='<div class="field-note">Empty space stays invisible on the published page.</div>';
- if(appearance)html+='<details class="property-group" open><summary>Appearance <span>Colour &amp; styling</span></summary><div class="property-body">'+appearance+'</div></details>';
- let layout='<div class="field"><label for="prop-width">Width</label><select id="prop-width">'+[25,50,75,100].map(n=>'<option value="'+n+'" '+(Number(b.width)===n?"selected":"")+'>'+n+'% of page</option>').join("")+'</select></div>';
- layout+='<div class="field"><label for="prop-position">Horizontal position</label><select id="prop-position">'+[['auto','Default'],['left','Left'],['center','Centre'],['right','Right']].map(([v,l])=>'<option value="'+v+'" '+((b.position||"auto")===v?"selected":"")+'>'+l+'</option>').join("")+'</select></div>';
- layout+='<div class="field"><label for="prop-verticalAlign">Vertical alignment</label><select id="prop-verticalAlign">'+[['top','Top'],['middle','Middle'],['bottom','Bottom']].map(([v,l])=>'<option value="'+v+'" '+((b.verticalAlign||"top")===v?"selected":"")+'>'+l+'</option>').join("")+'</select></div>';
- if(alignTypes.includes(b.type))layout+='<div class="field"><label for="prop-align">Text alignment</label><select id="prop-align">'+[['left','Left'],['center','Centre'],['right','Right']].map(([v,l])=>'<option value="'+v+'" '+((b.align||"left")===v?"selected":"")+'>'+l+'</option>').join("")+'</select></div>';
- html+='<details class="property-group" open><summary>Layout <span>Size &amp; placement</span></summary><div class="property-body">'+layout+'</div></details>';
- inspector.innerHTML=html;
+ if(alignTypes.includes(b.type)){
+  html+='<span class="toolbar-separator"></span><button type="button" class="toolbar-icon-button" data-tb-align="left" title="Align text left" aria-label="Align text left" aria-pressed="'+(b.align==="left"?"true":"false")+'">L</button>';
+  html+='<button type="button" class="toolbar-icon-button" data-tb-align="center" title="Centre text" aria-label="Centre text" aria-pressed="'+(b.align==="center"?"true":"false")+'">C</button>';
+  html+='<button type="button" class="toolbar-icon-button" data-tb-align="right" title="Align text right" aria-label="Align text right" aria-pressed="'+(b.align==="right"?"true":"false")+'">R</button>';
+ }
+ if(b.type==="image")html+='<button type="button" class="toolbar-icon-button" id="tb-upload" title="Upload or replace image">＋ Image</button>';
+ if(b.type==="stat")html+='<select class="toolbar-select" id="tb-metric" aria-label="Competition statistic">'+STAT_METRICS.map(m=>'<option value="'+m.key+'" '+((b.metric||"wins")===m.key?"selected":"")+'>'+m.label+'</option>').join("")+'</select>';
+ html+='<span class="toolbar-separator"></span><details class="toolbar-more"><summary>More ▾</summary><div class="toolbar-more-panel">';
+ html+='<div class="toolbar-panel-heading">Content</div>';
+ if(b.type==="image"){
+  html+='<div class="field"><label for="tb-alt">Image description</label><input id="tb-alt" type="text" value="'+esc(b.alt||"")+'" placeholder="Describe the image"></div>';
+  html+='<div class="field"><label for="tb-src">Image URL</label><input id="tb-src" type="url" value="'+esc(b.src||"")+'" placeholder="Paste an image URL"></div>';
+  html+='<button type="button" class="toolbar-upload" id="tb-upload-more">Upload image…</button><div class="toolbar-inline-note">Uploaded images are embedded in the draft and exported design.</div>';
+ }else if(b.type==="stat"){
+  html+='<div class="field"><label for="tb-text">Card label</label><input id="tb-text" type="text" value="'+esc(b.text||"")+'"></div>';
+  html+='<div class="field-note">The live value is supplied by competition data on the published page.</div>';
+ }else if(contentTypes.includes(b.type)){
+  html+='<div class="field"><label for="tb-text">Text content</label><textarea id="tb-text" rows="3">'+esc(b.text||"")+'</textarea></div>';
+ }else if(b.type==="spacer"){
+  html+='<div class="field"><label for="tb-height">Height (px)</label><input id="tb-height" type="number" min="8" max="500" step="4" value="'+esc(b.height||48)+'"></div>';
+ }else if(b.type==="divider"){
+  html+='<div class="toolbar-inline-note">A separator line has no text content. Adjust its colour and spacing below.</div>';
+ }
+ html+='<div class="toolbar-panel-heading">Layout</div><div class="toolbar-grid-two">';
+ html+='<div class="field"><label for="tb-width">Width</label><select id="tb-width">'+[25,50,75,100].map(n=>'<option value="'+n+'" '+(Number(b.width)===n?"selected":"")+'>'+n+'%</option>').join("")+'</select></div>';
+ html+='<div class="field"><label for="tb-position">Horizontal position</label><select id="tb-position">'+[['auto','Default'],['left','Left'],['center','Centre'],['right','Right']].map(([v,l])=>'<option value="'+v+'" '+((b.position||"auto")===v?"selected":"")+'>'+l+'</option>').join("")+'</select></div>';
+ html+='</div><div class="toolbar-grid-two"><div class="field"><label for="tb-verticalAlign">Vertical alignment</label><select id="tb-verticalAlign">'+[['top','Top'],['middle','Middle'],['bottom','Bottom']].map(([v,l])=>'<option value="'+v+'" '+((b.verticalAlign||"top")===v?"selected":"")+'>'+l+'</option>').join("")+'</select></div>';
+ if(["button","card","stat","quote","badge","divider"].includes(b.type)){
+  html+='<div class="field"><label for="tb-padding">'+(b.type==="divider"?"Vertical spacing":"Inner spacing")+' (px)</label><input id="tb-padding" type="number" min="0" max="100" value="'+esc(b.padding||0)+'"></div>';
+ }else html+='<div class="field"><label for="tb-padding">Spacing (px)</label><input id="tb-padding" type="number" min="0" max="100" value="'+esc(b.padding||0)+'"></div>';
+ html+='</div>';
+ if(["image","button","card","stat","quote","badge"].includes(b.type)){
+  html+='<div class="field"><label for="tb-radius">Corner rounding (px)</label><input id="tb-radius" type="number" min="0" max="100" value="'+esc(b.radius||0)+'"></div>';
+ }
+ if(fillTypes.includes(b.type)){
+  html+='<label class="toolbar-check"><input id="tb-noFill" type="checkbox" '+(b.bg==="transparent"?"checked":"")+'> Transparent background</label>';
+ }
+ if(alignTypes.includes(b.type)){
+  html+='<div class="field"><label for="tb-align">Text alignment</label><select id="tb-align">'+[['left','Left'],['center','Centre'],['right','Right']].map(([v,l])=>'<option value="'+v+'" '+((b.align||"left")===v?"selected":"")+'>'+l+'</option>').join("")+'</select></div>';
+ }
+ html+='<div class="toolbar-panel-heading">Arrange</div><div class="toolbar-grid-two"><button type="button" class="toolbar-icon-button" id="tb-up" '+(index===1?"disabled":"")+' title="Move earlier">↑ Move up</button><button type="button" class="toolbar-icon-button" id="tb-down" '+(index===blocks.length?"disabled":"")+' title="Move later">↓ Move down</button></div>';
+ html+='</div></details><button type="button" class="toolbar-icon-button" id="tb-duplicate" title="Duplicate element" aria-label="Duplicate element">▢</button><button type="button" class="toolbar-icon-button toolbar-delete" id="tb-delete" title="Delete element" aria-label="Delete element">×</button></div>';
+ floatingToolbar.innerHTML=html;
+ floatingToolbar.hidden=false;
 
- const numericKeys=["fontSize","width","padding","radius","height"];
- ["text","src","alt","fontSize","color","bg","width","padding","radius","height"].forEach(key=>{
-  const input=$("prop-"+key);if(!input)return;
-  const actualKey=key==="text"&&b.type==="image"?"alt":key;
-  const readValue=()=>numericKeys.includes(key)?Number(input.value):input.value;
-  input.addEventListener("input",()=>{
-   let value=readValue();
-   if(key==="width")value=[25,50,75,100].includes(value)?value:Math.max(25,Math.min(100,Math.round(value/25)*25));
-   b[actualKey]=value;
-   if(key==="bg"){b.lastBg=value;if($("prop-noFill")?.checked)b.bg="transparent";}
-   render({keepInspector:true});
-  });
-  input.addEventListener("change",()=>{
-   let value=readValue();
-   if(key==="width")value=[25,50,75,100].includes(value)?value:Math.max(25,Math.min(100,Math.round(value/25)*25));
-   b[actualKey]=value;
-   if(key==="bg"){b.lastBg=value;if($("prop-noFill")?.checked)b.bg="transparent";}
-   pushHistory();render();
-  });
- });
- $("prop-metric")?.addEventListener("change",e=>updateProp("metric",e.target.value));
- $("prop-noFill")?.addEventListener("change",e=>{
-  if(e.target.checked){if(b.bg!=="transparent")b.lastBg=b.bg;b.bg="transparent";}
-  else b.bg=b.lastBg||$("prop-bg")?.value||"#0b1726";
+ const bindValue=(id,key,parse=value=>value,{live=true}={})=>{
+  const input=$(id);if(!input)return;
+  const commit=()=>{pushHistory();updateHistoryButtons();};
+  const apply=()=>{
+   const current=blocks.find(x=>x.id===selected);if(!current)return;
+   const value=parse(input.value);
+   if(key==="bg"&&value!=="transparent")current.lastBg=value;
+   current[key]=value;
+   if(live)render({keepToolbar:true});
+  };
+  input.addEventListener("input",apply);
+  input.addEventListener("change",()=>{apply();commit();});
+ };
+ bindValue("tb-text","text");
+ bindValue("tb-src","src");
+ bindValue("tb-alt","alt");
+ bindValue("tb-fontSize","fontSize",v=>Math.max(8,Math.min(100,Number(v)||16)));
+ bindValue("tb-color","color");
+ bindValue("tb-bg","bg");
+ bindValue("tb-height","height",v=>Math.max(8,Math.min(500,Number(v)||48)));
+ bindValue("tb-padding","padding",v=>Math.max(0,Math.min(100,Number(v)||0)));
+ bindValue("tb-radius","radius",v=>Math.max(0,Math.min(100,Number(v)||0)));
+ bindValue("tb-width","width",v=>[25,50,75,100].includes(Number(v))?Number(v):100);
+ bindValue("tb-position","position");
+ bindValue("tb-verticalAlign","verticalAlign");
+ bindValue("tb-align","align");
+ $("tb-metric")?.addEventListener("change",e=>updateProp("metric",e.target.value));
+ document.querySelectorAll("[data-tb-align]").forEach(btn=>btn.addEventListener("click",()=>{
+  const current=blocks.find(x=>x.id===selected);if(!current)return;current.align=btn.dataset.tbAlign;pushHistory();render();
+ }));
+ const toggleFill=()=>{
+  const current=blocks.find(x=>x.id===selected);if(!current)return;
+  if(current.bg!=="transparent")current.lastBg=current.bg;
+  current.bg=current.bg==="transparent"?(current.lastBg||"#ffffff"):"transparent";
+  pushHistory();render();
+ };
+ $("tb-toggleFill")?.addEventListener("click",toggleFill);
+ $("tb-noFill")?.addEventListener("change",e=>{
+  const current=blocks.find(x=>x.id===selected);if(!current)return;
+  if(e.target.checked){if(current.bg!=="transparent")current.lastBg=current.bg;current.bg="transparent";}
+  else current.bg=current.lastBg||"#ffffff";
   pushHistory();render();
  });
- ["align","position","verticalAlign"].forEach(key=>{
-  $("prop-"+key)?.addEventListener("change",e=>updateProp(key,e.target.value));
+ ["tb-upload","tb-upload-more"].forEach(id=>$(id)?.addEventListener("click",()=>$("imageFile").click()));
+ $("tb-up")?.addEventListener("click",()=>move(-1));
+ $("tb-down")?.addEventListener("click",()=>move(1));
+ $("tb-duplicate")?.addEventListener("click",()=>{
+  const i=blocks.findIndex(x=>x.id===selected);if(i<0)return;
+  const copy={...structuredClone(blocks[i]),id:"b"+(++seq)};
+  blocks.splice(i+1,0,copy);selected=copy.id;pushHistory();render();
  });
- const bg=$("prop-bg"),noFill=$("prop-noFill");
- if(bg&&noFill){
-  bg.disabled=noFill.checked;
-  noFill.addEventListener("change",()=>{bg.disabled=noFill.checked;});
- }
- $("uploadImageBtn")?.addEventListener("click",()=>$("imageFile").click());
+ $("tb-delete")?.addEventListener("click",()=>{
+  const i=blocks.findIndex(x=>x.id===selected);if(i<0)return;
+  blocks.splice(i,1);selected=null;pushHistory();render();
+ });
+ positionToolbar();
 }
-function updateSelectionActions(){
- const index=blocks.findIndex(b=>b.id===selected);
- const hasSelection=index>=0;
- ["duplicateBtn","deleteBtn","upBtn","downBtn"].forEach(id=>{const el=$(id);if(el)el.disabled=!hasSelection;});
- $("upBtn").disabled=!hasSelection||index===0;
- $("downBtn").disabled=!hasSelection||index===blocks.length-1;
+function positionToolbar(){
+ if(!floatingToolbar||floatingToolbar.hidden)return;
+ const b=blocks.find(x=>x.id===selected);
+ const target=b&&canvas.querySelector('[data-id="'+b.id+'"]');
+ const stage=document.querySelector(".stage");
+ if(!target||!stage){floatingToolbar.hidden=true;return;}
+ const targetRect=target.getBoundingClientRect();
+ const toolbarRect=floatingToolbar.getBoundingClientRect();
+ const stageRect=stage.getBoundingClientRect();
+ const edge=7,gap=10;
+ let left=targetRect.left+targetRect.width/2-toolbarRect.width/2;
+ left=Math.max(stageRect.left+edge,Math.min(left,stageRect.right-toolbarRect.width-edge));
+ let top=targetRect.top-toolbarRect.height-gap;
+ if(top<Math.max(66,stageRect.top+4))top=Math.min(targetRect.bottom+gap,window.innerHeight-toolbarRect.height-8);
+ top=Math.max(66,Math.min(top,window.innerHeight-toolbarRect.height-8));
+ floatingToolbar.style.left=Math.round(left)+"px";
+ floatingToolbar.style.top=Math.round(top)+"px";
 }
 function add(type){const b=makeBlock(type);blocks.push(b);selected=b.id;pushHistory();render();}
 document.querySelectorAll("[data-add]").forEach(btn=>btn.addEventListener("click",()=>add(btn.dataset.add)));
 const toolSearch=$("toolSearch"),toolEmpty=$("toolEmpty");
 toolSearch?.addEventListener("input",()=>{const q=toolSearch.value.trim().toLowerCase();let visible=0;document.querySelectorAll("[data-add]").forEach(btn=>{const match=!q||(btn.dataset.add+" "+btn.innerText+" "+btn.title).toLowerCase().includes(q);btn.hidden=!match;if(match)visible++;});document.querySelectorAll(".tool-category").forEach(label=>{const grid=label.nextElementSibling;label.hidden=!!q&&(!grid||!Array.from(grid.querySelectorAll("[data-add]")).some(btn=>!btn.hidden));if(grid?.classList.contains("tool-grid"))grid.hidden=!!q&&!Array.from(grid.querySelectorAll("[data-add]")).some(btn=>!btn.hidden);});toolEmpty?.classList.toggle("visible",visible===0);});
-$("upBtn").onclick=()=>move(-1);$("downBtn").onclick=()=>move(1);
+
 function move(dir){const i=blocks.findIndex(b=>b.id===selected),j=i+dir;if(i<0||j<0||j>=blocks.length)return;[blocks[i],blocks[j]]=[blocks[j],blocks[i]];pushHistory();render();}
-$("duplicateBtn").onclick=()=>{const i=blocks.findIndex(b=>b.id===selected);if(i<0)return;const copy={...structuredClone(blocks[i]),id:"b"+(++seq)};blocks.splice(i+1,0,copy);selected=copy.id;pushHistory();render();};
-$("deleteBtn").onclick=()=>{const i=blocks.findIndex(b=>b.id===selected);if(i<0)return;blocks.splice(i,1);selected=null;pushHistory();render();};
-document.querySelectorAll("[data-position]").forEach(btn=>btn.addEventListener("click",()=>{const b=blocks.find(x=>x.id===selected);if(!b)return;b.position=btn.dataset.position;pushHistory();render();}));
-document.querySelectorAll("[data-valign]").forEach(btn=>btn.addEventListener("click",()=>{const b=blocks.find(x=>x.id===selected);if(!b)return;b.verticalAlign=btn.dataset.valign;pushHistory();render();}));
+
+
+
+
 $("undoBtn").onclick=undo;$("redoBtn").onclick=redo;
 ["pageTitle","pageBg","pagePadding","pageWidth"].forEach(id=>$(id).addEventListener("change",()=>{pushHistory();render();}));
 $("imageFile").addEventListener("change",e=>{const file=e.target.files?.[0];if(!file)return;const b=blocks.find(x=>x.id===selected);if(!b||b.type!=="image"){toast("Select an image block first.");return;}if(file.size>8*1024*1024){toast("Please use an image smaller than 8 MB.");return;}const reader=new FileReader();reader.onload=()=>{b.src=reader.result;b.alt=b.alt||file.name;pushHistory();render();toast("Image added.");};reader.readAsDataURL(file);e.target.value="";});
