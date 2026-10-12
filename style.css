@@ -2042,3 +2042,10 @@ main { gap:22px; }
   .ccm-11__pointer { top:calc(50% - min(170px, 43vw) + 20px); rotate:0deg; }
 }
 @media(prefers-reduced-motion:reduce) { .radar-sweep { display:none; } }
+
+.home-latest-link { display:flex; align-items:center; justify-content:space-between; gap:12px; width:100%; min-height:82px; padding:15px; border:1px solid #2b3c51; border-radius:11px; background:linear-gradient(120deg,rgba(19,39,61,.9),rgba(9,20,34,.85)); color:#eaf0f7; text-align:left; cursor:pointer; transition:border-color .2s,background .2s; }
+.home-latest-link:hover,.home-latest-link:focus-visible { border-color:#d8b866; background:#14253a; outline:none; }
+.home-latest-link span:first-child { display:grid; gap:5px; }
+.home-latest-link strong { font-size:12px; font-weight:850; }
+.home-latest-link small { color:#91a1b5; font-size:10px; line-height:1.5; }
+.home-latest-link span:last-child { color:#d8b866; font-size:18px; }
