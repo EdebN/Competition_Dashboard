@@ -2240,3 +2240,34 @@ main { gap:22px; }
 .official-post-actions { grid-column:1/-1; display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
 .official-post-actions span { color:var(--dashboard-muted); font-size:11px; line-height:1.5; }
 @media(max-width:600px) { .official-post-form { grid-template-columns:1fr; } .official-post-form label:nth-child(3),.official-post-actions { grid-column:1; } .official-post-actions button { width:100%; } }
+
+
+/* POLISH PASS: keep story labels and floating actions in their own space */
+.social-post-meta { gap: 8px; }
+.social-featured-label {
+  position: static;
+  display: inline-flex;
+  align-items: center;
+  align-self: center;
+  padding: 5px 8px;
+  border: 1px solid rgba(224,185,90,.5);
+  border-radius: 999px;
+  background: rgba(224,185,90,.12);
+  color: #f4d57f;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: .09em;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+.corner-social-post { bottom: 82px; }
+.corner-request { bottom: 18px; }
+@media (max-width: 600px) {
+  .corner-social-post, .corner-request {
+    right: 12px;
+    max-width: calc(100vw - 24px);
+    font-size: 12px;
+  }
+  .corner-social-post { bottom: 78px; }
+  .corner-request { bottom: 16px; }
+}
