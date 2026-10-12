@@ -97,8 +97,40 @@ function withMatchViewTransition(update) {
    transition.finished.finally(()=>{page.style.viewTransitionName="";});
  } else update();
 }
+function positionMatchFilterIndicator(page, previousRect = null) {
+ const filters=page.querySelector(".match-filters");
+ const active=filters?.querySelector(".match-filter[data-filter].active");
+ if(!filters||!active)return;
+ const indicator=document.createElement("span");
+ indicator.className="match-filter-indicator";
+ indicator.setAttribute("aria-hidden","true");
+ filters.prepend(indicator);
+ const rect=filters.getBoundingClientRect();
+ const target={left:active.offsetLeft,top:active.offsetTop,width:active.offsetWidth,height:active.offsetHeight};
+ if(previousRect){
+  indicator.style.transition="none";
+  indicator.style.left=(previousRect.left-rect.left)+"px";
+  indicator.style.top=(previousRect.top-rect.top)+"px";
+  indicator.style.width=previousRect.width+"px";
+  indicator.style.height=previousRect.height+"px";
+  void indicator.offsetWidth;
+  requestAnimationFrame(()=>{
+   indicator.style.transition="";
+   indicator.style.left=target.left+"px";
+   indicator.style.top=target.top+"px";
+   indicator.style.width=target.width+"px";
+   indicator.style.height=target.height+"px";
+  });
+ }else{
+  indicator.style.left=target.left+"px";
+  indicator.style.top=target.top+"px";
+  indicator.style.width=target.width+"px";
+  indicator.style.height=target.height+"px";
+ }
+}
 function renderMatchCentre(){
  const page=document.getElementById("matches-page");if(!page)return;
+ const previousIndicatorRect=page.querySelector(".match-filter-indicator")?.getBoundingClientRect()||null;
  if(selectedMatchId!==null){renderMatchDetail(selectedMatchId);return}
  const all=getActiveRegularGames(),visible=all.filter(g=>matchCentreFilter==="played"?isPlayed(g):matchCentreFilter==="upcoming"?!isPlayed(g):true);
  let rows="";
@@ -107,7 +139,8 @@ function renderMatchCentre(){
   rows+='<button class="match-centre-row" type="button" onclick="openMatchDetail('+Number(g.id)+')"><span class="match-centre-number"><b>GAME '+num+'</b><small>'+escapeHTML(matchRound(g))+'</small></span><span class="match-centre-teams"><span class="'+(w===g.home?"match-team-winner":"")+'">'+escapeHTML(getTeamDisplayName(g.home||"TBD"))+'<b>'+(s?s.home:"–")+'</b></span><span class="'+(w===g.away?"match-team-winner":"")+'">'+escapeHTML(getTeamDisplayName(g.away||"TBD"))+'<b>'+(s?s.away:"–")+'</b></span>'+(g.referee?'<small>REFEREE · '+escapeHTML(getTeamDisplayName(g.referee))+'</small>':"")+'</span><span class="match-centre-summary"><b class="'+(s?"match-status-played":"match-status-upcoming")+'">'+(s?(w==="Draw"?"DRAW":"FINAL"):"UPCOMING")+'</b><small>'+(s&&e?"Elo "+e.preA.toFixed(0)+" → "+e.postA.toFixed(0):"Elo "+getMatchPrediction(g).home.toFixed(0)+"% win chance")+'</small></span><span class="match-open-arrow">›</span></button>';
  });
  page.innerHTML='<div class="match-page-heading"><div><div class="section-title">COMPETITION</div><h1 class="match-page-title">Match Centre</h1><p class="match-page-subtitle">Fixtures, results and rating changes for the competition.</p><button type="button" class="match-filter" onclick="showPage(\'finals\')">View finals →</button></div><div class="match-count"><strong>'+all.filter(isPlayed).length+'</strong><span>of '+all.length+' played</span></div></div><section class="card"><div class="match-toolbar"><div><div class="section-title">FIXTURES & RESULTS</div><h2>Regular season</h2></div><div class="match-filters"><button class="match-filter '+(matchCentreFilter==="all"?"active":"")+'" data-filter="all">All</button><button class="match-filter '+(matchCentreFilter==="played"?"active":"")+'" data-filter="played">Results</button><button class="match-filter '+(matchCentreFilter==="upcoming"?"active":"")+'" data-filter="upcoming">Upcoming</button></div></div><div class="match-centre-list">'+(rows||'<div class="empty">No matches match this filter.</div>')+'</div></section>';
- page.querySelectorAll("[data-filter]").forEach(b=>b.addEventListener("click",()=>{if(matchCentreFilter===b.dataset.filter)return;withMatchViewTransition(()=>{matchCentreFilter=b.dataset.filter;renderMatchCentre()})}));
+ positionMatchFilterIndicator(page,previousIndicatorRect);
+ page.querySelectorAll("[data-filter]").forEach(b=>b.addEventListener("click",()=>{if(matchCentreFilter===b.dataset.filter)return;matchCentreFilter=b.dataset.filter;renderMatchCentre()}));
 }
 function openMatchDetail(id){if(!games.some(g=>Number(g.id)===Number(id)))return;if(typeof currentPage!=="undefined"&&currentPage!=="matches"){selectedMatchId=Number(id);showPage("matches");requestAnimationFrame(()=>withMatchViewTransition(()=>renderMatchDetail(id)));return;}withMatchViewTransition(()=>{selectedMatchId=Number(id);renderMatchDetail(id)})}
 function renderMatchDetail(id){
