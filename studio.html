@@ -4,47 +4,115 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Team Page Studio</title>
-<style>
-:root{color-scheme:dark;--bg:#0b0e14;--panel:#111722;--panel2:#171f2d;--line:#273247;--text:#edf2fa;--muted:#8e9bb0;--accent:#e0b95a;--accent2:#6ebce7}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:14px/1.45 Inter,ui-sans-serif,system-ui,-apple-system,sans-serif}button,input,textarea,select{font:inherit}button{cursor:pointer;color:var(--text);background:#202a3a;border:1px solid #344157;border-radius:9px;padding:9px 11px}button:hover{background:#2a3650}button:disabled{opacity:.35;cursor:not-allowed}.app{min-height:100vh;display:grid;grid-template-rows:64px 1fr}.top{display:flex;align-items:center;justify-content:space-between;padding:0 18px;border-bottom:1px solid var(--line);background:#0e131c;gap:14px}.brand{display:flex;align-items:center;gap:11px;font-weight:800;letter-spacing:.02em}.mark{width:30px;height:30px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:grid;place-items:center;color:#0b0e14;font-weight:900}.top-actions{display:flex;gap:7px;flex-wrap:wrap}.primary{background:var(--accent);border-color:var(--accent);color:#fff}.workspace{display:grid;grid-template-columns:210px minmax(300px,1fr) 260px;min-height:calc(100vh - 64px)}.sidebar{padding:16px 13px;background:var(--panel);border-right:1px solid var(--line);min-width:0}.right{border-right:0;border-left:1px solid var(--line)}.eyebrow{font-size:10px;font-weight:800;color:var(--muted);letter-spacing:.13em;text-transform:uppercase;margin:4px 0 12px}.toolgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.tool{min-height:72px;display:flex;flex-direction:column;align-items:flex-start;justify-content:space-between;text-align:left;padding:10px;background:var(--panel2)}.tool span:first-child{font-size:20px;color:var(--accent2)}.tool small{color:#c5cede}.hint{color:var(--muted);font-size:12px;margin-top:15px}.stage{min-width:0;display:flex;flex-direction:column;background:radial-gradient(ellipse at 50% 10%,#1a2233 0,transparent 58%)}.stagebar{height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 18px;border-bottom:1px solid #1f2939;color:var(--muted);gap:8px}.stagebar select{background:var(--panel);color:var(--text);border:1px solid var(--line);padding:7px;border-radius:8px}.viewport{padding:30px;overflow:auto;flex:1;display:flex;justify-content:center;align-items:flex-start}.page{width:100%;max-width:900px;min-height:700px;background:#0b0e14;color:#edf2fa;border-radius:12px;padding:30px;box-shadow:0 20px 70px #0007;transition:width .2s;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));align-content:start;align-items:stretch;gap:14px}.page.mobile{grid-template-columns:minmax(0,1fr)}.page.mobile .block{grid-column:1/-1!important}.page.mobile{max-width:390px}.page.tablet{max-width:720px}.block{position:relative;grid-column:span 4;width:100%;min-width:0;min-height:20px;margin:0;overflow-wrap:anywhere;cursor:grab;outline:1px solid transparent;outline-offset:3px;transition:outline-color .12s;align-self:start}.block.align-middle{align-self:center}.block.align-bottom{align-self:end}.block.position-left{justify-self:start}.block.position-center{justify-self:center}.block.position-right{justify-self:end}.block:hover{outline-color:#8b7cff66}.block.selected{outline:2px solid var(--accent);outline-offset:4px}.block.dragging{opacity:.35}.block.drop-target{box-shadow:0 -3px 0 var(--accent)}.block h1,.block h2,.block h3,.block p{margin:0}.block img{display:block;max-width:100%;height:auto;object-fit:cover}.block button{pointer-events:none}.block .badge{display:inline-block;padding:5px 9px;border-radius:999px;background:#e8e5ff;color:#5547b8;font-size:12px;font-weight:700}.block .placeholder{min-height:150px;border:2px dashed #9ba7bd;border-radius:10px;display:grid;place-items:center;color:#78849b;padding:20px;text-align:center}.block .divider{height:2px;background:#d7dce5;width:100%}.block .stat{padding:18px;border-radius:12px;background:#fff;border:1px solid #e0e5ef}.block .stat strong{display:block;font-size:28px}.empty{text-align:center;padding:80px 20px;color:#667085;border:2px dashed #cbd3e1;border-radius:12px;grid-column:1/-1}.empty strong{display:block;font-size:20px;color:#28334a;margin-bottom:8px}.field{display:flex;flex-direction:column;gap:5px;margin:0 0 13px}.field label{font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.06em}.field input,.field textarea,.field select{width:100%;background:#0d131d;color:var(--text);border:1px solid #344157;border-radius:8px;padding:9px}.field textarea{resize:vertical;min-height:74px}.field input[type=color]{height:38px;padding:3px}.field input[type=range]{padding:0}.two{display:grid;grid-template-columns:1fr 1fr;gap:9px}.inspector-empty{color:var(--muted);font-size:12px;line-height:1.7}.sectionline{border:0;border-top:1px solid var(--line);margin:17px 0}.danger{color:#ff9d9d}.toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#edf2fa;color:#10151f;padding:10px 15px;border-radius:10px;box-shadow:0 8px 28px #0007;opacity:0;pointer-events:none;transition:opacity .2s;z-index:10}.toast.show{opacity:1}.file{display:none}.corner-social-post{position:fixed;z-index:20;right:20px;bottom:64px;border:1px solid #8b7cff;border-radius:999px;background:#17152a;color:#e9e5ff;padding:10px 14px;font-weight:800;box-shadow:0 8px 28px #0005}.corner-social-post:hover{background:#25203f}.corner-request{position:fixed;right:18px;bottom:18px;z-index:20;border-radius:999px;padding:12px 16px;background:var(--accent);border-color:var(--accent);box-shadow:0 8px 28px #0006;font-weight:800}.modal-backdrop{position:fixed;inset:0;z-index:30;display:none;place-items:center;padding:18px;background:#05080dcc}.modal-backdrop.open{display:grid}.request-modal{width:min(100%,480px);padding:22px;border:1px solid var(--line);border-radius:18px;background:var(--panel);box-shadow:0 24px 80px #0008}.request-modal h2{margin:0 0 8px}.request-modal p{margin:0 0 16px;color:var(--muted);font-size:12px}.request-modal textarea{width:100%;min-height:130px;resize:vertical;background:#0d131d;color:var(--text);border:1px solid #344157;border-radius:10px;padding:12px}.modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}.minirow{display:flex;gap:7px}.minirow button{flex:1}.muted{color:var(--muted)}@media(max-width:980px){.workspace{grid-template-columns:175px minmax(260px,1fr)}.right{grid-column:1/-1;border-left:0;border-top:1px solid var(--line);display:grid;grid-template-columns:1fr 1fr;gap:20px}.viewport{padding:18px}.page{padding:20px}}@media(max-width:600px){.app{grid-template-rows:auto 1fr}.top{padding:12px;align-items:flex-start;flex-direction:column}.workspace{grid-template-columns:1fr}.sidebar{border-right:0;border-bottom:1px solid var(--line)}.toolgrid{grid-template-columns:repeat(3,1fr)}.tool{min-height:60px}.workspace .stage{min-height:600px}.right{display:block}.viewport{padding:12px}.page{padding:16px}.stagebar{padding:0 10px}.top-actions button{padding:7px 8px}}
-
-/* Competition Dashboard visual alignment and action spacing */
-.primary { background:var(--accent); border-color:var(--accent); color:#111827; }
-.mark { background:linear-gradient(135deg,var(--accent),var(--accent2)); }
-.block:hover { outline-color:#e0b95a66; }
-.block.selected { outline-color:var(--accent); }
-.block.drop-target { box-shadow:0 -3px 0 var(--accent); }
-.block .badge { background:#f4d57f; color:#102033; }
-.corner-social-post {
-  bottom:82px;
-  border-color:#6ebce7;
-  background:#101c2d;
-  color:#d9efff;
+<style>:root{
+ color-scheme:dark;
+ --bg:#08111e;--panel:#0d1a2b;--panel2:#12243a;--panel3:#172c45;
+ --line:#263d57;--line-strong:#365675;--text:#edf3fb;--muted:#93a7c0;
+ --accent:#e0b95a;--accent-bright:#f4d57f;--accent2:#6ebce7;
+ --danger:#ff9f9f;--success:#7ed9b1;--radius:14px;
 }
-.corner-social-post:hover { background:#182940; }
-.corner-request {
-  background:#e0b95a;
-  border-color:#e0b95a;
-  color:#111827;
-}
-.corner-request:hover { background:#f4d57f; }
-.modal-actions { flex-wrap:wrap; }
-.modal-actions button { min-height:40px; }
-#socialPostStatus { color:var(--accent2); font-size:12px; line-height:1.5; }
-@media(max-width:600px) {
-  .corner-social-post,.corner-request { right:12px; max-width:calc(100vw - 24px); font-size:12px; }
-  .corner-social-post { bottom:78px; }
-  .corner-request { bottom:16px; }
-  .top-actions { width:100%; }
-  .top-actions button { flex:1 1 auto; }
-}
-
+*{box-sizing:border-box}
+html{min-height:100%;background:var(--bg)}
+body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 50% -20%,#173354 0,transparent 55%),var(--bg);color:var(--text);font:14px/1.5 Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+button,input,textarea,select{font:inherit}
+button{cursor:pointer;color:var(--text);background:#172b43;border:1px solid #304a66;border-radius:9px;padding:9px 12px;transition:background .16s,border-color .16s,transform .16s}
+button:hover:not(:disabled){background:#203b5a;border-color:#52769b}
+button:active:not(:disabled){transform:translateY(1px)}
+button:disabled{opacity:.42;cursor:not-allowed}
+button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:2px solid var(--accent2);outline-offset:2px}
+.app{min-height:100vh;display:grid;grid-template-rows:auto 1fr}
+.top{position:sticky;top:0;z-index:25;display:flex;align-items:center;justify-content:space-between;gap:20px;padding:14px 22px;border-bottom:1px solid var(--line);background:rgba(8,17,30,.94);backdrop-filter:blur(18px)}
+.brand{display:flex;align-items:center;gap:12px;min-width:210px;font-weight:850;letter-spacing:.01em}
+.mark{width:38px;height:38px;flex:0 0 38px;border-radius:12px;background:linear-gradient(145deg,var(--accent-bright),var(--accent2));display:grid;place-items:center;color:#091321;font-weight:950;box-shadow:0 5px 22px #0003}
+#studioBrand{font-size:14px;display:block;line-height:1.3}
+.brand-subtitle{display:block;margin-top:3px;font-size:10px;color:var(--muted);font-weight:650;letter-spacing:.12em}
+.top-actions{display:flex;align-items:center;justify-content:flex-end;gap:7px;flex-wrap:wrap}
+.top-actions button{padding:8px 10px;font-size:12px;white-space:nowrap}
+.primary{background:var(--accent);border-color:var(--accent);color:#101b2a;font-weight:850}
+.primary:hover:not(:disabled){background:var(--accent-bright);border-color:var(--accent-bright);color:#101b2a}
+#publishTeamPageBtn{box-shadow:0 5px 18px #e0b95a20}
+.workspace{display:grid;grid-template-columns:226px minmax(320px,1fr) 294px;min-height:calc(100vh - 68px);align-items:stretch}
+.sidebar{padding:20px 15px;background:rgba(13,26,43,.92);border-right:1px solid var(--line);min-width:0}
+.right{border-right:0;border-left:1px solid var(--line);display:flex;flex-direction:column;gap:20px}
+.eyebrow{font-size:10px;font-weight:850;color:#a9bed4;letter-spacing:.14em;text-transform:uppercase;margin:2px 0 12px}
+.toolgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.tool{min-height:76px;display:flex;flex-direction:column;align-items:flex-start;justify-content:space-between;text-align:left;padding:11px;border-radius:11px;background:linear-gradient(145deg,#172c45,#112239);border-color:#2a4561}
+.tool span:first-child{font-size:22px;line-height:1;color:var(--accent-bright)}
+.tool small{color:#d2deeb;font-size:11px;font-weight:650}
+.hint{color:var(--muted);font-size:11px;line-height:1.65;margin-top:12px}
+.sectionline{border:0;border-top:1px solid var(--line);margin:20px 0}
+.field{display:flex;flex-direction:column;gap:6px;margin:0 0 14px;min-width:0}
+.field label,.field>span{font-size:10px;color:#a9bed4;font-weight:800;text-transform:uppercase;letter-spacing:.08em}
+.field input,.field textarea,.field select,.stagebar select{width:100%;min-width:0;background:#081522;color:var(--text);border:1px solid #304760;border-radius:9px;padding:10px 11px;outline:none}
+.field input:hover,.field textarea:hover,.field select:hover{border-color:#476789}
+.field input:focus,.field textarea:focus,.field select:focus{border-color:var(--accent2);box-shadow:0 0 0 3px #6ebce71c}
+.field textarea{resize:vertical;min-height:92px;line-height:1.55}
+.field input[type=color]{height:40px;padding:4px}
+.field input[type=range]{padding:0;accent-color:var(--accent)}
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.stage{min-width:0;min-height:calc(100vh - 68px);display:flex;flex-direction:column;background:radial-gradient(ellipse at 50% 0%,rgba(34,67,103,.28),transparent 62%)}
+.stagebar{min-height:58px;display:flex;align-items:center;justify-content:space-between;gap:14px;padding:10px 22px;border-bottom:1px solid #213750;color:var(--muted);font-size:12px}
+.stagebar-main{display:flex;align-items:center;gap:10px;min-width:0}
+.live-dot{width:8px;height:8px;border-radius:50%;background:var(--success);box-shadow:0 0 0 4px #7ed9b11a;flex:0 0 auto}
+#workspaceStatus{display:inline-flex;align-items:center;gap:7px;color:var(--accent-bright);font-size:11px;font-weight:750}
+#workspaceStatus[data-state="dirty"]{color:var(--accent-bright)}
+#workspaceStatus[data-state="error"]{color:var(--danger)}
+#workspaceStatus[data-state="saved"]{color:var(--success)}
+#blockCount{white-space:nowrap}
+.viewport{padding:clamp(18px,3vw,36px);overflow:auto;flex:1;display:flex;justify-content:center;align-items:flex-start;min-width:0}
+.page{width:100%;max-width:900px;min-height:700px;background:#0b1726;color:var(--text);border:1px solid #31465f;border-radius:15px;padding:30px;box-shadow:0 25px 80px #0003;transition:width .2s;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));align-content:start;align-items:stretch;gap:16px}
+.page.mobile{grid-template-columns:minmax(0,1fr);max-width:390px}
+.page.mobile .block{grid-column:1/-1!important}
+.page.tablet{max-width:720px}
+.block{position:relative;grid-column:span 4;width:100%;min-width:0;min-height:20px;margin:0;overflow-wrap:anywhere;cursor:grab;outline:1px solid transparent;outline-offset:4px;border-radius:5px;transition:outline-color .12s,opacity .12s;align-self:start}
+.block.align-middle{align-self:center}.block.align-bottom{align-self:end}
+.block.position-left{justify-self:start}.block.position-center{justify-self:center}.block.position-right{justify-self:end}
+.block:hover{outline-color:#6ebce780}
+.block.selected{outline:2px solid var(--accent);outline-offset:4px}
+.block.dragging{opacity:.35}.block.drop-target{box-shadow:0 -3px 0 var(--accent)}
+.block h1,.block h2,.block h3,.block p{margin:0}
+.block img{display:block;max-width:100%;height:auto;object-fit:cover}
+.block button{pointer-events:none}
+.block .badge{display:inline-block;padding:5px 9px;border:1px solid #e0b95a55;border-radius:999px;background:#e0b95a18;color:var(--accent-bright);font-size:12px;font-weight:800}
+.block .placeholder{min-height:160px;border:1px dashed #496987;border-radius:12px;background:#102239;display:grid;place-items:center;color:#a8bfd7;padding:20px;text-align:center;line-height:1.7}
+.block .divider{height:2px;background:#37516b;width:100%}
+.block .stat{padding:18px;border-radius:12px;background:#12243a;border:1px solid #304a66;color:var(--text)}
+.block .stat strong{display:block;font-size:28px;color:var(--accent-bright)}
+.empty{text-align:center;padding:80px 20px;color:var(--muted);border:1px dashed #3c5875;border-radius:12px;grid-column:1/-1;background:#0d1c2d}
+.empty strong{display:block;font-size:20px;color:var(--text);margin-bottom:8px}
+.inspector-empty{padding:16px;border:1px dashed #314b66;border-radius:11px;background:#0b1929;color:var(--muted);font-size:12px;line-height:1.75}
+.minirow{display:flex;gap:8px;margin-top:8px}
+.minirow button{flex:1;min-width:0;padding:9px 7px;font-size:12px}
+.danger{color:#ffb0b0;border-color:#7d414b;background:#301c29}
+.danger:hover:not(:disabled){background:#47232f;border-color:#a85261}
+.right .hint{padding:10px 11px;border-radius:9px;background:#0a1929;border:1px solid #203a54}
+.sidebar-utilities{display:grid;gap:8px;margin-top:20px;padding-top:17px;border-top:1px solid var(--line)}
+.sidebar-utilities button{width:100%;text-align:left;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:11px 12px;font-size:12px;font-weight:750}
+#socialPostBtn{display:none;background:#112b43;border-color:#3d6b8d;color:#d9efff}
+#socialPostBtn:hover:not(:disabled){background:#193b58}
+#requestFeatureBtn{background:#15243a;border-color:#344a65;color:#c4d3e5}
+.toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);max-width:min(560px,calc(100vw - 28px));background:#e8f1fa;color:#102033;padding:11px 16px;border-radius:10px;box-shadow:0 10px 32px #0008;opacity:0;pointer-events:none;transition:opacity .2s;z-index:80;font-size:12px;font-weight:750;text-align:center}
+.toast.show{opacity:1}
+.file{display:none}
+.modal-backdrop{position:fixed;inset:0;z-index:60;display:none;place-items:center;padding:18px;background:#030914d9;backdrop-filter:blur(7px)}
+.modal-backdrop.open{display:grid}
+.request-modal{width:min(100%,520px);max-height:min(90vh,850px);overflow:auto;padding:24px;border:1px solid #34516f;border-radius:18px;background:#0d1b2c;box-shadow:0 24px 80px #0009}
+.request-modal h2{margin:0 0 8px;font-size:23px;letter-spacing:-.03em}
+.request-modal p{margin:0 0 20px;color:var(--muted);font-size:12px;line-height:1.65}
+.request-modal textarea{width:100%;min-height:130px;resize:vertical;background:#081522;color:var(--text);border:1px solid #304760;border-radius:10px;padding:12px}
+.modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:16px;flex-wrap:wrap}
+.modal-actions button{min-height:42px}
+#socialPostStatus{color:var(--accent2);font-size:12px;line-height:1.6;margin:4px 0}
+.muted{color:var(--muted)}
+@media(max-width:1180px){.workspace{grid-template-columns:205px minmax(280px,1fr)}.right{grid-column:1/-1;border-left:0;border-top:1px solid var(--line);display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:22px}.right>div{min-width:0}.right .hint{max-width:100%}.stage{min-height:700px}}
+@media(max-width:760px){.top{position:relative;align-items:flex-start;flex-direction:column;padding:14px}.brand{min-width:0}.top-actions{justify-content:flex-start;width:100%}.top-actions button{flex:1 1 auto}.workspace{grid-template-columns:1fr}.sidebar{border-right:0;border-bottom:1px solid var(--line);padding:16px}.toolgrid{grid-template-columns:repeat(5,minmax(0,1fr))}.tool{min-height:64px;padding:9px}.tool small{font-size:10px}.stage{min-height:580px}.right{display:block}.right>div+div{margin-top:22px;padding-top:18px;border-top:1px solid var(--line)}.sidebar-utilities{grid-template-columns:repeat(2,minmax(0,1fr))}.viewport{padding:14px}.page{padding:18px;gap:12px;min-height:560px}.stagebar{padding:10px 14px;align-items:flex-start;flex-direction:column}.stagebar-main{flex-wrap:wrap}}
+@media(max-width:480px){.toolgrid{grid-template-columns:repeat(3,minmax(0,1fr))}.tool{min-height:60px}.top-actions button{font-size:11px;padding:8px}.page{padding:13px}.two{gap:8px}.request-modal{padding:19px}.sidebar-utilities{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
 <div class="app">
 <header class="top">
-  <div class="brand"><div class="mark">C</div><div><span id="studioBrand">CANVAS STUDIO</span> <div style="font-size:10px;color:var(--muted);font-weight:600;letter-spacing:.12em">FREEFORM PAGE BUILDER</div></div></div>
+  <div class="brand"><div class="mark">C</div><div><span id="studioBrand">CANVAS STUDIO</span><span class="brand-subtitle">TEAM WORKSPACE · PAGE DESIGNER</span></div></div>
   <div class="top-actions">
     <button id="undoBtn" title="Undo">↶ Undo</button><button id="redoBtn" title="Redo">↷ Redo</button>
     <button id="saveBtn">Save draft</button><button id="loadBtn">Load draft</button><button id="publishTeamPageBtn" class="primary" title="Publish this design to the live team page">Update team page</button><button id="revertTeamPageBtn" title="Restore the original built-in team page">Revert to default</button>
@@ -72,10 +140,11 @@
   <div class="field"><label for="pageTitle">Page title</label><input id="pageTitle" value="My page"></div>
   <div class="field"><label for="pageBg">Canvas background</label><input id="pageBg" type="color" value="#0b0e14"></div>
   <div class="field"><label for="pagePadding">Page padding</label><input id="pagePadding" type="range" min="8" max="64" value="30"></div>
-  <div class="field"><label for="pageWidth">Preview width</label><select id="pageWidth"><option value="desktop">Desktop</option><option value="tablet">Tablet</option><option value="mobile">Mobile</option></select></div>
+  <div class="field"><label for="pageWidth">Preview device</label><select id="pageWidth"><option value="desktop">Desktop · 900 px</option><option value="tablet">Tablet · 720 px</option><option value="mobile">Mobile · 390 px</option></select></div>
+  <div class="sidebar-utilities"><button id="socialPostBtn" type="button">＋ <span>Submit social post</span></button><button id="requestFeatureBtn" type="button">✦ <span>Request a feature</span></button></div>
 </aside>
 <section class="stage">
-  <div class="stagebar"><span><span style="color:var(--accent2)">●</span> Live canvas <span id="blockCount" class="muted"></span></span><span class="muted">Drag to reorder · Click to edit</span></div>
+  <div class="stagebar"><div class="stagebar-main"><span class="live-dot" aria-hidden="true"></span><strong>Page canvas</strong><span id="blockCount" class="muted"></span></div><span id="workspaceStatus" data-state="saved" role="status" aria-live="polite">Ready to edit</span><span class="muted">Select a block to edit · Drag to reorder</span></div>
   <div class="viewport"><main id="canvas" class="page" aria-label="Page canvas"></main></div>
 </section>
 <aside class="sidebar right">
@@ -87,8 +156,6 @@
 <input id="imageFile" class="file" type="file" accept="image/*">
 <input id="jsonFile" class="file" type="file" accept=".json,application/json">
 <div id="toast" class="toast" role="status"></div>
-<button id="requestFeatureBtn" class="corner-request" type="button">✦ Request a feature</button>
-<button id="socialPostBtn" class="corner-social-post" type="button">＋ Submit social post</button>
 <div id="socialPostModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="socialPostTitle"><form id="socialPostForm" class="request-modal"><h2 id="socialPostTitle">Submit a social post</h2><p>Your post will enter the moderation queue. It will not appear publicly until an administrator publishes it.</p><label class="field"><span>Headline</span><input id="socialPostTitleInput" maxlength="120" minlength="3" required placeholder="A clear, useful headline"></label><label class="field"><span>Category</span><select id="socialPostCategory"><option>Team news</option><option>Announcements</option><option>Match reports</option></select></label><label class="field"><span>Post text</span><textarea id="socialPostBody" minlength="10" maxlength="5000" required placeholder="Write the update for supporters…"></textarea></label><label class="field"><span>Image URL (optional, HTTPS)</span><input id="socialPostImage" type="url" placeholder="https://…"></label><div id="socialPostStatus" role="status" aria-live="polite"></div><div class="modal-actions"><button id="cancelSocialPost" type="button">Cancel</button><button class="primary" type="submit">Send for review</button></div></form></div>
 <div id="requestFeatureModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="requestFeatureTitle"><form id="requestFeatureForm" class="request-modal"><h2 id="requestFeatureTitle">Request a feature</h2><p>Suggest an improvement for the Team Page Studio. Requests are saved to the private competition spreadsheet.</p><label class="field"><span>What should we add or improve?</span><textarea id="featureRequestText" minlength="8" maxlength="1500" required placeholder="Describe the feature and what it would help you do…"></textarea></label><div class="modal-actions"><button id="cancelFeatureRequest" type="button">Cancel</button><button class="primary" type="submit">Submit request</button></div></form></div>
 <script>
@@ -112,15 +179,15 @@ const canvas=$("canvas"), inspector=$("inspector");
 let blocks=[], selected=null, seq=0, history=[], historyIndex=-1, suppressHistory=false, pendingImageTarget=null;
 const defaults={
  heading:{text:"A bold headline",tag:"h1",fontSize:42,color:"#edf2fa",bg:"transparent",align:"left",padding:8,radius:0,width:100},
- text:{text:"Write something worth reading. Add your story, explain the idea, or share the details.",fontSize:17,color:"#344054",bg:"transparent",align:"left",padding:8,radius:0,width:100},
+ text:{text:"Write something worth reading. Add your story, explain the idea, or share the details.",fontSize:17,color:"#c4d2e3",bg:"transparent",align:"left",padding:8,radius:0,width:100},
  image:{text:"",src:"",alt:"Add an image",fontSize:16,color:"#182033",bg:"#202a3a",align:"center",padding:8,radius:12,width:100},
- button:{text:"Explore more",fontSize:15,color:"#ffffff",bg:"#6254e8",align:"center",padding:13,radius:9,width:100},
- card:{text:"Card title\nAdd a short description to this card. Use it for a team intro, announcement, or any other content.",fontSize:16,color:"#263247",bg:"#ffffff",align:"left",padding:22,radius:14,width:100},
- stat:{text:"Wins",metric:"wins",fontSize:16,color:"#263247",bg:"#ffffff",align:"left",padding:20,radius:12,width:100},
+ button:{text:"Explore more",fontSize:15,color:"#0b1726",bg:"#e0b95a",align:"center",padding:13,radius:9,width:100},
+ card:{text:"Card title\nAdd a short description to this card. Use it for a team intro, announcement, or any other content.",fontSize:16,color:"#e8eff8",bg:"#12243a",align:"left",padding:22,radius:14,width:100},
+ stat:{text:"Wins",metric:"wins",fontSize:16,color:"#e8eff8",bg:"#12243a",align:"left",padding:20,radius:12,width:100},
  divider:{text:"",fontSize:16,color:"#d7dce5",bg:"transparent",align:"left",padding:8,radius:0,width:100},
  spacer:{text:"",fontSize:16,color:"#182033",bg:"transparent",align:"left",padding:8,radius:0,width:100,height:48},
- badge:{text:"NEW SEASON",fontSize:12,color:"#5547b8",bg:"#e8e5ff",align:"left",padding:8,radius:99,width:100},
- quote:{text:"“A team is more than a name on a ladder.”\n— Team motto",fontSize:23,color:"#29354a",bg:"#e9edf7",align:"left",padding:24,radius:12,width:100}
+ badge:{text:"NEW SEASON",fontSize:12,color:"#f4d57f",bg:"#26351f",align:"left",padding:8,radius:99,width:100},
+ quote:{text:"“A team is more than a name on a ladder.”\n— Team motto",fontSize:23,color:"#e8eff8",bg:"#12243a",align:"left",padding:24,radius:12,width:100}
 };
 const STAT_METRICS=[
  {key:"elo",label:"Elo rating"},{key:"rank",label:"Ladder position"},{key:"played",label:"Games played"},
@@ -188,7 +255,8 @@ function startStatsPreview(){
 }
 
 function snapshot(){return JSON.stringify({blocks,selected,pageTitle:$("pageTitle").value,pageBg:$("pageBg").value,pagePadding:$("pagePadding").value});}
-function pushHistory(){if(suppressHistory)return;const s=snapshot();if(history[historyIndex]===s)return;history=history.slice(0,historyIndex+1);history.push(s);if(history.length>80)history.shift();historyIndex=history.length-1;updateHistoryButtons();}
+function setWorkspaceStatus(message,state="saved"){const el=$("workspaceStatus");if(el){el.textContent=message;el.dataset.state=state;}}
+function pushHistory(){if(suppressHistory)return;const s=snapshot();if(history[historyIndex]===s)return;history=history.slice(0,historyIndex+1);history.push(s);if(history.length>80)history.shift();historyIndex=history.length-1;updateHistoryButtons();setWorkspaceStatus("Unsaved changes","dirty");}
 function restore(s){suppressHistory=true;const d=JSON.parse(s);blocks=d.blocks||[];selected=d.selected||null;$("pageTitle").value=d.pageTitle||"My page";$("pageBg").value=d.pageBg||"#0b0e14";$("pagePadding").value=d.pagePadding||30;seq=Math.max(seq,...blocks.map(b=>Number(b.id.slice(1))||0));render();suppressHistory=false;updateHistoryButtons();}
 function undo(){if(historyIndex>0){historyIndex--;restore(history[historyIndex]);}}
 function redo(){if(historyIndex<history.length-1){historyIndex++;restore(history[historyIndex]);}}
@@ -203,7 +271,7 @@ function blockInner(b){
  if(b.type==="text")return "<p style='font-size:"+b.fontSize+"px;color:"+b.color+";text-align:"+b.align+";margin:0;white-space:pre-wrap'>"+esc(b.text)+"</p>";
  if(b.type==="image")return b.src? "<img src='"+esc(b.src)+"' alt='"+esc(b.alt||"")+"' style='width:100%;max-height:620px;object-fit:cover;border-radius:"+b.radius+"px;margin:auto;display:block'>":"<div class='placeholder'>▧<br>"+esc(b.alt||"Choose an image in the properties panel")+"</div>";
  if(b.type==="button")return "<div style='text-align:"+b.align+"'><span style='display:inline-block;background:"+b.bg+";color:"+b.color+";padding:"+b.padding+"px 20px;border-radius:"+b.radius+"px;font-weight:750'>"+esc(b.text)+"</span></div>";
- if(b.type==="card")return "<div style='"+css(b)+";border:1px solid #e0e5ef;white-space:pre-wrap'><div style='font-size:"+Math.round(b.fontSize*1.35)+"px;font-weight:800;margin-bottom:8px'>"+esc(lines[0])+"</div>"+esc(lines.slice(1).join("\n"))+"</div>";
+ if(b.type==="card")return "<div style='"+css(b)+";border:1px solid #304a66;white-space:pre-wrap'><div style='font-size:"+Math.round(b.fontSize*1.35)+"px;font-weight:800;margin-bottom:8px'>"+esc(lines[0])+"</div>"+esc(lines.slice(1).join("\n"))+"</div>";
  if(b.type==="stat"){const metric=STAT_METRICS.find(m=>m.key===b.metric)||STAT_METRICS[0];return "<div class='stat' data-stat='"+esc(metric.key)+"' style='"+css(b)+"'><span>"+esc(b.text||metric.label)+"</span><strong>—</strong><small style='display:block;margin-top:5px;font-size:10px;letter-spacing:.08em;text-transform:uppercase;opacity:.65'>Value fills on the team page</small></div>";}
  if(b.type==="divider")return "<div class='divider' style='background:"+b.color+";margin:"+b.padding+"px 0'></div>";
  if(b.type==="spacer")return "<div style='height:"+Math.max(8,Number(b.height)||48)+"px'></div>";
@@ -266,7 +334,7 @@ $("imageFile").addEventListener("change",e=>{const file=e.target.files?.[0];if(!
 function studioSessionToken(){return sessionStorage.getItem("team-editor-session-token")||"";}
 function sharedDesignRequest(action,extra={}){return new Promise((resolve,reject)=>{if(!validStudioTeam||!studioSessionToken()){reject(new Error("Sign in to your team editor again to use shared storage."));return;}const callback="studioApi_"+Date.now()+"_"+Math.floor(Math.random()*1e6);const script=document.createElement("script");const url=new URL(STUDIO_API);url.searchParams.set("action",action);url.searchParams.set("teamId",validStudioTeam);url.searchParams.set("sessionToken",studioSessionToken());url.searchParams.set("callback",callback);url.searchParams.set("_",Date.now());Object.entries(extra).forEach(([k,v])=>url.searchParams.set(k,String(v)));window[callback]=data=>{delete window[callback];script.remove();resolve(data);};script.onerror=()=>{delete window[callback];script.remove();reject(new Error("Could not contact shared storage. The Apps Script update may not be deployed yet."));};script.src=url.toString();document.head.appendChild(script);});}
 async function saveSharedDesign(){const design=JSON.parse(snapshot());const payload={action:"saveTeamPageDesign",teamId:validStudioTeam,sessionToken:studioSessionToken(),design};const response=await fetch(STUDIO_API,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=UTF-8"},body:JSON.stringify(payload)});await new Promise(resolve=>setTimeout(resolve,900));const result=await sharedDesignRequest("getTeamPageDesign");if(!result||!result.ok||JSON.stringify(result.design)!==JSON.stringify(design))throw new Error(result&&result.error||"Shared save could not be verified.");}
-$("saveBtn").onclick=async()=>{try{const current=snapshot();localStorage.setItem(studioDraftKey,current);if(validStudioTeam){$("saveBtn").disabled=true;$("saveBtn").textContent="Saving…";try{await saveSharedDesign();toast("Draft saved to the shared competition sheet.");}catch(e){toast("Saved in this browser only: "+e.message);}finally{$("saveBtn").disabled=false;$("saveBtn").textContent="Save draft";}}else toast("Draft saved in this browser.");}catch(e){toast("Draft too large for browser storage. Export JSON instead.");}};
+$("saveBtn").onclick=async()=>{try{const current=snapshot();localStorage.setItem(studioDraftKey,current);if(validStudioTeam){$("saveBtn").disabled=true;$("saveBtn").textContent="Saving…";try{await saveSharedDesign();toast("Draft saved to the shared competition sheet.");setWorkspaceStatus("Draft saved","saved");}catch(e){toast("Saved in this browser only: "+e.message);setWorkspaceStatus("Local save only","error");}finally{$("saveBtn").disabled=false;$("saveBtn").textContent="Save draft";}}else toast("Draft saved in this browser.");setWorkspaceStatus("Draft saved locally","saved");}catch(e){toast("Draft too large for browser storage. Export JSON instead.");}};
 const revertButton=$("revertTeamPageBtn");
 if(!validStudioTeam){revertButton.disabled=true;revertButton.title="Open the Studio from your team's editor to revert.";}
 revertButton.onclick=async()=>{
@@ -300,11 +368,11 @@ publishButton.onclick=async()=>{
   await new Promise(resolve=>setTimeout(resolve,1100));
   const result=await sharedDesignRequest("getPublishedTeamPage");
   if(!result||!result.ok||JSON.stringify(result.design)!==JSON.stringify(design))throw new Error(result&&result.error||"The published page could not be verified. Check that the Apps Script deployment is updated.");
-  toast("Team "+validStudioTeam+" page updated. The public page may take a minute to refresh.");
+  toast("Team "+validStudioTeam+" page updated. The public page may take a minute to refresh.");setWorkspaceStatus("Published successfully","saved");
  }catch(error){toast("Could not update the live page: "+error.message);}
  finally{publishButton.disabled=false;publishButton.textContent="Update team page";}
 };
-$("loadBtn").onclick=async()=>{if(validStudioTeam){$("loadBtn").disabled=true;$("loadBtn").textContent="Loading…";try{const result=await sharedDesignRequest("getTeamPageDesign");if(result&&result.ok&&result.design){restore(JSON.stringify(result.design));pushHistory();localStorage.setItem(studioDraftKey,snapshot());toast("Shared Team "+validStudioTeam+" draft loaded.");return;}}catch(e){toast("Shared load unavailable; checking this browser.");}finally{$("loadBtn").disabled=false;$("loadBtn").textContent="Load draft";}}const saved=localStorage.getItem(studioDraftKey);if(!saved){toast("No saved draft found.");return;}try{restore(saved);pushHistory();toast("Browser draft loaded.");}catch(e){toast("Could not load that draft.");}};
+$("loadBtn").onclick=async()=>{if(validStudioTeam){$("loadBtn").disabled=true;$("loadBtn").textContent="Loading…";try{const result=await sharedDesignRequest("getTeamPageDesign");if(result&&result.ok&&result.design){restore(JSON.stringify(result.design));pushHistory();localStorage.setItem(studioDraftKey,snapshot());toast("Shared Team "+validStudioTeam+" draft loaded.");setWorkspaceStatus("Shared draft loaded","saved");return;}}catch(e){toast("Shared load unavailable; checking this browser.");}finally{$("loadBtn").disabled=false;$("loadBtn").textContent="Load draft";}}const saved=localStorage.getItem(studioDraftKey);if(!saved){toast("No saved draft found.");return;}try{restore(saved);pushHistory();toast("Browser draft loaded.");setWorkspaceStatus("Browser draft loaded","saved");}catch(e){toast("Could not load that draft.");}};
 const requestModal=$("requestFeatureModal");$("requestFeatureBtn").onclick=()=>{requestModal.classList.add("open");$("featureRequestText").focus();};$("cancelFeatureRequest").onclick=()=>requestModal.classList.remove("open");requestModal.addEventListener("click",e=>{if(e.target===requestModal)requestModal.classList.remove("open");});document.addEventListener("keydown",e=>{if(e.key==="Escape")requestModal.classList.remove("open");});$("requestFeatureForm").addEventListener("submit",async e=>{e.preventDefault();const request=$("featureRequestText").value.trim();if(request.length<8){toast("Please add a little more detail.");return;}const submit=e.submitter;submit.disabled=true;submit.textContent="Sending…";try{await fetch(STUDIO_API,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=UTF-8"},body:JSON.stringify({action:"submitFeatureRequest",teamId:validStudioTeam||"",request,page:"Team Page Studio"})});requestModal.classList.remove("open");$("featureRequestText").value="";toast("Feature request sent to the service.");}catch(err){toast("Could not send request. The API may need deploying.");}finally{submit.disabled=false;submit.textContent="Submit request";}});
 const socialPostModal=$("socialPostModal");
 if(validStudioTeam){
@@ -346,7 +414,7 @@ $("importBtn").onclick=()=>$("jsonFile").click();
 $("jsonFile").addEventListener("change",e=>{const file=e.target.files?.[0];if(!file)return;const r=new FileReader();r.onload=()=>{try{restore(r.result);pushHistory();toast("Design imported.");}catch(err){toast("That JSON file isn't a valid Studio design.");}};r.readAsText(file);e.target.value="";});
 let toastTimer;function toast(msg){const t=$("toast");t.textContent=msg;t.classList.add("show");clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove("show"),2200);}
 blocks=[makeBlock("badge",{text:"TEAM SPOTLIGHT"}),makeBlock("heading",{text:"Build something yours",fontSize:44}),makeBlock("text",{text:"This is a freeform canvas. Add blocks, move them around, drop in images, and style every element."}),makeBlock("image",{alt:"Upload your own team photo, logo or banner",src:""}),makeBlock("card",{text:"Your team. Your identity.\nCreate a page that feels like your team instead of another identical template."})];
-selected=blocks[1].id;render();pushHistory();startStatsPreview();
+selected=blocks[1].id;render();pushHistory();setWorkspaceStatus("Ready to edit","saved");startStatsPreview();
 })();
 </script>
 </body>
