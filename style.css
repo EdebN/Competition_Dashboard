@@ -2717,3 +2717,135 @@ main { gap:22px; }
   .team-page .team-stat { transition: none; }
   .team-page .team-stat:hover { transform: none; }
 }
+
+
+/* MOTION SYSTEM: quiet, consistent feedback across the dashboard */
+:root {
+  --motion-fast: 140ms;
+  --motion-ui: 190ms;
+  --motion-ease: cubic-bezier(.2,.7,.25,1);
+}
+.menu-toggle,
+.nav-button,
+.home-match-item,
+.home-latest-link,
+.match-centre-row,
+.match-clickable,
+.home-ladder-card .text-action,
+.hero-primary,
+.hero-secondary,
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+.menu-toggle {
+  transition: border-color var(--motion-ui) var(--motion-ease),
+              background-color var(--motion-ui) var(--motion-ease),
+              box-shadow var(--motion-ui) var(--motion-ease);
+}
+.menu-toggle:active { box-shadow: inset 0 1px 4px rgba(0,0,0,.24); }
+.page-nav:not([hidden]) {
+  animation: nav-arrive 190ms var(--motion-ease) both;
+  transform-origin: top right;
+}
+@keyframes nav-arrive {
+  from { opacity: 0; transform: translateY(-5px) scale(.985); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.nav-button {
+  transition: background-color var(--motion-fast) var(--motion-ease),
+              border-color var(--motion-fast) var(--motion-ease),
+              color var(--motion-fast) var(--motion-ease),
+              padding-left var(--motion-fast) var(--motion-ease);
+}
+.nav-button:hover { padding-left: 16px; }
+button,
+a,
+input,
+textarea,
+select {
+  transition-timing-function: var(--motion-ease);
+}
+button:not(:disabled):active {
+  transform: translateY(1px);
+}
+input,
+textarea,
+select {
+  transition: border-color var(--motion-ui) var(--motion-ease),
+              box-shadow var(--motion-ui) var(--motion-ease),
+              background-color var(--motion-ui) var(--motion-ease);
+}
+.home-content-grid .card,
+.team-page > .card,
+.admin-card,
+.match-detail-grid .card {
+  transition: border-color var(--motion-ui) var(--motion-ease),
+              background-color var(--motion-ui) var(--motion-ease);
+}
+.home-match-item,
+.home-latest-link,
+.match-centre-row,
+.match-clickable {
+  transition: border-color var(--motion-ui) var(--motion-ease),
+              background-color var(--motion-ui) var(--motion-ease),
+              box-shadow var(--motion-ui) var(--motion-ease);
+}
+.home-match-item .home-match-arrow,
+.home-latest-link > span:last-child,
+.match-open-arrow {
+  transition: color var(--motion-ui) var(--motion-ease),
+              transform var(--motion-ui) var(--motion-ease);
+}
+.home-match-item:hover .home-match-arrow,
+.home-latest-link:hover > span:last-child,
+.match-centre-row:hover .match-open-arrow {
+  transform: translateX(2px);
+}
+.home-ladder-card .text-action {
+  transition: border-color var(--motion-ui) var(--motion-ease),
+              background-color var(--motion-ui) var(--motion-ease),
+              color var(--motion-ui) var(--motion-ease);
+}
+.home-ladder-card.ladder-expanded tbody tr:nth-child(n+6) {
+  animation: ladder-row-arrive 190ms var(--motion-ease) both;
+}
+.home-ladder-card.ladder-expanded tbody tr:nth-child(6) { animation-delay: 0ms; }
+.home-ladder-card.ladder-expanded tbody tr:nth-child(7) { animation-delay: 18ms; }
+.home-ladder-card.ladder-expanded tbody tr:nth-child(8) { animation-delay: 36ms; }
+.home-ladder-card.ladder-expanded tbody tr:nth-child(9) { animation-delay: 54ms; }
+.home-ladder-card.ladder-expanded tbody tr:nth-child(10) { animation-delay: 72ms; }
+@keyframes ladder-row-arrive {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .page-nav:not([hidden]),
+  .home-ladder-card.ladder-expanded tbody tr:nth-child(n+6) {
+    animation: none !important;
+  }
+  .menu-toggle,
+  .nav-button,
+  .home-match-item,
+  .home-latest-link,
+  .match-centre-row,
+  .match-clickable,
+  .home-ladder-card .text-action,
+  .hero-primary,
+  .hero-secondary,
+  button,
+  a,
+  input,
+  textarea,
+  select {
+    transition: none !important;
+  }
+  button:not(:disabled):active,
+  .nav-button:hover,
+  .home-match-item:hover .home-match-arrow,
+  .home-latest-link:hover > span:last-child,
+  .match-centre-row:hover .match-open-arrow {
+    transform: none !important;
+    padding-left: initial;
+  }
+}
