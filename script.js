@@ -4779,6 +4779,8 @@ function renderSocialModerationContent() {
   const viewed = socialModerationData.posts.filter(p => p.reviewStatus === "Viewed");
   const count = document.getElementById("socialModUnviewedCount");
   if (count) count.textContent = String(unviewed.length);
+  const navCount = document.getElementById("social-mod-nav-count");
+  if (navCount) { navCount.textContent = String(unviewed.length); navCount.hidden = unviewed.length === 0; }
   if (!host) return;
   if (socialModerationTab === "Bans") {
     host.innerHTML = TEAMS.map(team => {
@@ -4812,6 +4814,7 @@ function renderSocialModerationContent() {
         await socialModAction({ action: "markSocialPostViewed", postId: id });
         socialModerationTab = "Viewed";
         document.querySelectorAll("[data-mod-tab]").forEach(item => item.classList.toggle("is-active", item.dataset.modTab === "Viewed"));
+        renderSocialModerationContent();
       }
     }
   }));
