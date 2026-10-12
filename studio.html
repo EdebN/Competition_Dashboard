@@ -390,7 +390,7 @@ function renderInspector(){
    appearance+=field("Line colour","color",b.color,"color");
   }else if(textTypes.includes(b.type)){
    appearance+='<div class="two">'+field("Text colour","color",b.color,"color");
-   if(fillTypes.includes(b.type))appearance+=field("Fill colour","bg",b.bg==="transparent"?"#0b1726":b.bg,"color");
+   if(fillTypes.includes(b.type))appearance+=field("Fill colour","bg",b.bg==="transparent"?(b.lastBg||"#0b1726"):b.bg,"color");
    appearance+='</div>';
    if(fillTypes.includes(b.type))appearance+='<label class="check-field"><input id="prop-noFill" type="checkbox" '+(b.bg==="transparent"?"checked":"")+'> No background fill</label>';
   }
@@ -418,20 +418,21 @@ function renderInspector(){
    let value=readValue();
    if(key==="width")value=[25,50,75,100].includes(value)?value:Math.max(25,Math.min(100,Math.round(value/25)*25));
    b[actualKey]=value;
-   if(key==="bg"&&$("prop-noFill")?.checked)b.bg="transparent";
+   if(key==="bg"){b.lastBg=value;if($("prop-noFill")?.checked)b.bg="transparent";}
    render({keepInspector:true});
   });
   input.addEventListener("change",()=>{
    let value=readValue();
    if(key==="width")value=[25,50,75,100].includes(value)?value:Math.max(25,Math.min(100,Math.round(value/25)*25));
    b[actualKey]=value;
-   if(key==="bg"&&$("prop-noFill")?.checked)b.bg="transparent";
+   if(key==="bg"){b.lastBg=value;if($("prop-noFill")?.checked)b.bg="transparent";}
    pushHistory();render();
   });
  });
  $("prop-metric")?.addEventListener("change",e=>updateProp("metric",e.target.value));
  $("prop-noFill")?.addEventListener("change",e=>{
-  b.bg=e.target.checked?"transparent":($("prop-bg")?.value||"#0b1726");
+  if(e.target.checked){if(b.bg!=="transparent")b.lastBg=b.bg;b.bg="transparent";}
+  else b.bg=b.lastBg||$("prop-bg")?.value||"#0b1726";
   pushHistory();render();
  });
  ["align","position","verticalAlign"].forEach(key=>{
