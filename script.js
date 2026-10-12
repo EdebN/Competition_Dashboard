@@ -3341,9 +3341,10 @@ if (ladderExpand) {
     const card = document.querySelector(".home-ladder-card");
     if (!card) return;
     const expanded = card.classList.toggle("ladder-expanded");
+    ladderExpand.setAttribute("aria-expanded", String(expanded));
     ladderExpand.innerHTML = expanded
-      ? 'Show compact ladder <span aria-hidden="true">↑</span>'
-      : 'Show full ladder <span aria-hidden="true">↓</span>';
+      ? 'Show compact view <span aria-hidden="true">↑</span>'
+      : 'Show all statistics <span aria-hidden="true">↓</span>';
   });
 }
 
@@ -4572,7 +4573,7 @@ function renderHomeSpotlight() {
 
   const regular = getActiveRegularGames();
   const latest = regular.filter(game => isPlayed(game)).sort((a, b) => b.id - a.id).slice(0, 3);
-  const upcoming = regular.filter(game => !isPlayed(game)).sort((a, b) => a.id - b.id).slice(0, 3);
+  const upcoming = regular.filter(game => !isPlayed(game)).sort((a, b) => a.id - b.id).slice(0, 4);
 
   const renderMatch = (game, played) => {
     const score = played ? scores[game.id] : null;
@@ -4597,7 +4598,7 @@ function renderHomeSpotlight() {
     ? upcoming.map(game => renderMatch(game, false)).join("")
     : '<div class="home-empty-state">All regular-season matches have been played.</div>';
 
-  document.querySelectorAll(".home-match-item").forEach(button => {
+  document.querySelectorAll("#home-upcoming-matches .home-match-item").forEach(button => {
     button.addEventListener("click", () => {
       const id = Number(button.dataset.matchId);
       if (typeof openMatchDetail === "function") {
