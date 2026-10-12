@@ -3270,7 +3270,7 @@ let teamWheelRotation = 0;
 function showPage(pageName) {
   updateTeamNavNames();
   const isTeamProfile = /^team-[a-e]$/.test(pageName);
-  const navPageName = isTeamProfile ? "teams" : pageName;
+  const navPageName = isTeamProfile ? "teams" : pageName === "finals" ? "matches" : pageName;
   const page = document.getElementById(`${pageName}-page`);
   const button = document.querySelector(`.nav-button[data-page="${navPageName}"]`);
   if (!page || !button) return;
