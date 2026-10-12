@@ -52,21 +52,19 @@
               <button type="button" class="hero-secondary" data-page="teams">Meet the teams</button>
             </div>
           </div>
-          <div class="hero-graphic hero-radar" aria-hidden="true">
-            <div class="radar-ring radar-ring-outer"></div>
-            <div class="radar-ring radar-ring-middle"></div>
-            <div class="radar-ring radar-ring-inner"></div>
-            <div class="radar-cross radar-cross-x"></div>
-            <div class="radar-cross radar-cross-y"></div>
-            <div class="radar-sweep"></div>
-            <span class="radar-node radar-node-a"></span>
-            <span class="radar-node radar-node-b"></span>
-            <span class="radar-node radar-node-c"></span>
-            <span class="radar-node radar-node-d"></span>
-            <span class="radar-node radar-node-e"></span>
-            <div class="radar-core"><strong>05</strong><span>TEAMS</span></div>
-            <div class="radar-label radar-label-top">COMPETITION / 01</div>
-            <div class="radar-label radar-label-bottom">ONE TABLE. EVERY POINT.</div>
+          <div class="hero-graphic hero-emblem" aria-hidden="true">
+            <div class="emblem-orbit emblem-orbit-outer"></div>
+            <div class="emblem-orbit emblem-orbit-inner"></div>
+            <div class="emblem-grid"></div>
+            <div class="emblem-stamp">EST. <span>2026</span></div>
+            <svg class="emblem-trophy" viewBox="0 0 180 190" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M51 29H129L122 81C118 106 104 119 90 119C76 119 62 106 58 81L51 29Z" fill="url(#cupGold)" stroke="#F5D987" stroke-width="2"/>
+              <path d="M52 42H30C30 72 42 88 63 91M128 42H150C150 72 138 88 117 91" stroke="#E4BE62" stroke-width="8" stroke-linecap="round"/>
+              <path d="M90 119V145M67 159H113M75 145H105V159H75V145Z" stroke="#E4BE62" stroke-width="7" stroke-linejoin="round"/>
+              <path d="M73 48L84 61L76 76L92 91L105 69L97 56L109 43" stroke="#FFF0B8" stroke-opacity=".8" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+              <defs><linearGradient id="cupGold" x1="50" y1="25" x2="135" y2="119" gradientUnits="userSpaceOnUse"><stop stop-color="#FFF0B8"/><stop offset=".45" stop-color="#E0B95A"/><stop offset="1" stop-color="#9C7126"/></linearGradient></defs>
+            </svg>
+            <div class="emblem-caption"><span>THE</span><strong>CHAMPIONSHIP</strong><i></i><span>EVERY POINT COUNTS</span></div>
           </div>
         </section>
 
@@ -83,11 +81,10 @@
           <section class="card home-match-card">
             <div class="home-section-heading">
               <div><div class="section-title">THE ACTION</div><h2>Matchday</h2></div>
-              <button type="button" class="text-action compact-action" data-page="matches">All matches <span aria-hidden="true">↗</span></button>
             </div>
             <div class="home-match-columns">
               <section class="home-match-group">
-                <div class="home-subheading"><span class="match-status-dot result-dot"></span> LATEST RESULTS <button type="button" class="latest-results-link" data-page="matches">View all ↗</button></div>
+                <div class="home-subheading"><span class="match-status-dot result-dot"></span> LATEST RESULTS</div>
                 <div id="home-latest-results" class="home-match-list"><button type="button" class="home-latest-link" data-page="matches"><span><strong>Open Match Centre</strong><small>View every completed result and score</small></span><span aria-hidden="true">↗</span></button></div>
               </section>
               <section class="home-match-group">
