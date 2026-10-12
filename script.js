@@ -4794,18 +4794,55 @@ function renderSocialFeed() {
       '</div></article>';
   }).join("");
 }
+function positionSocialFilterIndicator(container, button, previousRect = null) {
+  if (!container || !button) return;
+  let indicator = container.querySelector(".social-filter-indicator");
+  if (!indicator) {
+    indicator = document.createElement("span");
+    indicator.className = "social-filter-indicator";
+    indicator.setAttribute("aria-hidden", "true");
+    container.appendChild(indicator);
+  }
+  const containerRect = container.getBoundingClientRect();
+  const target = { left: button.offsetLeft + 13, top: button.offsetTop + button.offsetHeight - 3, width: Math.max(0, button.offsetWidth - 26) };
+  indicator.style.transition = "none";
+  if (previousRect) {
+    indicator.style.left = (previousRect.left - containerRect.left) + "px";
+    indicator.style.top = (previousRect.top - containerRect.top) + "px";
+    indicator.style.width = previousRect.width + "px";
+    void indicator.offsetWidth;
+    requestAnimationFrame(() => {
+      indicator.style.transition = "";
+      indicator.style.left = target.left + "px";
+      indicator.style.top = target.top + "px";
+      indicator.style.width = target.width + "px";
+    });
+  } else {
+    indicator.style.left = target.left + "px";
+    indicator.style.top = target.top + "px";
+    indicator.style.width = target.width + "px";
+  }
+}
+const socialFilterContainer = document.querySelector("#socials-page .social-feed-filters");
+if (socialFilterContainer) {
+  positionSocialFilterIndicator(socialFilterContainer, socialFilterContainer.querySelector("[data-social-filter].is-active"));
+}
 document.querySelectorAll("[data-social-filter]").forEach(button => button.addEventListener("click", () => {
   const filter = button.dataset.socialFilter || "All posts";
   if (filter === socialFeedFilter) return;
+  const container = button.closest(".social-feed-filters");
+  const oldIndicator = container?.querySelector(".social-filter-indicator");
+  const previousRect = oldIndicator ? oldIndicator.getBoundingClientRect() : null;
   socialFeedFilter = filter;
   document.querySelectorAll("[data-social-filter]").forEach(item => item.classList.toggle("is-active", item === button));
-  // Do not transition the document root: that causes the entire screen to flash.
-  const shell = document.querySelector("#socials-page .social-feed-shell");
+  positionSocialFilterIndicator(container, button, previousRect);
+  const feed = document.getElementById("social-feed");
   const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  if (shell && shell.animate && !reduceMotion) {
-    shell.animate([{opacity:.82},{opacity:1}], {duration:180,easing:"ease-out"});
-  }
   renderSocialFeed();
+  if (feed && feed.animate && !reduceMotion) {
+    feed.animate([{ opacity: .55, transform: "translateY(9px)" }, { opacity: 1, transform: "translateY(0)" }],
+      { duration: 230, easing: "cubic-bezier(.2,.7,.25,1)" });
+  }
 }));
 
 /* ADMIN SOCIAL MODERATION */
