@@ -19,6 +19,7 @@ button{cursor:pointer}
 .brand strong{display:block;font-size:13px;letter-spacing:.04em}
 .brand small{display:block;color:var(--muted);font-size:10px;letter-spacing:.11em;font-weight:750;margin-top:2px}
 .toplinks{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.toplinks [hidden]{display:none!important}
 .link-btn,.button{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:38px;padding:9px 13px;border:1px solid #304a66;border-radius:10px;background:#14273e;color:#dce7f4;font-size:11px;font-weight:850;letter-spacing:.02em}
 .link-btn:hover,.button:hover{background:#203b5a;border-color:#52769b}
 .button.primary{background:var(--gold);border-color:var(--gold);color:#101b2a}
@@ -82,6 +83,7 @@ footer{padding:18px;text-align:center;color:#6f859e;font-size:10px}
   </a>
   <nav class="toplinks" aria-label="Team tools">
     <a class="link-btn" href="team-workspace.html">← Workspace</a>
+    <a class="link-btn" id="reauthLink" href="team-editor.html" hidden>Re-enter PIN</a>
     <a class="link-btn" href="index.html">Competition dashboard ↗</a>
   </nav>
 </header>
@@ -196,7 +198,9 @@ async function loadStatus({quiet=false}={}){
   if(generation!==loadGeneration)return;
   if(!result||result.ok!==true){
    teamStatus=null;setSubmitting(false);
-   showStatus(result?.error||"Your team session expired. Sign in again to continue.","error");
+   const message=result?.error||"Your team session expired. Sign in again to continue.";
+   showStatus(message,"error");
+   if(/session expired|sign in again/i.test(message))$("reauthLink").hidden=false;
    $("postForm").querySelectorAll("input,textarea,select,button").forEach(el=>el.disabled=true);
    $("refreshPosts").disabled=true;
    return;
