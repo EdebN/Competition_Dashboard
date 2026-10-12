@@ -44,6 +44,10 @@ form{padding:21px}
 .field input:focus,.field textarea:focus,.field select:focus{border-color:var(--blue);box-shadow:0 0 0 3px #6ebce71c}
 .field textarea{min-height:190px;resize:vertical;line-height:1.7}
 .field small{color:var(--muted);font-size:10px;line-height:1.6}
+.image-preview-wrap{display:flex;align-items:flex-start;gap:12px;margin-top:9px}
+.image-preview-wrap[hidden]{display:none!important}
+.image-preview{width:150px;max-height:115px;object-fit:cover;border:1px solid #365675;border-radius:9px;background:#081522}
+#postImageFile{padding:9px;font-size:11px}
 .field-meta{display:flex;justify-content:space-between;gap:12px;color:var(--muted);font-size:10px}
 .field-meta output{font-variant-numeric:tabular-nums}
 .row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:13px}
@@ -107,7 +111,13 @@ footer{padding:18px;text-align:center;color:#6f859e;font-size:10px}
         </div>
         <div class="row">
           <div class="field"><label for="postCategory">Category</label><select id="postCategory" name="category"><option>Team news</option><option>Announcements</option><option>Match reports</option></select></div>
-          <div class="field"><label for="postImage">Image URL <span style="font-weight:500;text-transform:none">(optional)</span></label><input id="postImage" name="imageUrl" type="url" inputmode="url" placeholder="https://…" maxlength="1000"><small>Use a publicly accessible HTTPS image URL. Direct file uploads are not supported by the posting service yet.</small></div>
+          <div class="field"><label for="postImageFile">Upload a photo <span style="font-weight:500;text-transform:none">(optional)</span></label><input id="postImageFile" type="file" accept="image/jpeg,image/png,image/webp"><small>JPG, PNG or WebP. Photos are resized before upload. Maximum original file size: 12 MB.</small></div>
+        </div>
+        <div class="field">
+          <label for="postImage">Or use an image URL</label>
+          <input id="postImage" name="imageUrl" type="url" inputmode="url" placeholder="https://…" maxlength="1000">
+          <small>An uploaded photo takes priority over the URL. Uploaded files stay private until a moderator publishes the post.</small>
+          <div id="imagePreviewWrap" class="image-preview-wrap" hidden><img id="imagePreview" class="image-preview" alt="Selected photo preview"><button id="removeImage" class="link-btn" type="button">Remove photo</button></div>
         </div>
         <div class="field">
           <label for="postBody">Post</label>
@@ -160,6 +170,32 @@ async function postAction(payload){
 }
 function showStatus(message,state="info"){
  const node=$("postStatus");node.textContent=message;node.dataset.state=state;node.hidden=false;
+}
+let previewObjectUrl="";
+function clearImagePreview(){
+ if(previewObjectUrl)URL.revokeObjectURL(previewObjectUrl);
+ previewObjectUrl="";$("imagePreview").removeAttribute("src");$("imagePreviewWrap").hidden=true;
+}
+function prepareImageUpload(file){
+ return new Promise((resolve,reject)=>{
+  if(!file){resolve("");return;}
+  if(!["image/jpeg","image/png","image/webp"].includes(file.type)){reject(new Error("Choose a JPG, PNG or WebP image."));return;}
+  if(file.size>12*1024*1024){reject(new Error("The selected photo exceeds 12 MB."));return;}
+  const sourceUrl=URL.createObjectURL(file),image=new Image();
+  const cleanup=()=>URL.revokeObjectURL(sourceUrl);
+  image.onload=()=>{
+   const scale=Math.min(1,1600/Math.max(image.naturalWidth,image.naturalHeight));
+   const canvas=document.createElement("canvas");canvas.width=Math.max(1,Math.round(image.naturalWidth*scale));canvas.height=Math.max(1,Math.round(image.naturalHeight*scale));
+   const context=canvas.getContext("2d");
+   if(!context){cleanup();reject(new Error("This browser could not prepare the photo."));return;}
+   context.fillStyle="#fff";context.fillRect(0,0,canvas.width,canvas.height);context.drawImage(image,0,0,canvas.width,canvas.height);cleanup();
+   let data=canvas.toDataURL("image/jpeg",0.82);if(data.length>3400000)data=canvas.toDataURL("image/jpeg",0.68);
+   if(data.length>3400000){reject(new Error("The photo is still too large. Choose a smaller image."));return;}
+   resolve(data);
+  };
+  image.onerror=()=>{cleanup();reject(new Error("The selected photo could not be opened. Try a JPG, PNG or WebP file."));};
+  image.src=sourceUrl;
+ });
 }
 function setSubmitting(submitting){
  $("submitPost").disabled=submitting||!teamStatus||teamStatus.banned;
@@ -220,20 +256,33 @@ async function loadStatus({quiet=false}={}){
   teamStatus=null;setSubmitting(false);
  }
 }
+$("postImageFile").addEventListener("change",()=>{
+ clearImagePreview();const file=$("postImageFile").files[0];if(!file)return;
+ if(file.size>12*1024*1024){$("postImageFile").value="";showStatus("The selected photo exceeds 12 MB.","error");return;}
+ previewObjectUrl=URL.createObjectURL(file);$("imagePreview").src=previewObjectUrl;$("imagePreviewWrap").hidden=false;
+ if($("postImage").value.trim())showStatus("The uploaded photo will be used instead of the image URL.","info");
+});
+$("removeImage").addEventListener("click",()=>{$("postImageFile").value="";clearImagePreview();});
 $("postTitle").addEventListener("input",()=>{$("titleCount").textContent=$("postTitle").value.length+" / 120";});
 $("postBody").addEventListener("input",()=>{$("bodyCount").textContent=$("postBody").value.length+" / 5,000";});
 $("refreshPosts").addEventListener("click",()=>loadStatus());
 $("postForm").addEventListener("submit",async event=>{
  event.preventDefault();
  if(!teamStatus||teamStatus.banned){showStatus("Posting is currently unavailable for this team.","error");return;}
- const title=$("postTitle").value.trim(),body=$("postBody").value.trim(),category=$("postCategory").value,imageUrl=$("postImage").value.trim();
+ const title=$("postTitle").value.trim(),body=$("postBody").value.trim(),category=$("postCategory").value,imageUrl=$("postImage").value.trim(),imageFile=$("postImageFile").files[0];
  if(title.length<3||title.length>120){showStatus("Headline must be 3–120 characters.","error");return;}
  if(body.length<10||body.length>5000){showStatus("Post text must be 10–5,000 characters.","error");return;}
- if(imageUrl&&(!imageUrl.toLowerCase().startsWith("https://")||imageUrl.length>1000)){showStatus("Image URLs must use HTTPS and be no longer than 1,000 characters.","error");return;}
+ if(!imageFile&&imageUrl&&(!imageUrl.toLowerCase().startsWith("https://")||imageUrl.length>1000)){showStatus("Image URLs must use HTTPS and be no longer than 1,000 characters.","error");return;}
  const knownIds=new Set((teamStatus.posts||[]).map(post=>post.postId));
  const button=$("submitPost");setSubmitting(true);button.textContent="Submitting…";showStatus("Sending your post and verifying the submission…","info");
  try{
-  await postAction({action:"submitSocialPost",teamId:TEAM_ID,sessionToken:SESSION_TOKEN,title,body,category,imageUrl});
+  let imageData="";
+  if(imageFile){
+   const health=await apiRead("health");
+   if(health?.features?.socialImageUpload!==true)throw new Error("Photo uploads need the updated Apps Script service deployed first. URL-based images still work.");
+   showStatus("Preparing your photo…","info");imageData=await prepareImageUpload(imageFile);
+  }
+  await postAction({action:"submitSocialPost",teamId:TEAM_ID,sessionToken:SESSION_TOKEN,title,body,category,imageUrl:imageFile?"":imageUrl,imageData});
   let verifiedPost=null,lastError=null;
   for(let attempt=0;attempt<8;attempt++){
    await new Promise(resolve=>setTimeout(resolve,500+attempt*250));
@@ -247,7 +296,7 @@ $("postForm").addEventListener("submit",async event=>{
    }catch(error){lastError=error;}
   }
   if(!verifiedPost)throw lastError||new Error("The submission could not be verified. Refresh your posts before trying again to avoid submitting it twice.");
-  $("postForm").reset();$("titleCount").textContent="0 / 120";$("bodyCount").textContent="0 / 5,000";
+  $("postForm").reset();clearImagePreview();$("titleCount").textContent="0 / 120";$("bodyCount").textContent="0 / 5,000";
   teamStatus={...teamStatus,posts:[verifiedPost,...(teamStatus.posts||[]).filter(post=>post.postId!==verifiedPost.postId)]};
   renderPosts(teamStatus.posts);
   showStatus("Post submitted successfully. It is now awaiting moderator review.","success");
