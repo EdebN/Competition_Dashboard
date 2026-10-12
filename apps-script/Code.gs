@@ -53,7 +53,6 @@ function doGet(e) {
           properties.getProperty("ADMIN_TOKEN")
         ),
         actions: ["health", "getTeamSettings", "getCompetitionSettings", "updateCompetitionSettings", "getTeamEditorPinStatus", "verifyTeamEditorPin", "updateTeamEditorPin", "getTeamPageDesign", "saveTeamPageDesign", "getPublishedTeamPage", "publishTeamPage", "revertTeamPage", "submitFeatureRequest", "getMatchPolls", "submitMatchVote", "getSocialPosts", "getTeamSocialStatus", "getModerationSession", "getModerationQueue"],
-        features: { socialImageUpload: true }
       };
     } else if (action === "getMatchPolls") {
       result = { ok: true, service: SERVICE_NAME, apiVersion: API_VERSION, action: action, polls: readMatchPolls_() };
@@ -776,58 +775,17 @@ function requestModerationSession_(b){const expected=PropertiesService.getScript
 function consumeModerationSession_(nonce){const n=String(nonce||"");if(!/^[a-f0-9]{32,64}$/.test(n))return {ok:false,error:"Invalid session challenge."};const cache=CacheService.getScriptCache(),key="socialSessionExchange:"+n,t=cache.get(key);if(!t)return {ok:false,error:"Session exchange pending. Try again."};cache.remove(key);return {ok:true,sessionToken:t,expiresIn:1800};}
 function getModerationSession_(token){return /^[a-f0-9]{64}$/.test(String(token||""))&&CacheService.getScriptCache().get("socialAdminSession:"+token)==="admin";}
 function findSocialPost_(id){const sh=socialPostsSheet_(),n=sh.getLastRow();if(n<2)return {sheet:sh,row:0};const ids=sh.getRange(2,1,n-1,1).getDisplayValues();for(let i=0;i<ids.length;i++)if(ids[i][0]===String(id))return {sheet:sh,row:i+2};return {sheet:sh,row:0};}
-function storeSocialImage_(dataUrl, teamId) {
-  const raw = String(dataUrl || "");
-  const match = /^data:image\/(jpeg|png|webp);base64,([A-Za-z0-9+/]+={0,2})$/i.exec(raw);
-  if (!match) throw new Error("Choose a JPG, PNG or WebP image.");
-  if (match[2].length > 3400000) throw new Error("Image is too large after compression. Maximum stored image size is 2.5 MB.");
-  const bytes = Utilities.base64Decode(match[2]);
-  if (bytes.length > 2500000) throw new Error("Image is too large after compression. Maximum stored image size is 2.5 MB.");
-  const mimeType = "image/" + match[1].toLowerCase();
-  const extension = match[1].toLowerCase() === "jpeg" ? "jpg" : match[1].toLowerCase();
-  const properties = PropertiesService.getScriptProperties();
-  let folderId = properties.getProperty("SOCIAL_IMAGE_FOLDER_ID");
-  let folder;
-  if (folderId) { folder = DriveApp.getFolderById(folderId); }
-  else { folder = DriveApp.createFolder("Competition Dashboard Team Images"); properties.setProperty("SOCIAL_IMAGE_FOLDER_ID", folder.getId()); }
-  const file = folder.createFile(Utilities.newBlob(bytes, mimeType, "team-" + teamId.toLowerCase() + "-" + Utilities.getUuid() + "." + extension));
-  return { imageUrl: "https://drive.google.com/uc?export=view&id=" + file.getId(), fileId: file.getId() };
-}
-
-function setSocialImageVisibility_(imageUrl, isPublic) {
-  const match = /^https:\/\/drive\.google\.com\/uc\?export=view&id=([A-Za-z0-9_-]+)$/.exec(String(imageUrl || ""));
-  if (!match) return;
-  try {
-    const folderId = PropertiesService.getScriptProperties().getProperty("SOCIAL_IMAGE_FOLDER_ID");
-    if (!folderId) return;
-    const file = DriveApp.getFileById(match[1]);
-    const parents = file.getParents();
-    let managedUpload = false;
-    while (parents.hasNext()) {
-      if (parents.next().getId() === folderId) { managedUpload = true; break; }
-    }
-    if (!managedUpload) return;
-    file.setSharing(isPublic ? DriveApp.Access.ANYONE_WITH_LINK : DriveApp.Access.PRIVATE, DriveApp.Permission.VIEW);
-  } catch (error) {
-    console.error(error);
-    throw new Error("Could not update the uploaded image sharing permissions. Check Drive sharing settings.");
-  }
-}
-
 function submitSocialPost_(b) {
   const team = String(b.teamId || "").toUpperCase();
   const title = String(b.title || "").trim();
   const body = String(b.body || "").trim();
   const category = String(b.category || "Team news");
   const imageUrl = String(b.imageUrl || "").trim();
-  const imageData = String(b.imageData || "");
   if (!TEAM_IDS.includes(team) || getSessionTeam_(b.sessionToken) !== team) return jsonResponse_({ ok: false, error: "Team Studio session expired." });
   if (title.length < 3 || title.length > 120) return jsonResponse_({ ok: false, error: "Headline must be 3–120 characters." });
   if (body.length < 10 || body.length > 5000) return jsonResponse_({ ok: false, error: "Post text must be 10–5000 characters." });
   if (!["Announcements", "Match reports", "Team news"].includes(category)) return jsonResponse_({ ok: false, error: "Invalid category." });
-  if (imageData && imageUrl) return jsonResponse_({ ok: false, error: "Choose an image upload or an image URL, not both." });
   if (imageUrl && (!imageUrl.toLowerCase().startsWith("https://") || imageUrl.length > 1000)) return jsonResponse_({ ok: false, error: "Image must be an HTTPS URL." });
-  if (imageData.length > 3400000) return jsonResponse_({ ok: false, error: "Image is too large after compression. Maximum stored image size is 2.5 MB." });
   const bans = readSocialBans_();
   if (bans[team] && bans[team].banned) return jsonResponse_({ ok: false, error: "This team is blocked from submitting posts." });
   const lock = LockService.getScriptLock();
@@ -836,14 +794,12 @@ function submitSocialPost_(b) {
     const sh = socialPostsSheet_();
     if (sh.getLastRow() > 5000) return jsonResponse_({ ok: false, error: "Post archive is full." });
     const id = Utilities.getUuid(), now = new Date();
-    const uploaded = imageData ? storeSocialImage_(imageData, team) : null;
-    const storedImageUrl = uploaded ? uploaded.imageUrl : imageUrl;
-    sh.appendRow([id, now, team, title, body, storedImageUrl, category, "Unviewed", "Pending", "", now, "", false]);
+    sh.appendRow([id, now, team, title, body, imageUrl, category, "Unviewed", "Pending", "", now, "", false]);
     logSocial_("Submitted", id, team, "Team " + team, "");
     return jsonResponse_({ ok: true, saved: true, postId: id });
   } catch (e) {
     console.error(e);
-    return jsonResponse_({ ok: false, error: String(e && e.message || "Could not save post.").slice(0, 240) });
+    return jsonResponse_({ ok: false, error: "Could not save post." });
   } finally { lock.releaseLock(); }
 }
 function submitOfficialSocialPost_(b){
@@ -863,6 +819,54 @@ function submitOfficialSocialPost_(b){
   }catch(e){console.error(e);return jsonResponse_({ok:false,error:"Could not publish official post."});}
   finally{lock.releaseLock();}
 }
-function handleSocialModeration_(b){if(!getModerationSession_(b.sessionToken))return jsonResponse_({ok:false,error:"Admin session expired."});const action=String(b.action||""),team=String(b.teamId||"").toUpperCase(),reason=String(b.reason||"").trim().slice(0,500);if(action==="setSocialPostingBan"){if(!TEAM_IDS.includes(team))return jsonResponse_({ok:false,error:"Invalid team."});if(b.banned&&reason.length<4)return jsonResponse_({ok:false,error:"Add a reason before applying a ban."});const sh=socialBansSheet_(),n=sh.getLastRow(),rows=n<2?[]:sh.getRange(2,1,n-1,4).getDisplayValues();let row=0;rows.forEach((r,i)=>{if(String(r[0]).toUpperCase()===team)row=i+2;});if(!row)row=Math.max(2,n+1);sh.getRange(row,1,1,4).setValues([[team,Boolean(b.banned),reason,new Date()]]);logSocial_(b.banned?"Posting ban applied":"Posting ban lifted","",team,"Admin",reason);return jsonResponse_({ok:true,saved:true});}const id=String(b.postId||""),found=findSocialPost_(id);if(!found.row)return jsonResponse_({ok:false,error:"Post not found."});const p=socialPost_(found.sheet.getRange(found.row,1,1,SOCIAL_POST_HEADERS.length).getValues()[0]);if(action==="markSocialPostViewed"){if(p.reviewStatus!=="Viewed"){found.sheet.getRange(found.row,8).setValue("Viewed");found.sheet.getRange(found.row,11).setValue(new Date());logSocial_("Viewed",id,p.teamId,"Admin","");}return jsonResponse_({ok:true,saved:true});}const d=String(b.decision||"");if(!["publish","reject","remove","feature","unfeature"].includes(d))return jsonResponse_({ok:false,error:"Invalid decision."});if((d==="publish"||d==="feature")&&p.imageUrl){try{setSocialImageVisibility_(p.imageUrl,true);}catch(imageError){return jsonResponse_({ok:false,error:imageError.message||"Could not publish the image."});}}if((d==="reject"||d==="remove")&&p.publicationStatus==="Published"&&p.imageUrl){try{setSocialImageVisibility_(p.imageUrl,false);}catch(imageError){return jsonResponse_({ok:false,error:imageError.message||"Could not hide the image."});}}if(d==="publish"||d==="feature"){found.sheet.getRange(found.row,9).setValue("Published");if(!p.publishedAt)found.sheet.getRange(found.row,10).setValue(new Date());found.sheet.getRange(found.row,12).setValue("");if(d==="feature")found.sheet.getRange(found.row,13).setValue(true);}else if(d==="unfeature")found.sheet.getRange(found.row,13).setValue(false);else{found.sheet.getRange(found.row,9).setValue(d==="reject"?"Rejected":"Removed");found.sheet.getRange(found.row,12).setValue(reason);found.sheet.getRange(found.row,13).setValue(false);}found.sheet.getRange(found.row,11).setValue(new Date());logSocial_(d,id,p.teamId,"Admin",reason);return jsonResponse_({ok:true,saved:true,decision:d});}
+function handleSocialModeration_(b) {
+  if (!getModerationSession_(b.sessionToken)) return jsonResponse_({ ok: false, error: "Admin session expired." });
+  const action = String(b.action || "");
+  const team = String(b.teamId || "").toUpperCase();
+  const reason = String(b.reason || "").trim().slice(0, 500);
 
+  if (action === "setSocialPostingBan") {
+    if (!TEAM_IDS.includes(team)) return jsonResponse_({ ok: false, error: "Invalid team." });
+    if (b.banned && reason.length < 4) return jsonResponse_({ ok: false, error: "Add a reason before applying a ban." });
+    const sh = socialBansSheet_(), n = sh.getLastRow();
+    const rows = n < 2 ? [] : sh.getRange(2, 1, n - 1, 4).getDisplayValues();
+    let row = 0;
+    rows.forEach((r, i) => { if (String(r[0]).toUpperCase() === team) row = i + 2; });
+    if (!row) row = Math.max(2, n + 1);
+    sh.getRange(row, 1, 1, 4).setValues([[team, Boolean(b.banned), reason, new Date()]]);
+    logSocial_(b.banned ? "Posting ban applied" : "Posting ban lifted", "", team, "Admin", reason);
+    return jsonResponse_({ ok: true, saved: true });
+  }
+
+  const id = String(b.postId || "");
+  const found = findSocialPost_(id);
+  if (!found.row) return jsonResponse_({ ok: false, error: "Post not found." });
+  const p = socialPost_(found.sheet.getRange(found.row, 1, 1, SOCIAL_POST_HEADERS.length).getValues()[0]);
+  if (action === "markSocialPostViewed") {
+    if (p.reviewStatus !== "Viewed") {
+      found.sheet.getRange(found.row, 8).setValue("Viewed");
+      found.sheet.getRange(found.row, 11).setValue(new Date());
+      logSocial_("Viewed", id, p.teamId, "Admin", "");
+    }
+    return jsonResponse_({ ok: true, saved: true });
+  }
+
+  const decision = String(b.decision || "");
+  if (!["publish", "reject", "remove", "feature", "unfeature"].includes(decision)) return jsonResponse_({ ok: false, error: "Invalid decision." });
+  if (decision === "publish" || decision === "feature") {
+    found.sheet.getRange(found.row, 9).setValue("Published");
+    if (!p.publishedAt) found.sheet.getRange(found.row, 10).setValue(new Date());
+    found.sheet.getRange(found.row, 12).setValue("");
+    if (decision === "feature") found.sheet.getRange(found.row, 13).setValue(true);
+  } else if (decision === "unfeature") {
+    found.sheet.getRange(found.row, 13).setValue(false);
+  } else {
+    found.sheet.getRange(found.row, 9).setValue(decision === "reject" ? "Rejected" : "Removed");
+    found.sheet.getRange(found.row, 12).setValue(reason);
+    found.sheet.getRange(found.row, 13).setValue(false);
+  }
+  found.sheet.getRange(found.row, 11).setValue(new Date());
+  logSocial_(decision, id, p.teamId, "Admin", reason);
+  return jsonResponse_({ ok: true, saved: true, decision: decision });
+}
 function readTeamSocialStatus_(teamId,token){const team=String(teamId||"").toUpperCase();if(!TEAM_IDS.includes(team)||getSessionTeam_(token)!==team)return {ok:false,error:"Team Studio session expired."};const bans=readSocialBans_();return {ok:true,teamId:team,banned:Boolean(bans[team]&&bans[team].banned),posts:allSocialPosts_().filter(p=>p.teamId===team).sort((a,b)=>String(b.submittedAt).localeCompare(String(a.submittedAt))).slice(0,30)};}
