@@ -3351,6 +3351,18 @@ function showPage(pageName) {
     }
     if (pageName === "finals") renderFinalsPage();
     if (pageName === "admin") renderAdminPage();
+
+    // Re-measure shared filter indicators only after their page has become visible.
+    requestAnimationFrame(() => {
+      if (pageName === "socials" && typeof positionSocialFilterIndicator === "function") {
+        const filters = document.querySelector("#socials-page .social-feed-filters");
+        positionSocialFilterIndicator(filters, filters?.querySelector("[data-social-filter].is-active"));
+      }
+      if (pageName === "matches" && typeof positionMatchFilterIndicator === "function") {
+        const matchPage = document.getElementById("matches-page");
+        if (matchPage) positionMatchFilterIndicator(matchPage);
+      }
+    });
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
