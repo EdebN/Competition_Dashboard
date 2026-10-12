@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Team Editor Access</title>
+<title>Team Workspace Access</title>
 <style>:root{color-scheme:dark;--bg:#08111e;--panel:#0d1a2b;--line:#263d57;--text:#edf3fb;--muted:#93a7c0;--accent:#e0b95a;--accent-bright:#f4d57f;--blue:#6ebce7}
 *{box-sizing:border-box}html{min-height:100%;background:var(--bg)}body{margin:0;min-height:100vh;display:grid;place-items:center;padding:24px;background:radial-gradient(ellipse at 50% 0%,#183454 0,transparent 54%),var(--bg);color:var(--text);font:15px/1.55 Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
 .card{width:min(100%,480px);padding:clamp(24px,5vw,38px);border:1px solid #2b4662;border-radius:22px;background:linear-gradient(155deg,rgba(16,34,55,.98),rgba(10,22,37,.98));box-shadow:0 28px 90px #0006}
@@ -24,12 +24,12 @@ button:hover,.link:hover{background:var(--accent-bright);border-color:var(--acce
 <main class="card">
   <div class="mark">✦</div>
   <div class="eyebrow">TEAM WORKSPACE</div>
-  <h1>Your team. Your page.</h1>
-  <p>Enter the PIN supplied by your competition administrator to open your team's page editor.</p>
+  <h1>Your team. Your workspace.</h1>
+  <p>Enter the PIN supplied by your competition administrator to open your team workspace. Page design and social posting are separate tools.</p>
   <form id="accessForm">
     <label for="teamPin">TEAM EDITOR PIN</label>
     <input id="teamPin" type="password" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="one-time-code" placeholder="••••••" required>
-    <button type="submit">OPEN MY EDITOR ↗</button>
+    <button type="submit">OPEN MY WORKSPACE ↗</button>
   </form>
   <div class="status" id="status" role="status" aria-live="polite"></div>
   <a class="link secondary" href="index.html">BACK TO COMPETITION DASHBOARD</a>
@@ -50,7 +50,7 @@ document.getElementById("accessForm").addEventListener("submit",event=>{
   if(result&&result.ok&&["A","B","C","D","E"].includes(result.teamId)){
    sessionStorage.setItem("team-editor-authorized-team",result.teamId);
    if(result.sessionToken)sessionStorage.setItem("team-editor-session-token",result.sessionToken);
-   location.href="studio.html?team="+encodeURIComponent(result.teamId);
+   location.href="team-workspace.html";
   }else status.textContent="PIN not recognised. Check it or ask the admin to reset it.";
  };
  url.searchParams.set("action","verifyTeamEditorPin");
