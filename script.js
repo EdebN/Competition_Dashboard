@@ -3263,137 +3263,87 @@ async function unlockAdmin() {
    PAGE SYSTEM
 ========================================================= */
 
-let currentPage =
-  "home";
+let currentPage = "home";
+let selectedTeamIndex = 0;
+let teamWheelRotation = 0;
 
+function showPage(pageName) {
+  updateTeamNavNames();
+  const isTeamProfile = /^team-[a-e]$/.test(pageName);
+  const navPageName = isTeamProfile ? "teams" : pageName;
+  const page = document.getElementById(`${pageName}-page`);
+  const button = document.querySelector(`.nav-button[data-page="${navPageName}"]`);
+  if (!page || !button) return;
 
-function showPage(
-  pageName
-) {
-updateTeamNavNames();
-  document
-    .querySelectorAll(
-      ".page"
-    )
-    .forEach(page => {
+  document.querySelectorAll(".page").forEach(item => item.classList.remove("active-page"));
+  document.querySelectorAll(".nav-button").forEach(item => item.classList.remove("active"));
+  page.classList.add("active-page");
+  button.classList.add("active");
+  currentPage = pageName;
 
-      page.classList.remove(
-        "active-page"
-      );
-
-    });
-
-
-  document
-    .querySelectorAll(
-      ".nav-button"
-    )
-    .forEach(button => {
-
-      button.classList.remove(
-        "active"
-      );
-
-    });
-
-
-  const page =
-    document.getElementById(
-      `${pageName}-page`
-    );
-
-
-  const button =
-    document.querySelector(
-      `.nav-button[data-page="${pageName}"]`
-    );
-
-
-  if (
-    !page ||
-    !button
-  ) {
-    return;
+  if (isTeamProfile) {
+    renderTeamPage(getTeamNameFromPage(pageName));
+    const container = document.getElementById(pageName + "-page");
+    if (container) {
+      const back = document.createElement("button");
+      back.type = "button";
+      back.className = "team-back-to-wheel";
+      back.textContent = "← Back to teams";
+      back.addEventListener("click", () => showPage("teams"));
+      container.prepend(back);
+    }
   }
-
-
-  page.classList.add(
-    "active-page"
-  );
-
-  button.classList.add(
-    "active"
-  );
-
-
-  currentPage =
-    pageName;
-
-
-  if (
-    pageName !== "home" &&
-    pageName !== "matches" &&
-    pageName !== "finals" &&
-    pageName !== "admin"
-  ) {
-console.log("TEAM PAGE:", pageName, "→", getTeamNameFromPage(pageName));
-    renderTeamPage(
-      getTeamNameFromPage(
-        pageName
-      )
-    );
-
+  if (pageName === "teams") {
+    syncTeamWheelNames();
+    renderTeamWheelSelection(selectedTeamIndex, false);
   }
-
-
-  if (
-    pageName === "finals"
-  ) {
-
-    renderFinalsPage();
-
-  }
-
-
-  if (
-    pageName === "admin"
-  ) {
-
-    renderAdminPage();
-
-  }
-
-
-  window.scrollTo({
-
-    top: 0,
-
-    behavior: "smooth"
-
-  });
-
+  if (pageName === "finals") renderFinalsPage();
+  if (pageName === "admin") renderAdminPage();
+  window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
+document.querySelectorAll(".nav-button").forEach(button => {
+  button.addEventListener("click", () => showPage(button.dataset.page));
+});
 
-document
-  .querySelectorAll(
-    ".nav-button"
-  )
-  .forEach(button => {
-
-    button.addEventListener(
-      "click",
-      () => {
-
-        showPage(
-          button.dataset.page
-        );
-
-      }
-    );
-
+function syncTeamWheelNames() {
+  const names = getTeamNames();
+  document.querySelectorAll(".ccm-11__stop").forEach((stop, index) => {
+    stop.textContent = names[TEAMS[index]] || TEAMS[index];
   });
+}
 
+function renderTeamWheelSelection(index, announce = true) {
+  const stops = [...document.querySelectorAll(".ccm-11__stop")];
+  const wheel = document.querySelector(".ccm-11__wheel");
+  const current = document.querySelector(".ccm-11__current");
+  const live = document.querySelector(".ccm-11__live");
+  if (!stops.length || !wheel || !current) return;
+
+  selectedTeamIndex = (index + TEAMS.length) % TEAMS.length;
+  const step = 360 / TEAMS.length;
+  const target = -selectedTeamIndex * step;
+  const delta = ((target - (teamWheelRotation % 360) + 540) % 360) - 180;
+  teamWheelRotation += delta;
+  wheel.style.setProperty("--rot", teamWheelRotation + "deg");
+  stops.forEach((stop, i) => {
+    stop.style.rotate = (-teamWheelRotation) + "deg";
+    stop.classList.toggle("is-active", i === selectedTeamIndex);
+    stop.setAttribute("aria-pressed", String(i === selectedTeamIndex));
+  });
+  const names = getTeamNames();
+  current.textContent = names[TEAMS[selectedTeamIndex]] || TEAMS[selectedTeamIndex];
+  if (announce && live) live.textContent = current.textContent + " selected";
+}
+
+document.querySelectorAll(".ccm-11__stop").forEach((stop, index) => {
+  stop.addEventListener("click", () => renderTeamWheelSelection(index));
+});
+document.querySelector(".ccm-11__prev")?.addEventListener("click", () => renderTeamWheelSelection(selectedTeamIndex - 1));
+document.querySelector(".ccm-11__next")?.addEventListener("click", () => renderTeamWheelSelection(selectedTeamIndex + 1));
+document.querySelector(".ccm-11__view-profile")?.addEventListener("click", () => {
+  showPage("team-" + String.fromCharCode(97 + selectedTeamIndex));
+});
 
 /* =========================================================
    TEAM PAGES
