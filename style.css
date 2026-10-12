@@ -2271,3 +2271,113 @@ main { gap:22px; }
   .corner-social-post { bottom: 78px; }
   .corner-request { bottom: 16px; }
 }
+
+
+/* MATCH CENTRE THEME PASS: replace legacy black/white surfaces with the navy, gold and blue system */
+#matches-page {
+  --match-surface:#0d1a2b;
+  --match-surface-raised:#12233a;
+  --match-surface-deep:#091321;
+  --match-border:#293d56;
+  --match-border-strong:#3a5573;
+  --match-gold:#e0b95a;
+  --match-gold-bright:#f4d57f;
+  --match-blue:#6ebce7;
+  --match-text:#e8eff8;
+  --match-muted:#9aaac0;
+}
+#matches-page .match-count,
+#matches-page .match-detail-team,
+#matches-page .match-centre-row,
+#matches-page .match-filters,
+#matches-page .match-back-button,
+#matches-page .h2h-history button {
+  background:var(--match-surface);
+  border-color:var(--match-border);
+}
+#matches-page .match-count { box-shadow:inset 0 1px 0 rgba(255,255,255,.025); }
+#matches-page .match-count strong,
+#matches-page .match-centre-teams>span b,
+#matches-page .match-team-rating,
+#matches-page .match-score-numbers,
+#matches-page .h2h-score b,
+#matches-page .h2h-history b { color:var(--match-text); }
+#matches-page .match-count span,
+#matches-page .match-centre-number small,
+#matches-page .match-centre-teams small,
+#matches-page .match-centre-summary small,
+#matches-page .match-detail-meta,
+#matches-page .match-team-rating small,
+#matches-page .match-score-caption,
+#matches-page .match-elo-head,
+#matches-page .match-footnote,
+#matches-page .h2h-subline,
+#matches-page .h2h-score span,
+#matches-page .match-muted { color:var(--match-muted); }
+#matches-page .match-centre-row:hover,
+#matches-page .match-centre-row:focus-visible,
+#matches-page .h2h-history button:hover {
+  background:#142640;
+  border-color:var(--match-border-strong);
+}
+#matches-page .match-filter { color:#a5b4c8; }
+#matches-page .match-filter.active {
+  background:rgba(224,185,90,.12);
+  border-color:rgba(224,185,90,.45);
+  color:var(--match-gold-bright);
+}
+#matches-page .match-team-winner,
+#matches-page .match-team-winner b { color:var(--match-gold-bright)!important; }
+#matches-page .match-status-played { color:#79d7b0; }
+#matches-page .match-status-upcoming { color:var(--match-blue); }
+#matches-page .match-open-arrow { color:#8ca5c2; }
+#matches-page .match-back-button { color:#c4d2e3; }
+#matches-page .match-back-button:hover { color:var(--match-gold-bright); border-color:var(--match-gold); }
+#matches-page .match-detail-team { box-shadow:inset 0 1px 0 rgba(255,255,255,.025); }
+#matches-page .match-team-initial {
+  border-color:#36516e;
+  background:linear-gradient(145deg,#1a3552,#102137);
+  color:var(--match-gold-bright);
+}
+#matches-page .match-detail-winner {
+  border-color:rgba(224,185,90,.58);
+  background:linear-gradient(145deg,rgba(224,185,90,.075),var(--match-surface) 68%);
+}
+#matches-page .match-score-numbers i { color:var(--match-blue); }
+#matches-page .match-detail-grid .card {
+  border-color:var(--match-border);
+  background:linear-gradient(145deg,#101f33,#0c1828);
+}
+#matches-page .match-elo-table>div { border-bottom-color:#24364c; }
+#matches-page .match-elo-table>div>span { color:#d6e1ef; }
+#matches-page .h2h-history button { color:#d6e1ef; }
+#matches-page .match-form-chip { border:1px solid var(--match-border); background:var(--match-surface); }
+#matches-page .match-form-chip small { color:var(--match-muted); }
+#matches-page .poll-track { background:#24364b; }
+#matches-page .poll-track i { background:linear-gradient(90deg,var(--match-blue),var(--match-gold)); }
+#matches-page .poll-vote-buttons button {
+  border-color:#36516e;
+  background:#12243a;
+  color:#e8eff8;
+}
+#matches-page .poll-vote-buttons button:hover:not(:disabled) {
+  border-color:var(--match-gold);
+  background:#192e47;
+}
+#matches-page .poll-results .poll-result>div:first-child { color:#d6e1ef; }
+#matches-page .poll-result b { color:var(--match-gold-bright); }
+#matches-page .prediction-block { border-top-color:var(--match-border); }
+#matches-page .prediction-block b { color:var(--match-text); }
+#matches-page .match-clickable:hover,
+#matches-page .match-clickable:focus-visible {
+  border-color:var(--match-border-strong);
+  background:#142640;
+}
+#matches-page :is(button,a,input,select,textarea):focus-visible {
+  outline:2px solid var(--match-blue);
+  outline-offset:3px;
+}
+@media(max-width:520px) {
+  #matches-page .match-count { border-radius:10px; }
+  #matches-page .match-detail-grid .card { padding:17px; }
+}
