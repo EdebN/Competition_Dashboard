@@ -1918,7 +1918,6 @@ main { gap:22px; }
 .home-ladder-card:not(.ladder-expanded) th:nth-child(8),.home-ladder-card:not(.ladder-expanded) td:nth-child(8),
 .home-ladder-card:not(.ladder-expanded) th:nth-child(9),.home-ladder-card:not(.ladder-expanded) td:nth-child(9),
 .home-ladder-card:not(.ladder-expanded) th:nth-child(10),.home-ladder-card:not(.ladder-expanded) td:nth-child(10),
-.home-ladder-card:not(.ladder-expanded) th:nth-child(12),.home-ladder-card:not(.ladder-expanded) td:nth-child(12),
 .home-ladder-card:not(.ladder-expanded) th:nth-child(13),.home-ladder-card:not(.ladder-expanded) td:nth-child(13) { display:none; }
 .home-ladder-card.ladder-expanded .table-wrap { overflow-x:auto; }
 .home-ladder-card.ladder-expanded table { min-width:900px; }
