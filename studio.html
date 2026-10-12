@@ -75,6 +75,14 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
 .block.position-left{justify-self:start}.block.position-center{justify-self:center}.block.position-right{justify-self:end}
 .block:hover{outline-color:#6ebce780}
 .block.selected{outline:2px solid var(--accent);outline-offset:4px}
+.block .resize-handle{position:absolute;z-index:12;display:grid;place-items:center;padding:0;border:2px solid #fff;border-radius:4px;background:#2678c8;box-shadow:0 0 0 1px #175ca2,0 2px 5px #10233a44;pointer-events:auto;touch-action:none;user-select:none;-webkit-user-select:none;transition:transform .12s,background .12s}
+.block .resize-handle:hover{background:#155fa8;transform:scale(1.12)}
+.block .resize-handle:focus-visible{outline:2px solid #152c44;outline-offset:3px}
+.block .resize-handle-width{right:-7px;top:50%;width:12px;height:22px;transform:translate(50%,-50%);cursor:ew-resize}
+.block .resize-handle-width:hover{transform:translate(50%,-50%) scale(1.12)}
+.block .resize-handle-height{bottom:-7px;left:50%;width:24px;height:12px;transform:translate(-50%,50%);cursor:ns-resize}
+.block .resize-handle-height:hover{transform:translate(-50%,50%) scale(1.12)}
+.page.mobile .resize-handle{display:none}
 .block.dragging{opacity:.35}.block.drop-target{box-shadow:0 -3px 0 var(--accent)}
 .block h1,.block h2,.block h3,.block p{margin:0}
 .block img{display:block;max-width:100%;height:auto;object-fit:cover}
@@ -274,7 +282,7 @@ const studioDraftKey = validStudioTeam ? "canvas-studio-draft-team-" + validStud
 const $=id=>document.getElementById(id);
 const STUDIO_API="https://script.google.com/macros/s/AKfycbzEg-MU3h-j4RLxbX0UkHzHnRocPXEa9lDGg7uwYvATmnB1OFBqmMKdvpH8zHn_cKxh/exec";
 const canvas=$("canvas"), floatingToolbar=$("floatingToolbar");
-let blocks=[], selected=null, seq=0, history=[], historyIndex=-1, suppressHistory=false, pendingImageTarget=null, activeTextEdit=null;
+let blocks=[], selected=null, seq=0, history=[], historyIndex=-1, suppressHistory=false, pendingImageTarget=null, activeTextEdit=null, activeResize=null;
 const defaults={
  heading:{text:"A bold headline",tag:"h1",fontSize:42,color:"#edf2fa",bg:"transparent",align:"left",padding:8,radius:0,width:100},
  text:{text:"Write something worth reading. Add your story, explain the idea, or share the details.",fontSize:17,color:"#c4d2e3",bg:"transparent",align:"left",padding:8,radius:0,width:100},
@@ -386,7 +394,7 @@ function render(options={}){
   if(b.type==="image"&&b.src)el.querySelector("img")?.addEventListener("click",()=>select(b.id));
   el.addEventListener("click",e=>{e.stopPropagation();if(e.target.closest('[data-editing="true"]'))return;select(b.id);});
   el.addEventListener("dblclick",e=>{const target=e.target.closest("[data-editable-part]");if(!target)return;e.preventDefault();e.stopPropagation();startTextEditing(b.id,target);});
-  el.addEventListener("dragstart",e=>{if(activeTextEdit&&activeTextEdit.closest(".block")===el){e.preventDefault();return;}el.classList.add("dragging");e.dataTransfer.setData("text/plain",b.id);e.dataTransfer.effectAllowed="move";});
+  el.addEventListener("dragstart",e=>{if(activeResize||(e.target&&e.target.closest(".resize-handle"))||(activeTextEdit&&activeTextEdit.closest(".block")===el)){e.preventDefault();return;}el.classList.add("dragging");e.dataTransfer.setData("text/plain",b.id);e.dataTransfer.effectAllowed="move";});
   el.addEventListener("dragend",()=>{el.classList.remove("dragging");canvas.querySelectorAll(".drop-target").forEach(x=>x.classList.remove("drop-target"));});
   el.addEventListener("dragover",e=>{e.preventDefault();if(el.dataset.id!==selected)el.classList.add("drop-target");});
   el.addEventListener("dragleave",()=>el.classList.remove("drop-target"));
@@ -394,6 +402,7 @@ function render(options={}){
   canvas.appendChild(el);
  });
  $("blockCount").textContent="· "+blocks.length+" block"+(blocks.length===1?"":"s");
+ renderSelectionHandles();
  if(!options.keepToolbar)renderToolbar();updateHistoryButtons();refreshStatPreviews();positionToolbar();
 }
 canvas.addEventListener("click",()=>select(null));
@@ -405,7 +414,7 @@ function select(id){
  if(selected===id){positionToolbar();return;}
  selected=id;
  canvas.querySelectorAll(".block").forEach(el=>el.classList.toggle("selected",el.dataset.id===id));
- renderToolbar();positionToolbar();updateHistoryButtons();
+ renderSelectionHandles();renderToolbar();positionToolbar();updateHistoryButtons();
  const el=id?canvas.querySelector('[data-id="'+id+'"]'):null;
  if(el)el.scrollIntoView({block:"nearest",behavior:"smooth"});
 }
@@ -440,7 +449,7 @@ function finishTextEditing(node,restore=false){
  if(blockEl){blockEl.classList.remove("editing");blockEl.draggable=true;}
  activeTextEdit=null;
  if(restore){render();return;}
- pushHistory();updateHistoryButtons();
+ renderSelectionHandles();positionToolbar();pushHistory();updateHistoryButtons();
 }
 function startTextEditing(id,node){
  const b=blocks.find(x=>x.id===id);
@@ -448,6 +457,7 @@ function startTextEditing(id,node){
  if(activeTextEdit&&activeTextEdit!==node)finishTextEditing(activeTextEdit);
  if(selected!==id){selected=id;canvas.querySelectorAll(".block").forEach(el=>el.classList.toggle("selected",el.dataset.id===id));renderToolbar();}
  activeTextEdit=node;node.dataset.editing="true";node.dataset.originalBlockText=b.text||"";
+ renderSelectionHandles();
  node.setAttribute("contenteditable","plaintext-only");node.setAttribute("role","textbox");node.setAttribute("aria-label","Edit "+b.type+" text");node.setAttribute("aria-multiline",["heading","text","card","quote"].includes(b.type)?"true":"false");
  const blockEl=canvas.querySelector('[data-id="'+id+'"]');
  if(blockEl){blockEl.classList.add("editing");blockEl.draggable=false;}
@@ -587,6 +597,92 @@ function renderToolbar(){
   blocks.splice(i,1);selected=null;pushHistory();render();
  });
  positionToolbar();
+}
+function gridResizeStep(){
+ const style=getComputedStyle(canvas);
+ const gap=parseFloat(style.columnGap)||0;
+ const horizontalPadding=(parseFloat(style.paddingLeft)||0)+(parseFloat(style.paddingRight)||0);
+ const contentWidth=Math.max(100,canvas.clientWidth-horizontalPadding);
+ return Math.max(24,(contentWidth-gap*3)/4+gap);
+}
+function renderSelectionHandles(){
+ canvas.querySelectorAll(".resize-handle").forEach(handle=>handle.remove());
+ if(!selected||activeTextEdit||activeResize||$("pageWidth").value==="mobile")return;
+ const b=blocks.find(x=>x.id===selected);
+ const el=b&&canvas.querySelector('[data-id="'+b.id+'"]');
+ if(!b||!el)return;
+ const isSpacer=b.type==="spacer";
+ const handle=document.createElement("button");
+ handle.type="button";
+ handle.className="resize-handle "+(isSpacer?"resize-handle-height":"resize-handle-width");
+ handle.dataset.resizeAxis=isSpacer?"height":"width";
+ handle.setAttribute("aria-label",isSpacer?"Resize spacer height":"Resize element width");
+ handle.title=isSpacer?"Drag to change spacer height":"Drag to resize width in 25% grid steps";
+ handle.innerHTML=isSpacer?'<span aria-hidden="true">↕</span>':'<span aria-hidden="true">↔</span>';
+ handle.addEventListener("pointerdown",e=>startElementResize(e,b.id,isSpacer?"height":"width",handle));
+ handle.addEventListener("click",e=>{e.preventDefault();e.stopPropagation();});
+ el.appendChild(handle);
+}
+function startElementResize(event,id,axis,handle){
+ if(event.button!==undefined&&event.button!==0)return;
+ event.preventDefault();event.stopPropagation();
+ const b=blocks.find(x=>x.id===id);
+ const el=canvas.querySelector('[data-id="'+id+'"]');
+ if(!b||!el||activeTextEdit)return;
+ if(axis==="width"&&$("pageWidth").value==="mobile")return;
+ if(activeResize)return;
+ const startX=event.clientX,startY=event.clientY;
+ const startValue=axis==="width"?(Number(b.width)||100):(Number(b.height)||48);
+ let changed=false;
+ const onMove=e=>{
+  if(!activeResize||activeResize.id!==id)return;
+  let next;
+  if(axis==="width"){
+   const direction=handle.classList.contains("resize-handle-width")?1:-1;
+   const steps=Math.round(((e.clientX-startX)*direction)/gridResizeStep());
+   next=Math.max(25,Math.min(100,Math.round(startValue/25)+steps)*25);
+  }else{
+   next=Math.max(8,Math.min(500,Math.round(startValue+(e.clientY-startY))));
+  }
+  if(next===(axis==="width"?(Number(b.width)||100):(Number(b.height)||48)))return;
+  b[axis]=next;
+  changed=true;
+  if(axis==="width")el.style.cssText=positionStyle(b);
+  else{
+   const spacer=el.firstElementChild;
+   if(spacer)spacer.style.height=next+"px";
+  }
+  const widthInput=$("tb-width");
+  if(axis==="width"&&widthInput)widthInput.value=String(next);
+  const heightInput=$("tb-height");
+  if(axis==="height"&&heightInput)heightInput.value=String(next);
+  el.classList.add("resizing");
+  setWorkspaceStatus("Resizing element…","dirty");
+  positionToolbar();
+ };
+ const finish=()=>{
+  if(!activeResize||activeResize.id!==id)return;
+  window.removeEventListener("pointermove",onMove);
+  window.removeEventListener("pointerup",onUp);
+  window.removeEventListener("pointercancel",onCancel);
+  activeResize=null;
+  el.classList.remove("resizing");
+  if(changed){
+   pushHistory();
+   renderSelectionHandles();
+   renderToolbar();
+   updateHistoryButtons();
+   setWorkspaceStatus("Unsaved changes","dirty");
+  }else renderSelectionHandles();
+  positionToolbar();
+ };
+ const onUp=()=>finish();
+ const onCancel=()=>finish();
+ activeResize={id,axis,handle};
+ window.addEventListener("pointermove",onMove);
+ window.addEventListener("pointerup",onUp,{once:true});
+ window.addEventListener("pointercancel",onCancel,{once:true});
+ try{handle.setPointerCapture(event.pointerId);}catch(error){}
 }
 function positionToolbar(){
  if(!floatingToolbar||floatingToolbar.hidden)return;
