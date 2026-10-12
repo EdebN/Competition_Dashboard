@@ -3011,48 +3011,23 @@ select {
 }
 
 
-/* Motion corrections: animate the actual control, not a duplicate snapshot. */
-#matches-page .match-filter.active::after { content:none !important; }
-#matches-page .match-filter.active {
-  border-color:#303b48;
-  background:#1a222c;
-  color:#fff;
-  transition:background-color 220ms cubic-bezier(.2,.7,.25,1),color 220ms cubic-bezier(.2,.7,.25,1),border-color 220ms cubic-bezier(.2,.7,.25,1);
-}
-#socials-page .social-filter.is-active::after {
-  view-transition-name:none !important;
-}
-#socials-page .social-feed-shell { view-transition-name:social-feed-content; }
-::view-transition-group(social-feed-content) { animation-duration:220ms; animation-timing-function:cubic-bezier(.2,.7,.25,1); }
-::view-transition-old(social-feed-content) { animation: social-feed-out 90ms ease both; }
-::view-transition-new(social-feed-content) { animation: social-feed-in 180ms cubic-bezier(.2,.7,.25,1) both; }
-@keyframes social-feed-out { to { opacity:.72; } }
-@keyframes social-feed-in { from { opacity:.72; } to { opacity:1; } }
 
-/* The ladder is the primary standings feature, permanently fully expanded. */
-.home-content-grid { grid-template-columns:minmax(0,1fr) !important; }
-.home-ladder-card { grid-column:1 / -1; width:100%; }
-.home-ladder-card .table-wrap { overflow-x:auto; }
-.home-ladder-card table { min-width:900px !important; }
-.home-ladder-card:not(.ladder-expanded) tbody tr:nth-child(n+6) { display:table-row !important; }
-.home-ladder-card:not(.ladder-expanded) th:nth-child(7),
-.home-ladder-card:not(.ladder-expanded) td:nth-child(7),
-.home-ladder-card:not(.ladder-expanded) th:nth-child(8),
-.home-ladder-card:not(.ladder-expanded) td:nth-child(8),
-.home-ladder-card:not(.ladder-expanded) th:nth-child(9),
-.home-ladder-card:not(.ladder-expanded) td:nth-child(9),
-.home-ladder-card:not(.ladder-expanded) th:nth-child(10),
-.home-ladder-card:not(.ladder-expanded) td:nth-child(10),
-.home-ladder-card:not(.ladder-expanded) th:nth-child(13),
-.home-ladder-card:not(.ladder-expanded) td:nth-child(13) { display:table-cell !important; }
-.home-ladder-card .text-action { display:none !important; }
-.home-ladder-card .home-section-heading { margin-bottom:24px; }
-.home-ladder-card .home-section-heading h2 { font-size:clamp(24px,3vw,34px); }
-.home-ladder-card .table-wrap { border:1px solid #273b52; border-radius:12px; }
-.home-ladder-card th,.home-ladder-card td { padding:15px 12px; font-size:12px; }
-.home-ladder-card th { font-size:10px; }
-@media (prefers-reduced-motion:reduce) {
-  ::view-transition-group(social-feed-content),
-  ::view-transition-old(social-feed-content),
-  ::view-transition-new(social-feed-content) { animation:none !important; }
+/* Focused fixes: keep controls and the standings layout stable. */
+#matches-page .match-filter.active::after { content: none !important; }
+#matches-page .match-filter.active {
+  border-color: #303b48;
+  background: #1a222c;
+  color: #fff;
+  transition: background-color 220ms cubic-bezier(.2,.7,.25,1),
+              color 220ms cubic-bezier(.2,.7,.25,1),
+              border-color 220ms cubic-bezier(.2,.7,.25,1);
+}
+.home-content-grid { grid-template-columns: minmax(0, 1fr); }
+.home-ladder-card { grid-column: 1 / -1; width: 100%; }
+.home-ladder-card .table-wrap { overflow-x: auto; }
+.home-ladder-card.ladder-expanded table { min-width: 900px; }
+.home-ladder-card .text-action { display: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  #matches-page .match-filter.active { transition: none; }
 }
