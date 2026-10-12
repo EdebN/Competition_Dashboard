@@ -53,18 +53,24 @@
             </div>
           </div>
           <div class="hero-graphic hero-emblem" aria-hidden="true">
-            <div class="emblem-orbit emblem-orbit-outer"></div>
-            <div class="emblem-orbit emblem-orbit-inner"></div>
-            <div class="emblem-grid"></div>
-            <div class="emblem-stamp">EST. <span>2026</span></div>
-            <svg class="emblem-trophy" viewBox="0 0 180 190" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M51 29H129L122 81C118 106 104 119 90 119C76 119 62 106 58 81L51 29Z" fill="url(#cupGold)" stroke="#F5D987" stroke-width="2"/>
-              <path d="M52 42H30C30 72 42 88 63 91M128 42H150C150 72 138 88 117 91" stroke="#E4BE62" stroke-width="8" stroke-linecap="round"/>
-              <path d="M90 119V145M67 159H113M75 145H105V159H75V145Z" stroke="#E4BE62" stroke-width="7" stroke-linejoin="round"/>
-              <path d="M73 48L84 61L76 76L92 91L105 69L97 56L109 43" stroke="#FFF0B8" stroke-opacity=".8" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-              <defs><linearGradient id="cupGold" x1="50" y1="25" x2="135" y2="119" gradientUnits="userSpaceOnUse"><stop stop-color="#FFF0B8"/><stop offset=".45" stop-color="#E0B95A"/><stop offset="1" stop-color="#9C7126"/></linearGradient></defs>
+            <div class="crest-halo"></div>
+            <div class="crest-orbit crest-orbit-a"></div>
+            <div class="crest-orbit crest-orbit-b"></div>
+            <svg class="crest-mark" viewBox="0 0 240 250" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M120 18L204 48V112C204 165 171 207 120 232C69 207 36 165 36 112V48L120 18Z" fill="url(#crestFill)" fill-opacity=".12" stroke="url(#crestStroke)" stroke-width="2"/>
+              <path d="M120 32L190 57V112C190 157 163 192 120 215C77 192 50 157 50 112V57L120 32Z" stroke="#E0B95A" stroke-opacity=".3"/>
+              <path d="M75 145L105 85H125L95 145H75Z" fill="#F4D57F"/>
+              <path d="M112 145L142 85H162L132 145H112Z" fill="#6EBCE7"/>
+              <path d="M149 145L169 105V145H149Z" fill="#F4D57F"/>
+              <path d="M74 160H166" stroke="#E0B95A" stroke-opacity=".55" stroke-width="2"/>
+              <path d="M88 174H152" stroke="#6EBCE7" stroke-opacity=".55" stroke-width="2"/>
+              <defs>
+                <linearGradient id="crestFill" x1="36" y1="18" x2="204" y2="232" gradientUnits="userSpaceOnUse"><stop stop-color="#6EBCE7"/><stop offset="1" stop-color="#0A1728"/></linearGradient>
+                <linearGradient id="crestStroke" x1="36" y1="18" x2="204" y2="232" gradientUnits="userSpaceOnUse"><stop stop-color="#F4D57F"/><stop offset="1" stop-color="#6EBCE7"/></linearGradient>
+              </defs>
             </svg>
-            <div class="emblem-caption"><span>THE</span><strong>CHAMPIONSHIP</strong><i></i><span>EVERY POINT COUNTS</span></div>
+            <div class="crest-index"><span>DIVISION</span><strong>01</strong></div>
+            <div class="crest-caption"><strong>THE COMPETITION</strong><span>FIVE TEAMS · ONE LADDER</span></div>
           </div>
         </section>
 
@@ -75,7 +81,7 @@
               <span class="home-section-index">01 / STANDINGS</span>
             </div>
             <div id="ladder"></div>
-            <button type="button" class="text-action" id="ladder-expand">Show all statistics <span aria-hidden="true">↓</span></button>
+            <button type="button" class="text-action" id="ladder-expand" aria-expanded="false">More stats <span aria-hidden="true">→</span></button>
           </section>
 
           <section class="card home-match-card">
