@@ -257,7 +257,7 @@ function startStatsPreview(){
 function snapshot(){return JSON.stringify({blocks,selected,pageTitle:$("pageTitle").value,pageBg:$("pageBg").value,pagePadding:$("pagePadding").value});}
 function setWorkspaceStatus(message,state="saved"){const el=$("workspaceStatus");if(el){el.textContent=message;el.dataset.state=state;}}
 function pushHistory(){if(suppressHistory)return;const s=snapshot();if(history[historyIndex]===s)return;history=history.slice(0,historyIndex+1);history.push(s);if(history.length>80)history.shift();historyIndex=history.length-1;updateHistoryButtons();setWorkspaceStatus("Unsaved changes","dirty");}
-function restore(s){suppressHistory=true;const d=JSON.parse(s);blocks=d.blocks||[];selected=d.selected||null;$("pageTitle").value=d.pageTitle||"My page";$("pageBg").value=d.pageBg||"#0b0e14";$("pagePadding").value=d.pagePadding||30;seq=Math.max(seq,...blocks.map(b=>Number(b.id.slice(1))||0));render();suppressHistory=false;updateHistoryButtons();}
+function restore(s){suppressHistory=true;const d=JSON.parse(s);blocks=d.blocks||[];selected=d.selected||null;$("pageTitle").value=d.pageTitle||"My page";$("pageBg").value=d.pageBg||"#0b0e14";$("pagePadding").value=d.pagePadding||30;seq=Math.max(seq,...blocks.map(b=>Number(b.id.slice(1))||0));render();suppressHistory=false;updateHistoryButtons();setWorkspaceStatus("Unsaved changes","dirty");}
 function undo(){if(historyIndex>0){historyIndex--;restore(history[historyIndex]);}}
 function redo(){if(historyIndex<history.length-1){historyIndex++;restore(history[historyIndex]);}}
 function updateHistoryButtons(){$("undoBtn").disabled=historyIndex<=0;$("redoBtn").disabled=historyIndex>=history.length-1;}
@@ -311,7 +311,7 @@ function renderInspector(){
  if(b.type==="image"){html+=field("Image URL","src",b.src);html+='<div class="field"><button id="uploadImageBtn">Upload image…</button><div class="muted">Uploaded images are embedded in your draft/export.</div></div>';}
  if(b.type==="spacer")html+=field("Height (px)","height",b.height,"number",{min:8,max:500});
  if(b.type==="heading"||b.type==="text"||b.type==="card"||b.type==="stat"||b.type==="quote")html+=field("Font size (px)","fontSize",b.fontSize,"number",{min:8,max:100});
- html+='<div class="two">'+field("Text colour","color",b.color,"color")+field("Background","bg",b.bg==="transparent"?"#ffffff":b.bg,"color")+'</div>';
+ html+='<div class="two">'+field("Text colour","color",b.color,"color")+field("Background","bg",b.bg==="transparent"?"#0b1726":b.bg,"color")+'</div>';
  html+='<div class="two"><div class="field"><label for="prop-width">Width snap</label><select id="prop-width">'+[25,50,75,100].map(n=>'<option value="'+n+'" '+(Number(b.width)===n?"selected":"")+' >'+n+'%</option>').join("")+'</select></div>'+field("Padding (px)","padding",b.padding,"number",{min:0,max:100})+'</div>';
  html+='<div class="two">'+field("Corner radius","radius",b.radius,"number",{min:0,max:100})+'<div class="field"><label for="prop-align">Alignment</label><select id="prop-align"><option '+(b.align==="left"?"selected":"")+' value="left">Left</option><option '+(b.align==="center"?"selected":"")+' value="center">Center</option><option '+(b.align==="right"?"selected":"")+' value="right">Right</option></select></div></div>';
  inspector.innerHTML=html;
@@ -334,7 +334,7 @@ $("imageFile").addEventListener("change",e=>{const file=e.target.files?.[0];if(!
 function studioSessionToken(){return sessionStorage.getItem("team-editor-session-token")||"";}
 function sharedDesignRequest(action,extra={}){return new Promise((resolve,reject)=>{if(!validStudioTeam||!studioSessionToken()){reject(new Error("Sign in to your team editor again to use shared storage."));return;}const callback="studioApi_"+Date.now()+"_"+Math.floor(Math.random()*1e6);const script=document.createElement("script");const url=new URL(STUDIO_API);url.searchParams.set("action",action);url.searchParams.set("teamId",validStudioTeam);url.searchParams.set("sessionToken",studioSessionToken());url.searchParams.set("callback",callback);url.searchParams.set("_",Date.now());Object.entries(extra).forEach(([k,v])=>url.searchParams.set(k,String(v)));window[callback]=data=>{delete window[callback];script.remove();resolve(data);};script.onerror=()=>{delete window[callback];script.remove();reject(new Error("Could not contact shared storage. The Apps Script update may not be deployed yet."));};script.src=url.toString();document.head.appendChild(script);});}
 async function saveSharedDesign(){const design=JSON.parse(snapshot());const payload={action:"saveTeamPageDesign",teamId:validStudioTeam,sessionToken:studioSessionToken(),design};const response=await fetch(STUDIO_API,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=UTF-8"},body:JSON.stringify(payload)});await new Promise(resolve=>setTimeout(resolve,900));const result=await sharedDesignRequest("getTeamPageDesign");if(!result||!result.ok||JSON.stringify(result.design)!==JSON.stringify(design))throw new Error(result&&result.error||"Shared save could not be verified.");}
-$("saveBtn").onclick=async()=>{try{const current=snapshot();localStorage.setItem(studioDraftKey,current);if(validStudioTeam){$("saveBtn").disabled=true;$("saveBtn").textContent="Saving…";try{await saveSharedDesign();toast("Draft saved to the shared competition sheet.");setWorkspaceStatus("Draft saved","saved");}catch(e){toast("Saved in this browser only: "+e.message);setWorkspaceStatus("Local save only","error");}finally{$("saveBtn").disabled=false;$("saveBtn").textContent="Save draft";}}else toast("Draft saved in this browser.");setWorkspaceStatus("Draft saved locally","saved");}catch(e){toast("Draft too large for browser storage. Export JSON instead.");}};
+$("saveBtn").onclick=async()=>{try{const current=snapshot();localStorage.setItem(studioDraftKey,current);setWorkspaceStatus("Saving draft…","dirty");if(validStudioTeam){$("saveBtn").disabled=true;$("saveBtn").textContent="Saving…";try{await saveSharedDesign();toast("Draft saved to the shared competition sheet.");setWorkspaceStatus("Draft saved","saved");}catch(e){toast("Saved in this browser only: "+e.message);setWorkspaceStatus("Local save only","error");}finally{$("saveBtn").disabled=false;$("saveBtn").textContent="Save draft";}}else toast("Draft saved in this browser.");setWorkspaceStatus("Draft saved locally","saved");}catch(e){toast("Draft too large for browser storage. Export JSON instead.");}};
 const revertButton=$("revertTeamPageBtn");
 if(!validStudioTeam){revertButton.disabled=true;revertButton.title="Open the Studio from your team's editor to revert.";}
 revertButton.onclick=async()=>{
@@ -360,7 +360,7 @@ publishButton.onclick=async()=>{
  if(!validStudioTeam){toast("Open the Studio from your team's editor to publish.");return;}
  if(!confirm("Update the live Team "+validStudioTeam+" page with the design currently on this canvas? The original page will be replaced for this team."))return;
  const design=JSON.parse(snapshot());
- publishButton.disabled=true;publishButton.textContent="Publishing…";
+ publishButton.disabled=true;publishButton.textContent="Publishing…";setWorkspaceStatus("Publishing page…","dirty");
  try{
   localStorage.setItem(studioDraftKey,snapshot());
   await saveSharedDesign();
@@ -369,7 +369,7 @@ publishButton.onclick=async()=>{
   const result=await sharedDesignRequest("getPublishedTeamPage");
   if(!result||!result.ok||JSON.stringify(result.design)!==JSON.stringify(design))throw new Error(result&&result.error||"The published page could not be verified. Check that the Apps Script deployment is updated.");
   toast("Team "+validStudioTeam+" page updated. The public page may take a minute to refresh.");setWorkspaceStatus("Published successfully","saved");
- }catch(error){toast("Could not update the live page: "+error.message);}
+ }catch(error){toast("Could not update the live page: "+error.message);setWorkspaceStatus("Publish failed","error");}
  finally{publishButton.disabled=false;publishButton.textContent="Update team page";}
 };
 $("loadBtn").onclick=async()=>{if(validStudioTeam){$("loadBtn").disabled=true;$("loadBtn").textContent="Loading…";try{const result=await sharedDesignRequest("getTeamPageDesign");if(result&&result.ok&&result.design){restore(JSON.stringify(result.design));pushHistory();localStorage.setItem(studioDraftKey,snapshot());toast("Shared Team "+validStudioTeam+" draft loaded.");setWorkspaceStatus("Shared draft loaded","saved");return;}}catch(e){toast("Shared load unavailable; checking this browser.");}finally{$("loadBtn").disabled=false;$("loadBtn").textContent="Load draft";}}const saved=localStorage.getItem(studioDraftKey);if(!saved){toast("No saved draft found.");return;}try{restore(saved);pushHistory();toast("Browser draft loaded.");setWorkspaceStatus("Browser draft loaded","saved");}catch(e){toast("Could not load that draft.");}};
