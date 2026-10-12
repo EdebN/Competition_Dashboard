@@ -2850,3 +2850,134 @@ select {
   .nav-button:hover { padding-left: 13px; }
   .hero-primary:hover, .hero-secondary:hover { transform: none !important; }
 }
+
+
+/* MOTION SYSTEM 2: animate layout changes, not just opacity */
+:root {
+  --motion-fast: 160ms;
+  --motion-ui: 240ms;
+  --motion-layout: 380ms;
+  --motion-page: 280ms;
+  --motion-ease: cubic-bezier(.22,.72,.18,1);
+}
+
+/* The menu remains in the layout tree while opening/closing, so it can move. */
+.page-nav {
+  overflow: hidden;
+  max-height: 0;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px) scale(.975);
+  transform-origin: top right;
+  pointer-events: none;
+  transition:
+    max-height var(--motion-layout) var(--motion-ease),
+    opacity var(--motion-ui) ease,
+    transform var(--motion-layout) var(--motion-ease),
+    visibility 0s linear var(--motion-layout);
+}
+.page-nav.is-open {
+  max-height: 460px;
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+  transition:
+    max-height var(--motion-layout) var(--motion-ease),
+    opacity var(--motion-ui) ease,
+    transform var(--motion-layout) var(--motion-ease),
+    visibility 0s;
+}
+.page-nav.is-closing {
+  opacity: 0;
+  transform: translateY(-7px) scale(.985);
+  visibility: visible;
+  pointer-events: none;
+  transition:
+    max-height var(--motion-layout) var(--motion-ease),
+    opacity 180ms ease,
+    transform 220ms var(--motion-ease),
+    visibility 0s linear 220ms;
+}
+.page-nav[hidden] { display: none !important; }
+.menu-toggle span {
+  transition:
+    transform 260ms var(--motion-ease),
+    opacity 150ms ease,
+    width 220ms var(--motion-ease);
+}
+
+/* Page changes have a directional hand-off instead of a hard swap. */
+main { position: relative; }
+.page.active-page {
+  position: relative;
+  z-index: 1;
+  animation: dashboard-page-enter var(--motion-page) var(--motion-ease) both;
+}
+.page.is-leaving {
+  display: block;
+  position: absolute;
+  z-index: 0;
+  inset: 0 auto auto 0;
+  width: 100%;
+  pointer-events: none;
+  animation: dashboard-page-exit 210ms cubic-bezier(.4,0,.8,.4) both;
+}
+@keyframes dashboard-page-enter {
+  from { opacity: 0; transform: translateY(12px) scale(.992); filter: blur(2px); }
+  to { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+}
+@keyframes dashboard-page-exit {
+  from { opacity: 1; transform: translateY(0) scale(1); }
+  to { opacity: 0; transform: translateY(-5px) scale(.997); }
+}
+
+/* The ladder wrapper animates its real height; rows no longer pop into existence. */
+.home-ladder-card .table-wrap {
+  transition: max-height var(--motion-layout) var(--motion-ease);
+}
+.home-ladder-card .table-wrap.is-height-animating {
+  overflow-y: hidden;
+}
+.home-ladder-card.ladder-expanded tbody tr:nth-child(n+6) {
+  animation: ladder-row-arrive 260ms var(--motion-ease) both;
+}
+.home-ladder-card.ladder-expanded tbody tr:nth-child(6) { animation-delay: 45ms; }
+.home-ladder-card.ladder-expanded tbody tr:nth-child(7) { animation-delay: 75ms; }
+.home-ladder-card.ladder-expanded tbody tr:nth-child(8) { animation-delay: 105ms; }
+.home-ladder-card.ladder-expanded tbody tr:nth-child(9) { animation-delay: 135ms; }
+.home-ladder-card.ladder-expanded tbody tr:nth-child(10) { animation-delay: 165ms; }
+
+/* Social filter controls respond as a coordinated strip, not isolated buttons. */
+.social-feed-filters {
+  position: relative;
+}
+.social-filter {
+  transition:
+    color var(--motion-ui) var(--motion-ease),
+    background-color var(--motion-ui) var(--motion-ease),
+    border-color var(--motion-ui) var(--motion-ease),
+    transform var(--motion-fast) var(--motion-ease);
+}
+.social-filter:active { transform: scale(.97); }
+.social-filter.is-active { box-shadow: inset 0 -1px 0 rgba(244,213,127,.24); }
+
+@media (prefers-reduced-motion: reduce) {
+  .page-nav,
+  .page-nav.is-open,
+  .page-nav.is-closing,
+  .menu-toggle span,
+  .page.active-page,
+  .page.is-leaving,
+  .home-ladder-card .table-wrap,
+  .home-ladder-card.ladder-expanded tbody tr:nth-child(n+6),
+  .social-filter {
+    animation: none !important;
+    transition: none !important;
+    filter: none !important;
+  }
+  .page.active-page,
+  .page.is-leaving {
+    transform: none !important;
+  }
+}
