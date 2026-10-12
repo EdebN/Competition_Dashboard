@@ -2068,3 +2068,29 @@ main { gap:22px; }
 .latest-results-link { display:none !important; }
 @media(max-width:560px) { .hero-graphic.hero-emblem { width:min(62%,185px); margin:15px auto 8px; } .emblem-caption { font-size:6px; } .emblem-caption strong { font-size:8px; } }
 @media(prefers-reduced-motion:reduce) { .emblem-trophy { animation:none; } }
+
+/* HOME HERO: restrained competition crest */
+.hero-graphic.hero-emblem { width:min(100%,285px); aspect-ratio:1; justify-self:center; margin:0 auto; display:grid; place-items:center; isolation:isolate; }
+.hero-emblem::before { content:none; }
+.crest-halo { position:absolute; inset:12%; border:1px solid rgba(105,158,206,.15); border-radius:50%; box-shadow:0 0 60px rgba(105,158,206,.08); }
+.crest-orbit { position:absolute; left:50%; top:50%; width:92%; aspect-ratio:1; border:1px solid rgba(224,185,90,.16); border-radius:50%; translate:-50% -50%; }
+.crest-orbit-a { transform:scaleY(.37) rotate(-30deg); }
+.crest-orbit-b { transform:scaleY(.37) rotate(30deg); border-color:rgba(105,158,206,.2); }
+.crest-mark { position:relative; z-index:2; width:77%; height:auto; filter:drop-shadow(0 14px 24px rgba(0,0,0,.25)); }
+.crest-index { position:absolute; z-index:3; top:10%; right:1%; display:grid; gap:3px; color:#8396ad; font-size:7px; font-weight:900; letter-spacing:.17em; text-align:center; transform:rotate(8deg); }
+.crest-index strong { color:#f2d47e; font-size:17px; line-height:1; }
+.crest-caption { position:absolute; z-index:3; bottom:3%; left:50%; display:grid; justify-items:center; gap:5px; white-space:nowrap; translate:-50% 0; }
+.crest-caption strong { color:#f2d47e; font-size:9px; letter-spacing:.17em; }
+.crest-caption span { color:#8396ad; font-size:7px; font-weight:800; letter-spacing:.15em; }
+.home-ladder-card .text-action { display:inline-flex; align-items:center; gap:9px; }
+.home-ladder-card .text-action span { font-size:17px; line-height:1; transition:transform .2s; }
+.home-ladder-card .text-action[aria-expanded="false"] span { transform:translateX(0); }
+.home-ladder-card .text-action[aria-expanded="true"] span { transform:translateX(-2px); }
+.home-ladder-card:not(.ladder-expanded) table { min-width:0; }
+.home-ladder-card.ladder-expanded table { min-width:900px; }
+@media(max-width:560px) {
+ .hero-graphic.hero-emblem { width:min(65%,195px); margin:15px auto 8px; }
+ .crest-caption strong { font-size:8px; }
+ .crest-caption span { font-size:6px; }
+}
+@media(prefers-reduced-motion:reduce) { .crest-mark { animation:none; } }
