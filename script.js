@@ -4723,7 +4723,19 @@ function renderSocialFeed() {
   const feed = document.getElementById("social-feed");
   const count = document.getElementById("social-feed-count");
   if (!feed) return;
-  const posts = socialFeedPosts.filter(p => socialFeedFilter === "All posts" || p.category === socialFeedFilter);
+  const posts = socialFeedPosts
+    .filter(p => socialFeedFilter === "All posts" || p.category === socialFeedFilter)
+    .slice()
+    .sort((a, b) => {
+      // Official communications always lead the feed; featured team posts follow.
+      const officialPriority = Number(b.teamId === "OFFICIAL") - Number(a.teamId === "OFFICIAL");
+      if (officialPriority) return officialPriority;
+      const featuredPriority = Number(Boolean(b.featured)) - Number(Boolean(a.featured));
+      if (featuredPriority) return featuredPriority;
+      const dateA = new Date(a.publishedAt || 0).getTime() || 0;
+      const dateB = new Date(b.publishedAt || 0).getTime() || 0;
+      return dateB - dateA;
+    });
   if (count) count.textContent = socialFeedPosts.length + (socialFeedPosts.length === 1 ? " published story" : " published stories");
   if (!posts.length) {
     feed.innerHTML = '<div class="social-feed-empty"><strong>No stories here yet</strong><span>Published announcements and match reports will appear here after moderation.</span></div>';
