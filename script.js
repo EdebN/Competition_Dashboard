@@ -3316,8 +3316,6 @@ function setPrimaryMenuOpen(open) {
   }, 400);
 }
 
-let pageTransitionTimer = null;
-
 function showPage(pageName) {
   updateTeamNavNames();
   setPrimaryMenuOpen(false);
@@ -3328,46 +3326,40 @@ function showPage(pageName) {
   const button = document.querySelector(`.nav-button[data-page="${navPageName}"]`);
   if (!page || !button) return;
 
-  const outgoing = document.querySelector(".page.active-page");
-  document.querySelectorAll(".page.is-leaving").forEach(item => item.classList.remove("is-leaving"));
-  if (pageTransitionTimer) clearTimeout(pageTransitionTimer);
+  const commitPageChange = () => {
+    document.querySelectorAll(".page").forEach(item => item.classList.remove("active-page"));
+    document.querySelectorAll(".nav-button").forEach(item => item.classList.remove("active"));
+    page.classList.add("active-page");
+    button.classList.add("active");
+    currentPage = pageName;
 
-  if (outgoing && outgoing !== page) {
-    outgoing.classList.remove("active-page");
-    outgoing.classList.add("is-leaving");
-    pageTransitionTimer = setTimeout(() => {
-      outgoing.classList.remove("is-leaving");
-    }, 260);
-  }
-
-  document.querySelectorAll(".page").forEach(item => {
-    if (item !== page && item !== outgoing) item.classList.remove("active-page");
-  });
-  document.querySelectorAll(".nav-button").forEach(item => item.classList.remove("active"));
-  page.classList.remove("is-leaving");
-  page.classList.add("active-page");
-  button.classList.add("active");
-  currentPage = pageName;
-
-  if (isTeamProfile) {
-    renderTeamPage(getTeamNameFromPage(pageName));
-    const container = document.getElementById(pageName + "-page");
-    if (container) {
-      const back = document.createElement("button");
-      back.type = "button";
-      back.className = "team-back-to-wheel";
-      back.textContent = "← Back to teams";
-      back.addEventListener("click", () => showPage("teams"));
-      container.prepend(back);
+    if (isTeamProfile) {
+      renderTeamPage(getTeamNameFromPage(pageName));
+      const container = document.getElementById(pageName + "-page");
+      if (container) {
+        const back = document.createElement("button");
+        back.type = "button";
+        back.className = "team-back-to-wheel";
+        back.textContent = "← Back to teams";
+        back.addEventListener("click", () => showPage("teams"));
+        container.prepend(back);
+      }
     }
+    if (pageName === "teams") {
+      syncTeamWheelNames();
+      renderTeamWheelSelection(selectedTeamIndex, false);
+    }
+    if (pageName === "finals") renderFinalsPage();
+    if (pageName === "admin") renderAdminPage();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (document.startViewTransition && !reduceMotion) {
+    document.startViewTransition(commitPageChange);
+  } else {
+    commitPageChange();
   }
-  if (pageName === "teams") {
-    syncTeamWheelNames();
-    renderTeamWheelSelection(selectedTeamIndex, false);
-  }
-  if (pageName === "finals") renderFinalsPage();
-  if (pageName === "admin") renderAdminPage();
-  window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
 document.querySelectorAll("[data-page]").forEach(button => {
@@ -4858,9 +4850,17 @@ function renderSocialFeed() {
   }).join("");
 }
 document.querySelectorAll("[data-social-filter]").forEach(button => button.addEventListener("click", () => {
-  socialFeedFilter = button.dataset.socialFilter || "All posts";
-  document.querySelectorAll("[data-social-filter]").forEach(item => item.classList.toggle("is-active", item === button));
-  renderSocialFeed();
+  const applySocialFilter = () => {
+    socialFeedFilter = button.dataset.socialFilter || "All posts";
+    document.querySelectorAll("[data-social-filter]").forEach(item => item.classList.toggle("is-active", item === button));
+    renderSocialFeed();
+  };
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (document.startViewTransition && !reduceMotion) {
+    document.startViewTransition(applySocialFilter);
+  } else {
+    applySocialFilter();
+  }
 }));
 
 /* ADMIN SOCIAL MODERATION */
