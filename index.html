@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Competition Dashboard</title>
-  <link rel="stylesheet" href="style.css?v=layout-shuffle-20261012">
+  <link rel="stylesheet" href="style.css?v=home-cleanup-20261012">
 </head>
 
 <body>
@@ -21,7 +21,6 @@
       </button>
 
       <div class="header-actions">
-        <span class="header-season"><span class="status-dot"></span> LIVE COMPETITION</span>
         <button class="menu-toggle" id="menu-toggle" type="button" aria-expanded="false" aria-controls="primary-nav" aria-label="Open navigation menu">
           <span></span><span></span><span></span>
         </button>
@@ -53,14 +52,22 @@
               <button type="button" class="hero-secondary" data-page="teams">Meet the teams</button>
             </div>
           </div>
-          <div class="hero-graphic" aria-hidden="true">
-            <div class="hero-orbit hero-orbit-one"></div>
-            <div class="hero-orbit hero-orbit-two"></div>
-            <div class="hero-core">C<span>·</span></div>
-            <div class="hero-coordinate hero-coordinate-top">COMPETITION<br>EST. SEASON</div>
-            <div class="hero-coordinate hero-coordinate-bottom">5 TEAMS <span>/</span> ONE LADDER</div>
+          <div class="hero-graphic hero-radar" aria-hidden="true">
+            <div class="radar-ring radar-ring-outer"></div>
+            <div class="radar-ring radar-ring-middle"></div>
+            <div class="radar-ring radar-ring-inner"></div>
+            <div class="radar-cross radar-cross-x"></div>
+            <div class="radar-cross radar-cross-y"></div>
+            <div class="radar-sweep"></div>
+            <span class="radar-node radar-node-a"></span>
+            <span class="radar-node radar-node-b"></span>
+            <span class="radar-node radar-node-c"></span>
+            <span class="radar-node radar-node-d"></span>
+            <span class="radar-node radar-node-e"></span>
+            <div class="radar-core"><strong>05</strong><span>TEAMS</span></div>
+            <div class="radar-label radar-label-top">COMPETITION / 01</div>
+            <div class="radar-label radar-label-bottom">ONE TABLE. EVERY POINT.</div>
           </div>
-          <div class="hero-index"><span>01</span> OVERVIEW <i></i> <span>02</span> MATCHDAY</div>
         </section>
 
         <section class="home-content-grid">
@@ -70,7 +77,7 @@
               <span class="home-section-index">01 / STANDINGS</span>
             </div>
             <div id="ladder"></div>
-            <button type="button" class="text-action" id="ladder-expand">Show full ladder <span aria-hidden="true">↓</span></button>
+            <button type="button" class="text-action" id="ladder-expand">Show all statistics <span aria-hidden="true">↓</span></button>
           </section>
 
           <section class="card home-match-card">
@@ -80,12 +87,12 @@
             </div>
             <div class="home-match-columns">
               <section class="home-match-group">
-                <div class="home-subheading"><span class="match-status-dot result-dot"></span> LATEST RESULTS</div>
-                <div id="home-latest-results" class="home-match-list"><div class="empty">Loading results…</div></div>
+                <div class="home-subheading"><span class="match-status-dot result-dot"></span> LATEST RESULTS <button type="button" class="latest-results-link" data-page="matches">View all ↗</button></div>
+                <div id="home-latest-results" class="home-match-list"></div>
               </section>
               <section class="home-match-group">
                 <div class="home-subheading"><span class="match-status-dot upcoming-dot"></span> UP NEXT</div>
-                <div id="home-upcoming-matches" class="home-match-list"><div class="empty">Loading fixtures…</div></div>
+                <div id="home-upcoming-matches" class="home-match-list"></div>
               </section>
             </div>
           </section>
@@ -197,7 +204,7 @@
 
   </div>
 
-  <script src="script.js?v=home-shell-20261012"></script>
+  <script src="script.js?v=home-cleanup-20261012"></script>
   <script src="match-page.js?v=match-polls-20261010b"></script>
 
 </body>
