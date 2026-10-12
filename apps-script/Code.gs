@@ -798,7 +798,15 @@ function setSocialImageVisibility_(imageUrl, isPublic) {
   const match = /^https:\/\/drive\.google\.com\/uc\?export=view&id=([A-Za-z0-9_-]+)$/.exec(String(imageUrl || ""));
   if (!match) return;
   try {
+    const folderId = PropertiesService.getScriptProperties().getProperty("SOCIAL_IMAGE_FOLDER_ID");
+    if (!folderId) return;
     const file = DriveApp.getFileById(match[1]);
+    const parents = file.getParents();
+    let managedUpload = false;
+    while (parents.hasNext()) {
+      if (parents.next().getId() === folderId) { managedUpload = true; break; }
+    }
+    if (!managedUpload) return;
     file.setSharing(isPublic ? DriveApp.Access.ANYONE_WITH_LINK : DriveApp.Access.PRIVATE, DriveApp.Permission.VIEW);
   } catch (error) {
     console.error(error);
