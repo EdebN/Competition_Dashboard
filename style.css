@@ -2979,3 +2979,33 @@ select {
     transition: none !important;
   }
 }
+
+
+/* MOTION FIXES: keep selection and layout changes continuous. */
+#matches-page .match-filters { position:relative; }
+#matches-page .match-filter { position:relative; isolation:isolate; }
+#matches-page .match-filter.active::after {
+  content:"";
+  position:absolute;
+  z-index:-1;
+  inset:0;
+  border:1px solid #303b48;
+  border-radius:7px;
+  background:#1a222c;
+  view-transition-name: match-filter-indicator;
+}
+#matches-page .match-filter.active { border-color:transparent; background:transparent; }
+::view-transition-group(match-filter-indicator) {
+  animation-duration:240ms;
+  animation-timing-function:cubic-bezier(.2,.7,.25,1);
+}
+::view-transition-old(match-filter-indicator),
+::view-transition-new(match-filter-indicator) {
+  animation:none;
+  mix-blend-mode:normal;
+}
+@media (prefers-reduced-motion:reduce) {
+  ::view-transition-group(match-filter-indicator),
+  ::view-transition-old(match-filter-indicator),
+  ::view-transition-new(match-filter-indicator) { animation:none !important; }
+}
