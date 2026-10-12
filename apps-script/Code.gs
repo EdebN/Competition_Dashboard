@@ -7,6 +7,10 @@ const PUBLISHED_TEAM_PAGES_TAB = "Published Team Pages";
 const FEATURE_REQUESTS_TAB = "Feature Requests";
 const TEAM_EDITOR_PINS_TAB = "Team Editor PINs";
 const MATCH_POLLS_TAB = "Match Polls";
+const SOCIAL_POSTS_TAB = "Social Posts";
+const SOCIAL_AUDIT_TAB = "Social Audit";
+const SOCIAL_BANS_TAB = "Social Posting Bans";
+const SOCIAL_POST_HEADERS = ["Post ID","Submitted At","Team ID","Title","Body","Image URL","Category","Review Status","Publication Status","Published At","Updated At","Moderation Note","Featured"];
 const COMPETITION_SETTINGS_TAB = "Competition Settings";
 const MIN_GAMES_PER_TEAM = 3;
 const MAX_GAMES_PER_TEAM = 32;
@@ -48,7 +52,7 @@ function doGet(e) {
           properties.getProperty("SPREADSHEET_ID") &&
           properties.getProperty("ADMIN_TOKEN")
         ),
-        actions: ["health", "getTeamSettings", "getCompetitionSettings", "updateCompetitionSettings", "getTeamEditorPinStatus", "verifyTeamEditorPin", "updateTeamEditorPin", "getTeamPageDesign", "saveTeamPageDesign", "getPublishedTeamPage", "publishTeamPage", "revertTeamPage", "submitFeatureRequest", "getMatchPolls", "submitMatchVote"]
+        actions: ["health", "getTeamSettings", "getCompetitionSettings", "updateCompetitionSettings", "getTeamEditorPinStatus", "verifyTeamEditorPin", "updateTeamEditorPin", "getTeamPageDesign", "saveTeamPageDesign", "getPublishedTeamPage", "publishTeamPage", "revertTeamPage", "submitFeatureRequest", "getMatchPolls", "submitMatchVote", "getSocialPosts", "getModerationSession", "getModerationQueue"]
       };
     } else if (action === "getMatchPolls") {
       result = { ok: true, service: SERVICE_NAME, apiVersion: API_VERSION, action: action, polls: readMatchPolls_() };
@@ -81,13 +85,15 @@ function doGet(e) {
       };
     } else if (action === "verifyTeamEditorPin") {
       result = verifyTeamEditorPin_(params.pin);
+    } else if (action === "getSocialPosts") {
+      result = { ok: true, action: action, posts: readPublicSocialPosts_() };
+    } else if (action === "getModerationSession") {
+      result = createModerationSession_(params.adminToken);
+    } else if (action === "getModerationQueue") {
+      if (!getModerationSession_(params.sessionToken)) result = { ok: false, error: "Admin session expired." };
+      else result = { ok: true, posts: readModerationPosts_(), bans: readSocialBans_(), audit: readSocialAudit_() };
     } else {
-      result = {
-        ok: false,
-        service: SERVICE_NAME,
-        apiVersion: API_VERSION,
-        error: "Unknown action"
-      };
+      result = { ok: false, service: SERVICE_NAME, apiVersion: API_VERSION, error: "Unknown action" };
     }
   } catch (error) {
     console.error(error);
@@ -127,7 +133,7 @@ function doPost(e) {
     });
   }
 
-  if (!["updateTeamSettings", "updateCompetitionSettings", "updateTeamEditorPin", "saveTeamPageDesign", "publishTeamPage", "revertTeamPage", "submitFeatureRequest", "submitMatchVote"].includes(body.action)) {
+  if (!["updateTeamSettings", "updateCompetitionSettings", "updateTeamEditorPin", "saveTeamPageDesign", "publishTeamPage", "revertTeamPage", "submitFeatureRequest", "submitMatchVote", "submitSocialPost", "moderateSocialPost", "markSocialPostViewed", "setSocialPostingBan"].includes(body.action)) {
     return jsonResponse_({
       ok: false,
       service: SERVICE_NAME,
@@ -136,6 +142,8 @@ function doPost(e) {
   }
 
   if (body.action === "submitFeatureRequest") return submitFeatureRequest_(body);
+  if (body.action === "submitSocialPost") return submitSocialPost_(body);
+  if (["moderateSocialPost", "markSocialPostViewed", "setSocialPostingBan"].includes(body.action)) return handleSocialModeration_(body);
   if (body.action === "submitMatchVote") return submitMatchVote_(body);
   if (body.action === "saveTeamPageDesign") return saveTeamPageDesign_(body);
   if (body.action === "publishTeamPage") return publishTeamPage_(body);
@@ -747,3 +755,20 @@ function jsonResponse_(value) {
     .createTextOutput(JSON.stringify(value))
     .setMimeType(ContentService.MimeType.JSON);
 }
+
+function socialSheet_(name,headers){const id=PropertiesService.getScriptProperties().getProperty("SPREADSHEET_ID");if(!id)throw new Error("Missing SPREADSHEET_ID");const ss=SpreadsheetApp.openById(id);let sh=ss.getSheetByName(name);if(!sh)sh=ss.insertSheet(name);if(!sh.getLastRow()){sh.getRange(1,1,1,headers.length).setValues([headers]).setFontWeight("bold");sh.setFrozenRows(1);}else if(!headers.every((h,i)=>sh.getRange(1,i+1).getDisplayValue()===h))throw new Error("Unexpected headers in "+name);return sh;}
+function socialPostsSheet_(){return socialSheet_(SOCIAL_POSTS_TAB,SOCIAL_POST_HEADERS);}
+function socialAuditSheet_(){return socialSheet_(SOCIAL_AUDIT_TAB,["Timestamp","Action","Post ID","Team ID","Actor","Reason"]);}
+function socialBansSheet_(){return socialSheet_(SOCIAL_BANS_TAB,["Team ID","Banned","Reason","Updated At"]);}
+function socialPost_(r){return {postId:String(r[0]||""),submittedAt:r[1]?new Date(r[1]).toISOString():"",teamId:String(r[2]||""),title:String(r[3]||""),body:String(r[4]||""),imageUrl:String(r[5]||""),category:String(r[6]||"Team news"),reviewStatus:String(r[7]||"Unviewed"),publicationStatus:String(r[8]||"Pending"),publishedAt:r[9]?new Date(r[9]).toISOString():"",updatedAt:r[10]?new Date(r[10]).toISOString():"",moderationNote:String(r[11]||""),featured:String(r[12]).toLowerCase()==="true"};}
+function allSocialPosts_(){const sh=socialPostsSheet_(),n=sh.getLastRow();return n<2?[]:sh.getRange(2,1,n-1,SOCIAL_POST_HEADERS.length).getValues().map(socialPost_).filter(p=>p.postId);}
+function readPublicSocialPosts_(){return allSocialPosts_().filter(p=>p.publicationStatus==="Published").sort((a,b)=>Number(b.featured)-Number(a.featured)||String(b.publishedAt).localeCompare(String(a.publishedAt))).slice(0,100);}
+function readModerationPosts_(){return allSocialPosts_().sort((a,b)=>String(b.submittedAt).localeCompare(String(a.submittedAt)));}
+function readSocialBans_(){const sh=socialBansSheet_(),n=sh.getLastRow(),out={};if(n<2)return out;sh.getRange(2,1,n-1,4).getDisplayValues().forEach(r=>{const id=String(r[0]).toUpperCase();if(TEAM_IDS.includes(id))out[id]={banned:String(r[1]).toLowerCase()==="true",reason:String(r[2]||""),updatedAt:String(r[3]||"")};});return out;}
+function readSocialAudit_(){const sh=socialAuditSheet_(),n=sh.getLastRow();if(n<2)return [];return sh.getRange(Math.max(2,n-99),1,Math.min(100,n-1),6).getDisplayValues().reverse().map(r=>({timestamp:r[0],action:r[1],postId:r[2],teamId:r[3],actor:r[4],reason:r[5]}));}
+function logSocial_(action,id,team,actor,reason){socialAuditSheet_().appendRow([new Date(),action,id||"",team||"",actor||"Admin",String(reason||"").slice(0,500)]);}
+function createModerationSession_(token){const expected=PropertiesService.getScriptProperties().getProperty("ADMIN_TOKEN");if(!expected||String(token||"")!==expected)return {ok:false,error:"Admin token rejected."};const t=Utilities.getUuid().replace(/-/g,"")+Utilities.getUuid().replace(/-/g,"");CacheService.getScriptCache().put("socialAdminSession:"+t,"admin",1800);return {ok:true,sessionToken:t,expiresIn:1800};}
+function getModerationSession_(token){return /^[a-f0-9]{64}$/.test(String(token||""))&&CacheService.getScriptCache().get("socialAdminSession:"+token)==="admin";}
+function findSocialPost_(id){const sh=socialPostsSheet_(),n=sh.getLastRow();if(n<2)return {sheet:sh,row:0};const ids=sh.getRange(2,1,n-1,1).getDisplayValues();for(let i=0;i<ids.length;i++)if(ids[i][0]===String(id))return {sheet:sh,row:i+2};return {sheet:sh,row:0};}
+function submitSocialPost_(b){const team=String(b.teamId||"").toUpperCase(),title=String(b.title||"").trim(),body=String(b.body||"").trim(),category=String(b.category||"Team news"),image=String(b.imageUrl||"").trim();if(!TEAM_IDS.includes(team)||getSessionTeam_(b.sessionToken)!==team)return jsonResponse_({ok:false,error:"Team Studio session expired."});if(title.length<3||title.length>120)return jsonResponse_({ok:false,error:"Headline must be 3–120 characters."});if(body.length<10||body.length>5000)return jsonResponse_({ok:false,error:"Post text must be 10–5000 characters."});if(!["Announcements","Match reports","Team news"].includes(category))return jsonResponse_({ok:false,error:"Invalid category."});if(image&&(!image.toLowerCase().startsWith("https://")||image.length>1000))return jsonResponse_({ok:false,error:"Image must be an HTTPS URL."});const bans=readSocialBans_();if(bans[team]&&bans[team].banned)return jsonResponse_({ok:false,error:"This team is blocked from submitting posts."});const lock=LockService.getScriptLock();if(!lock.tryLock(5000))return jsonResponse_({ok:false,error:"Service busy."});try{const sh=socialPostsSheet_();if(sh.getLastRow()>5000)return jsonResponse_({ok:false,error:"Post archive is full."});const id=Utilities.getUuid(),now=new Date();sh.appendRow([id,now,team,title,body,image,category,"Unviewed","Pending","",now,"",false]);logSocial_("Submitted",id,team,"Team "+team,"");return jsonResponse_({ok:true,saved:true,postId:id});}catch(e){console.error(e);return jsonResponse_({ok:false,error:"Could not save post."});}finally{lock.releaseLock();}}
+function handleSocialModeration_(b){if(!getModerationSession_(b.sessionToken))return jsonResponse_({ok:false,error:"Admin session expired."});const action=String(b.action||""),team=String(b.teamId||"").toUpperCase(),reason=String(b.reason||"").trim().slice(0,500);if(action==="setSocialPostingBan"){if(!TEAM_IDS.includes(team))return jsonResponse_({ok:false,error:"Invalid team."});if(b.banned&&reason.length<4)return jsonResponse_({ok:false,error:"Add a reason before applying a ban."});const sh=socialBansSheet_(),n=sh.getLastRow(),rows=n<2?[]:sh.getRange(2,1,n-1,4).getDisplayValues();let row=0;rows.forEach((r,i)=>{if(String(r[0]).toUpperCase()===team)row=i+2;});if(!row)row=Math.max(2,n+1);sh.getRange(row,1,1,4).setValues([[team,Boolean(b.banned),reason,new Date()]]);logSocial_(b.banned?"Posting ban applied":"Posting ban lifted","",team,"Admin",reason);return jsonResponse_({ok:true,saved:true});}const id=String(b.postId||""),found=findSocialPost_(id);if(!found.row)return jsonResponse_({ok:false,error:"Post not found."});const p=socialPost_(found.sheet.getRange(found.row,1,1,SOCIAL_POST_HEADERS.length).getValues()[0]);if(action==="markSocialPostViewed"){if(p.reviewStatus!=="Viewed"){found.sheet.getRange(found.row,8).setValue("Viewed");found.sheet.getRange(found.row,11).setValue(new Date());logSocial_("Viewed",id,p.teamId,"Admin","");}return jsonResponse_({ok:true,saved:true});}const d=String(b.decision||"");if(!["publish","reject","remove","feature","unfeature"].includes(d))return jsonResponse_({ok:false,error:"Invalid decision."});if(d==="publish"||d==="feature"){found.sheet.getRange(found.row,9).setValue("Published");if(!p.publishedAt)found.sheet.getRange(found.row,10).setValue(new Date());found.sheet.getRange(found.row,12).setValue("");if(d==="feature")found.sheet.getRange(found.row,13).setValue(true);}else if(d==="unfeature")found.sheet.getRange(found.row,13).setValue(false);else{found.sheet.getRange(found.row,9).setValue(d==="reject"?"Rejected":"Removed");found.sheet.getRange(found.row,12).setValue(reason);found.sheet.getRange(found.row,13).setValue(false);}found.sheet.getRange(found.row,11).setValue(new Date());logSocial_(d,id,p.teamId,"Admin",reason);return jsonResponse_({ok:true,saved:true,decision:d});}
