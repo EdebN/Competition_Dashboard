@@ -4729,12 +4729,19 @@ function renderSocialFeed() {
     feed.innerHTML = '<div class="social-feed-empty"><strong>No stories here yet</strong><span>Published announcements and match reports will appear here after moderation.</span></div>';
     return;
   }
-  feed.innerHTML = posts.map((post, index) => {
+  feed.innerHTML = posts.map(post => {
     const image = /^https:\/\//i.test(String(post.imageUrl || "")) ? '<img class="social-post-image" src="' + escapeHTML(post.imageUrl) + '" alt="" loading="lazy" referrerpolicy="no-referrer">' : "";
+    const identity = post.teamId === "OFFICIAL"
+      ? '<span class="social-official-crest" aria-hidden="true"><svg viewBox="0 0 240 250" fill="none"><path d="M120 18L204 48V112C204 165 171 207 120 232C69 207 36 165 36 112V48L120 18Z" fill="#0A1728" stroke="#E0B95A" stroke-width="9"/><path d="M66 145L96 85H112L82 145H66Z" fill="#F4D57F"/><path d="M96 145L126 85H142L112 145H96Z" fill="#6EBCE7"/><path d="M126 145L156 85H172L142 145H126Z" fill="#F4D57F"/><path d="M74 160H166" stroke="#E0B95A" stroke-width="4" stroke-linecap="round"/></svg></span><strong>Competition Official</strong><span class="social-verified-label">OFFICIAL</span>'
+      : '<span class="social-team-dot">' + escapeHTML(post.teamId || "") + '</span><strong>' + escapeHTML(getTeamDisplayName("Team " + post.teamId) || ("Team " + post.teamId)) + '</strong><span class="social-author-context">Competition team</span>';
     return '<article class="social-post' + (post.featured ? ' is-featured' : '') + '">' +
-      image + '<div class="social-post-content"><div class="social-post-meta">' + (post.featured ? '<span class="social-featured-label">FEATURED</span>' : '') + '<span class="social-category">' + escapeHTML(post.category || "Team news") + '</span><span>' + escapeHTML(formatSocialDate(post.publishedAt)) + '</span></div>' +
-      '<h3>' + escapeHTML(post.title) + '</h3><p>' + escapeHTML(post.body).replace(/\n/g, "<br>") + '</p>' +
-      '<div class="social-post-byline">' + (post.teamId === "OFFICIAL" ? '<span class="social-official-crest" aria-hidden="true"><svg viewBox="0 0 240 250" fill="none"><path d="M120 18L204 48V112C204 165 171 207 120 232C69 207 36 165 36 112V48L120 18Z" fill="#0A1728" stroke="#E0B95A" stroke-width="9"/><path d="M66 145L96 85H112L82 145H66Z" fill="#F4D57F"/><path d="M96 145L126 85H142L112 145H96Z" fill="#6EBCE7"/><path d="M126 145L156 85H172L142 145H126Z" fill="#F4D57F"/><path d="M74 160H166" stroke="#E0B95A" stroke-width="4" stroke-linecap="round"/></svg></span><strong>Competition Official</strong><span class="social-verified-label">OFFICIAL</span>' : '<span class="social-team-dot">' + escapeHTML(post.teamId || "") + '</span><strong>' + escapeHTML(getTeamDisplayName("Team " + post.teamId) || ("Team " + post.teamId)) + '</strong>') + '</div></div></article>';
+      '<div class="social-post-content">' +
+        '<div class="social-post-byline">' + identity + '<span class="social-post-date">' + escapeHTML(formatSocialDate(post.publishedAt)) + '</span></div>' +
+        '<div class="social-post-meta">' + (post.featured ? '<span class="social-featured-label"><span aria-hidden="true">◆</span> FEATURED</span>' : '') + '<span class="social-category">' + escapeHTML(post.category || "Team news") + '</span></div>' +
+        '<h3>' + escapeHTML(post.title) + '</h3>' +
+        '<p>' + escapeHTML(post.body).replace(/\n/g, "<br>") + '</p>' +
+        image +
+      '</div></article>';
   }).join("");
 }
 document.querySelectorAll("[data-social-filter]").forEach(button => button.addEventListener("click", () => {
