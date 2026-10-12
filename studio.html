@@ -87,6 +87,38 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
 .empty{text-align:center;padding:80px 20px;color:var(--muted);border:1px dashed #3c5875;border-radius:12px;grid-column:1/-1;background:#0d1c2d}
 .empty strong{display:block;font-size:20px;color:var(--text);margin-bottom:8px}
 .inspector-empty{padding:16px;border:1px dashed #314b66;border-radius:11px;background:#0b1929;color:var(--muted);font-size:12px;line-height:1.75}
+.sidebar.right{position:sticky;top:64px;align-self:start;max-height:calc(100vh - 64px);overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#365675 transparent}
+.sidebar.right::-webkit-scrollbar{width:7px}.sidebar.right::-webkit-scrollbar-thumb{background:#365675;border-radius:99px}
+.inspector-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 14px}
+.inspector-title{display:flex;flex-direction:column;gap:3px;min-width:0}
+.inspector-title strong{font-size:15px;letter-spacing:-.02em;text-transform:capitalize;color:var(--text)}
+.inspector-title span{font-size:11px;color:var(--muted)}
+.inspector-type{display:inline-flex;align-items:center;justify-content:center;border:1px solid #395774;background:#13263b;color:#bcd0e4;border-radius:7px;padding:5px 7px;font-size:9px;font-weight:900;letter-spacing:.1em;text-transform:uppercase;white-space:nowrap}
+.property-group{margin:0 0 10px;border:1px solid #263f59;border-radius:11px;background:#0a1828;overflow:hidden}
+.property-group summary{list-style:none;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 12px;cursor:pointer;user-select:none;font-size:12px;font-weight:850;color:#e5edf7}
+.property-group summary::-webkit-details-marker{display:none}
+.property-group summary::after{content:"";width:7px;height:7px;border-right:1.5px solid #9eb5cd;border-bottom:1.5px solid #9eb5cd;transform:rotate(45deg) translateY(-2px);transition:transform .16s;flex:0 0 auto}
+.property-group:not([open]) summary::after{transform:rotate(-45deg)}
+.property-group summary span{font-size:10px;font-weight:550;color:var(--muted);margin-left:auto}
+.property-body{padding:12px;border-top:1px solid #20364e}
+.property-body .field{margin-bottom:13px}
+.property-body .field:last-child{margin-bottom:0}
+.property-body .two{gap:9px}
+.property-body .field label,.property-body .field>span{font-size:9px;letter-spacing:.07em}
+.property-body .field input,.property-body .field textarea,.property-body .field select{padding:9px 10px;border-radius:8px;font-size:12px}
+.property-body .field input[type=color]{height:36px;padding:3px}
+.property-body .field textarea{min-height:92px;line-height:1.5}
+.property-body .muted{font-size:10px;line-height:1.6}
+.property-body .field input[type=range]{padding:0}
+.field-note{margin-top:6px;color:var(--muted);font-size:10px;line-height:1.55}
+.check-field{display:flex;align-items:center;gap:8px;margin-top:-3px;color:#9fb3c9;font-size:11px}
+.check-field input{accent-color:var(--accent)}
+.inspector-upload{width:100%;display:flex;align-items:center;justify-content:center;gap:8px;border-style:dashed;padding:11px;font-size:11px;font-weight:750}
+.property-body .field input:disabled{opacity:.4;cursor:not-allowed}
+.selection-empty{display:grid;gap:10px}
+.selection-empty-icon{width:36px;height:36px;border:1px solid #365675;border-radius:10px;background:#13273d;color:var(--accent-bright);display:grid;place-items:center;font-size:18px}
+.selection-empty strong{display:block;color:#e5edf7;font-size:12px;margin-bottom:3px}
+.selection-empty p{margin:0;font-size:11px;line-height:1.7;color:var(--muted)}
 .minirow{display:flex;gap:8px;margin-top:8px}
 .minirow button{flex:1;min-width:0;padding:9px 7px;font-size:12px}
 .danger{color:#ffb0b0;border-color:#7d414b;background:#301c29}
@@ -110,7 +142,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
 #socialPostStatus{color:var(--accent2);font-size:12px;line-height:1.6;margin:4px 0}
 .muted{color:var(--muted)}
 
-@media(max-width:1180px){.workspace{grid-template-columns:210px minmax(0,1fr)}.right{grid-column:2/-1;border-left:0;border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0}.right-section{min-width:0}.stage{min-height:700px}}
+@media(max-width:1180px){.sidebar.right{position:static;max-height:none;overflow:visible}.workspace{grid-template-columns:210px minmax(0,1fr)}.right{grid-column:2/-1;border-left:0;border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0}.right-section{min-width:0}.stage{min-height:700px}}
 @media(max-width:760px){.top{position:relative;align-items:flex-start;flex-direction:column;padding:14px}.brand{min-width:0}.top-actions{justify-content:flex-start;width:100%}.top-actions button{flex:1 1 auto}.workspace{grid-template-columns:1fr}.left-tools{display:flex;gap:9px;padding:12px;border-right:0;border-bottom:1px solid var(--line);overflow:visible}.left-tools .eyebrow{margin:0}.tool-grid{grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}.tool-category{margin-top:2px}.tool{min-height:64px;padding:9px 8px;gap:8px}.tool span:first-child{font-size:19px}.tool small{font-size:10px}.tool-search{padding:9px 10px}.stage{min-height:580px}.right{grid-column:auto;display:block}.right-section+ .right-section{border-top:1px solid var(--line)}.viewport{padding:14px}.page{padding:18px;gap:12px;min-height:560px}.stagebar{padding:10px 14px;align-items:flex-start;flex-direction:column}.stagebar-main{flex-wrap:wrap}}
 @media(max-width:480px){.tool-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.tool{min-height:58px;padding:8px}.top-actions button{font-size:11px;padding:8px}.page{padding:13px}.two{gap:8px}.right{display:block}.right-section{padding:16px 13px}}
 </style>
@@ -160,11 +192,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
     <div class="eyebrow">Arrange</div>
     <div class="minirow"><button id="upBtn" title="Move earlier">↑ Up</button><button id="downBtn" title="Move later">↓ Down</button></div>
     <div class="minirow"><button id="duplicateBtn">Duplicate</button><button id="deleteBtn" class="danger">Delete</button></div>
-    <div class="eyebrow" style="margin-top:18px">Horizontal alignment</div>
-    <div class="minirow"><button data-position="left">Left</button><button data-position="center">Center</button><button data-position="right">Right</button></div>
-    <div class="eyebrow" style="margin-top:18px">Vertical alignment</div>
-    <div class="minirow"><button data-valign="top">Top</button><button data-valign="middle">Middle</button><button data-valign="bottom">Bottom</button></div>
-    <div class="hint">Drag elements on the canvas to reorder them. Use these controls for precise placement.</div>
+    <div class="hint">Control stacking order here. Width, position and alignment live with the selected element’s properties.</div>
   </section>
   <section class="right-section">
     <div class="eyebrow">Page settings</div>
@@ -292,7 +320,7 @@ function blockInner(b){
  if(b.type==="heading")return "<h1 style='font-size:"+b.fontSize+"px;color:"+b.color+";text-align:"+b.align+";margin:0'>"+esc(b.text)+"</h1>";
  if(b.type==="text")return "<p style='font-size:"+b.fontSize+"px;color:"+b.color+";text-align:"+b.align+";margin:0;white-space:pre-wrap'>"+esc(b.text)+"</p>";
  if(b.type==="image")return b.src? "<img src='"+esc(b.src)+"' alt='"+esc(b.alt||"")+"' style='width:100%;max-height:620px;object-fit:cover;border-radius:"+b.radius+"px;margin:auto;display:block'>":"<div class='placeholder'>▧<br>"+esc(b.alt||"Choose an image in the properties panel")+"</div>";
- if(b.type==="button")return "<div style='text-align:"+b.align+"'><span style='display:inline-block;background:"+b.bg+";color:"+b.color+";padding:"+b.padding+"px 20px;border-radius:"+b.radius+"px;font-weight:750'>"+esc(b.text)+"</span></div>";
+ if(b.type==="button")return "<div style='text-align:"+b.align+"'><span style='display:inline-block;background:"+b.bg+";color:"+b.color+";font-size:"+b.fontSize+"px;padding:"+b.padding+"px 20px;border-radius:"+b.radius+"px;font-weight:750'>"+esc(b.text)+"</span></div>";
  if(b.type==="card")return "<div style='"+css(b)+";border:1px solid #304a66;white-space:pre-wrap'><div style='font-size:"+Math.round(b.fontSize*1.35)+"px;font-weight:800;margin-bottom:8px'>"+esc(lines[0])+"</div>"+esc(lines.slice(1).join("\n"))+"</div>";
  if(b.type==="stat"){const metric=STAT_METRICS.find(m=>m.key===b.metric)||STAT_METRICS[0];return "<div class='stat' data-stat='"+esc(metric.key)+"' style='"+css(b)+"'><span>"+esc(b.text||metric.label)+"</span><strong>—</strong><small style='display:block;margin-top:5px;font-size:10px;letter-spacing:.08em;text-transform:uppercase;opacity:.65'>Value fills on the team page</small></div>";}
  if(b.type==="divider")return "<div class='divider' style='background:"+b.color+";margin:"+b.padding+"px 0'></div>";
@@ -301,7 +329,7 @@ function blockInner(b){
  if(b.type==="quote")return "<blockquote style='"+css(b)+";font-weight:650;font-style:italic;white-space:pre-wrap;margin:0;border-left:4px solid "+b.color+"'>"+esc(b.text)+"</blockquote>";
  return "<p>"+esc(b.text)+"</p>";
 }
-function render(){
+function render(options={}){
  canvas.style.background=$("pageBg").value;canvas.style.padding=$("pagePadding").value+"px";
  canvas.classList.toggle("mobile",$("pageWidth").value==="mobile");canvas.classList.toggle("tablet",$("pageWidth").value==="tablet");
  canvas.innerHTML="";
@@ -317,30 +345,111 @@ function render(){
   canvas.appendChild(el);
  });
  $("blockCount").textContent="· "+blocks.length+" block"+(blocks.length===1?"":"s");
- renderInspector();updateHistoryButtons();refreshStatPreviews();
+ if(!options.keepInspector)renderInspector();updateSelectionActions();updateHistoryButtons();refreshStatPreviews();
 }
 canvas.addEventListener("click",()=>select(null));
 function select(id){selected=id;render();const el=canvas.querySelector('[data-id="'+id+'"]');if(el&&id)el.scrollIntoView({block:"nearest",behavior:"smooth"});}
 function updateProp(key,value){const b=blocks.find(x=>x.id===selected);if(!b)return;b[key]=value;pushHistory();render();}
 function field(label,key,value,type="text",extra={}){let id="prop-"+key;let input;if(type==="textarea")input='<textarea id="'+id+'">'+esc(value)+'</textarea>';else input='<input id="'+id+'" type="'+type+'" value="'+esc(value)+'" '+(extra.min!==undefined?'min="'+extra.min+'"':'')+' '+(extra.max!==undefined?'max="'+extra.max+'"':'')+' '+(extra.step!==undefined?'step="'+extra.step+'"':'')+'>';return '<div class="field"><label for="'+id+'">'+label+'</label>'+input+'</div>';}
 function renderInspector(){
- const b=blocks.find(x=>x.id===selected);if(!b){inspector.innerHTML='<div class="inspector-empty">Select any block on the canvas to customise its content, colours, size and alignment.</div>';return;}
- let html='<div class="muted" style="font-size:11px;margin-bottom:12px">'+esc(b.type.toUpperCase())+' BLOCK</div>';
+ const b=blocks.find(x=>x.id===selected);
+ if(!b){
+  inspector.innerHTML='<div class="selection-empty"><div class="selection-empty-icon">✳</div><div><strong>Nothing selected</strong><p>Choose a block on the canvas to edit its content, appearance and layout.</p></div></div>';
+  return;
+ }
+ const index=blocks.findIndex(x=>x.id===b.id)+1;
+ const textTypes=["heading","text","button","card","stat","quote","badge"];
+ const fontTypes=["heading","text","button","card","stat","quote","badge"];
+ const radiusTypes=["image","button","card","stat","quote","badge"];
+ const paddingTypes=["button","card","stat","quote","badge","divider"];
+ const alignTypes=["heading","text","button","card","stat","quote"];
+ const fillTypes=["button","card","stat","quote","badge"];
+ const colorTypes=["heading","text","button","card","stat","quote","badge","divider"];
+ const contentTypes=["heading","text","button","card","stat","quote","badge"];
+ let content='';
  if(b.type==="stat"){
-  html+='<div class="field"><label for="prop-metric">Competition statistic</label><select id="prop-metric">'+STAT_METRICS.map(m=>'<option value="'+m.key+'" '+((b.metric||"wins")===m.key?"selected":"")+'>'+m.label+'</option>').join("")+'</select><div class="muted">The statistic is read-only. Its live value will be supplied by the team-page renderer.</div></div>';
-  html+=field("Card label","text",b.text||"");
- } else if(b.type!=="divider"&&b.type!=="spacer")html+=field(b.type==="image"?"Alt text / image description":"Content","text",b.type==="image"?b.alt:b.text,"textarea");
- if(b.type==="image"){html+=field("Image URL","src",b.src);html+='<div class="field"><button id="uploadImageBtn">Upload image…</button><div class="muted">Uploaded images are embedded in your draft/export.</div></div>';}
- if(b.type==="spacer")html+=field("Height (px)","height",b.height,"number",{min:8,max:500});
- if(b.type==="heading"||b.type==="text"||b.type==="card"||b.type==="stat"||b.type==="quote")html+=field("Font size (px)","fontSize",b.fontSize,"number",{min:8,max:100});
- html+='<div class="two">'+field("Text colour","color",b.color,"color")+field("Background","bg",b.bg==="transparent"?"#0b1726":b.bg,"color")+'</div>';
- html+='<div class="two"><div class="field"><label for="prop-width">Width snap</label><select id="prop-width">'+[25,50,75,100].map(n=>'<option value="'+n+'" '+(Number(b.width)===n?"selected":"")+' >'+n+'%</option>').join("")+'</select></div>'+field("Padding (px)","padding",b.padding,"number",{min:0,max:100})+'</div>';
- html+='<div class="two">'+field("Corner radius","radius",b.radius,"number",{min:0,max:100})+'<div class="field"><label for="prop-align">Alignment</label><select id="prop-align"><option '+(b.align==="left"?"selected":"")+' value="left">Left</option><option '+(b.align==="center"?"selected":"")+' value="center">Center</option><option '+(b.align==="right"?"selected":"")+' value="right">Right</option></select></div></div>';
+  content+='<div class="field"><label for="prop-metric">Competition statistic</label><select id="prop-metric">'+STAT_METRICS.map(m=>'<option value="'+m.key+'" '+((b.metric||"wins")===m.key?"selected":"")+'>'+m.label+'</option>').join("")+'</select><div class="field-note">The live value is supplied by competition data when the page is published.</div></div>';
+  content+=field("Card label","text",b.text||"","text");
+ }else if(b.type==="image"){
+  content+=field("Image description","text",b.alt||"","textarea");
+  content+='<div class="field"><label for="prop-src">Image source URL</label><input id="prop-src" type="text" value="'+esc(b.src||"")+'" placeholder="Paste an image URL"></div>';
+  content+='<div class="field"><button class="inspector-upload" id="uploadImageBtn" type="button">＋ Upload image</button><div class="field-note">Uploads are embedded in the draft and exported design. Keep images under 8 MB.</div></div>';
+ }else if(b.type==="spacer"){
+  content+=field("Height","height",b.height,"number",{min:8,max:500,step:4});
+ }else if(b.type==="divider"){
+  content+='<div class="field-note">A simple separator. Change its colour and spacing under Appearance.</div>';
+ }else if(contentTypes.includes(b.type)){
+  content+=field(b.type==="heading"?"Heading text":b.type==="button"?"Button label":b.type==="badge"?"Badge text":b.type==="quote"?"Quote text":b.type==="card"?"Card content":"Text content","text",b.text||"","textarea");
+ }
+ let html='<div class="inspector-head"><div class="inspector-title"><strong>'+esc(b.type)+' properties</strong><span>Element '+index+' of '+blocks.length+'</span></div><span class="inspector-type">'+esc(b.type)+'</span></div>';
+ html+='<details class="property-group" open><summary>Content <span>What it says</span></summary><div class="property-body">'+(content||'<div class="field-note">This element has no editable text content.</div>')+'</div></details>';
+ let appearance='';
+ if(fontTypes.includes(b.type))appearance+='<div class="field"><label for="prop-fontSize">Font size</label><input id="prop-fontSize" type="number" value="'+esc(b.fontSize)+'" min="8" max="100" step="1"><div class="field-note">Measured in pixels.</div></div>';
+ if(colorTypes.includes(b.type)){
+  if(b.type==="divider"){
+   appearance+=field("Line colour","color",b.color,"color");
+  }else if(textTypes.includes(b.type)){
+   appearance+='<div class="two">'+field("Text colour","color",b.color,"color");
+   if(fillTypes.includes(b.type))appearance+=field("Fill colour","bg",b.bg==="transparent"?"#0b1726":b.bg,"color");
+   appearance+='</div>';
+   if(fillTypes.includes(b.type))appearance+='<label class="check-field"><input id="prop-noFill" type="checkbox" '+(b.bg==="transparent"?"checked":"")+'> No background fill</label>';
+  }
+ }
+ if(radiusTypes.includes(b.type))appearance+='<div class="field"><label for="prop-radius">Corner rounding</label><input id="prop-radius" type="number" value="'+esc(b.radius)+'" min="0" max="100" step="1"></div>';
+ if(paddingTypes.includes(b.type)){
+  if(b.type==="divider")appearance+=field("Vertical spacing","padding",b.padding,"number",{min:0,max:100,step:1});
+  else appearance+=field("Inner spacing","padding",b.padding,"number",{min:0,max:100,step:1});
+ }
+ if(b.type==="spacer")appearance+='<div class="field-note">Empty space stays invisible on the published page.</div>';
+ if(appearance)html+='<details class="property-group" open><summary>Appearance <span>Colour &amp; styling</span></summary><div class="property-body">'+appearance+'</div></details>';
+ let layout='<div class="field"><label for="prop-width">Width</label><select id="prop-width">'+[25,50,75,100].map(n=>'<option value="'+n+'" '+(Number(b.width)===n?"selected":"")+'>'+n+'% of page</option>').join("")+'</select></div>';
+ layout+='<div class="field"><label for="prop-position">Horizontal position</label><select id="prop-position">'+[['auto','Default'],['left','Left'],['center','Centre'],['right','Right']].map(([v,l])=>'<option value="'+v+'" '+((b.position||"auto")===v?"selected":"")+'>'+l+'</option>').join("")+'</select></div>';
+ layout+='<div class="field"><label for="prop-verticalAlign">Vertical alignment</label><select id="prop-verticalAlign">'+[['top','Top'],['middle','Middle'],['bottom','Bottom']].map(([v,l])=>'<option value="'+v+'" '+((b.verticalAlign||"top")===v?"selected":"")+'>'+l+'</option>').join("")+'</select></div>';
+ if(alignTypes.includes(b.type))layout+='<div class="field"><label for="prop-align">Text alignment</label><select id="prop-align">'+[['left','Left'],['center','Centre'],['right','Right']].map(([v,l])=>'<option value="'+v+'" '+((b.align||"left")===v?"selected":"")+'>'+l+'</option>').join("")+'</select></div>';
+ html+='<details class="property-group" open><summary>Layout <span>Size &amp; placement</span></summary><div class="property-body">'+layout+'</div></details>';
  inspector.innerHTML=html;
- ["text","src","alt","fontSize","color","bg","width","padding","radius","height"].forEach(key=>{const input=$("prop-"+key);if(!input)return;input.addEventListener("change",()=>{const actualKey=key==="text"&&b.type==="image"?"alt":key;let value=["fontSize","width","padding","radius","height"].includes(key)?Number(input.value):input.value;if(key==="width")value=[25,50,75,100].includes(value)?value:Math.max(25,Math.min(100,Math.round(value/25)*25));updateProp(actualKey,value);});});
+
+ const numericKeys=["fontSize","width","padding","radius","height"];
+ ["text","src","alt","fontSize","color","bg","width","padding","radius","height"].forEach(key=>{
+  const input=$("prop-"+key);if(!input)return;
+  const actualKey=key==="text"&&b.type==="image"?"alt":key;
+  const readValue=()=>numericKeys.includes(key)?Number(input.value):input.value;
+  input.addEventListener("input",()=>{
+   let value=readValue();
+   if(key==="width")value=[25,50,75,100].includes(value)?value:Math.max(25,Math.min(100,Math.round(value/25)*25));
+   b[actualKey]=value;
+   if(key==="bg"&&$("prop-noFill")?.checked)b.bg="transparent";
+   render({keepInspector:true});
+  });
+  input.addEventListener("change",()=>{
+   let value=readValue();
+   if(key==="width")value=[25,50,75,100].includes(value)?value:Math.max(25,Math.min(100,Math.round(value/25)*25));
+   b[actualKey]=value;
+   if(key==="bg"&&$("prop-noFill")?.checked)b.bg="transparent";
+   pushHistory();render();
+  });
+ });
  $("prop-metric")?.addEventListener("change",e=>updateProp("metric",e.target.value));
- $("prop-align")?.addEventListener("change",e=>updateProp("align",e.target.value));
- $("uploadImageBtn")?.addEventListener("click",()=>{$("imageFile").click();});
+ $("prop-noFill")?.addEventListener("change",e=>{
+  b.bg=e.target.checked?"transparent":($("prop-bg")?.value||"#0b1726");
+  pushHistory();render();
+ });
+ ["align","position","verticalAlign"].forEach(key=>{
+  $("prop-"+key)?.addEventListener("change",e=>updateProp(key,e.target.value));
+ });
+ const bg=$("prop-bg"),noFill=$("prop-noFill");
+ if(bg&&noFill){
+  bg.disabled=noFill.checked;
+  noFill.addEventListener("change",()=>{bg.disabled=noFill.checked;});
+ }
+ $("uploadImageBtn")?.addEventListener("click",()=>$("imageFile").click());
+}
+function updateSelectionActions(){
+ const index=blocks.findIndex(b=>b.id===selected);
+ const hasSelection=index>=0;
+ ["duplicateBtn","deleteBtn","upBtn","downBtn"].forEach(id=>{const el=$(id);if(el)el.disabled=!hasSelection;});
+ $("upBtn").disabled=!hasSelection||index===0;
+ $("downBtn").disabled=!hasSelection||index===blocks.length-1;
 }
 function add(type){const b=makeBlock(type);blocks.push(b);selected=b.id;pushHistory();render();}
 document.querySelectorAll("[data-add]").forEach(btn=>btn.addEventListener("click",()=>add(btn.dataset.add)));
