@@ -3384,57 +3384,53 @@ const ladderExpand = document.getElementById("ladder-expand");
 if (ladderExpand) {
   ladderExpand.addEventListener("click", () => {
     const card = document.querySelector(".home-ladder-card");
-    if (!card) return;
-    const tableWrap = card.querySelector(".table-wrap");
+    const tableWrap = card?.querySelector(".table-wrap");
+    if (!card || !tableWrap || tableWrap.dataset.animating === "true") return;
+
     const expanded = !card.classList.contains("ladder-expanded");
+    const startHeight = tableWrap.getBoundingClientRect().height;
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    tableWrap.dataset.animating = "true";
+    tableWrap.classList.add("is-height-animating");
 
-    if (!tableWrap) {
-      card.classList.toggle("ladder-expanded", expanded);
+    let targetHeight;
+    if (expanded) {
+      card.classList.add("ladder-expanded");
+      targetHeight = tableWrap.scrollHeight;
     } else {
-      const startHeight = tableWrap.getBoundingClientRect().height;
-      tableWrap.style.maxHeight = startHeight + "px";
-      tableWrap.classList.add("is-height-animating");
-      if (expanded) {
-        card.classList.add("ladder-expanded");
-      } else {
-        // Measure the compact layout without leaving it on screen.
-        card.classList.remove("ladder-expanded");
-        const targetHeight = tableWrap.scrollHeight;
-        card.classList.add("ladder-expanded");
-        requestAnimationFrame(() => {
-          tableWrap.style.maxHeight = startHeight + "px";
-          requestAnimationFrame(() => {
-            card.classList.remove("ladder-expanded");
-            tableWrap.style.maxHeight = targetHeight + "px";
-          });
-        });
-      }
+      card.classList.remove("ladder-expanded");
+      targetHeight = tableWrap.scrollHeight;
+      card.classList.add("ladder-expanded");
+    }
 
-      if (expanded) {
-        requestAnimationFrame(() => {
-          tableWrap.style.maxHeight = tableWrap.scrollHeight + "px";
-        });
-      }
+    tableWrap.style.height = startHeight + "px";
+    tableWrap.style.maxHeight = "none";
+    tableWrap.getBoundingClientRect();
 
-      const finishHeightAnimation = event => {
-        if (event.propertyName !== "max-height") return;
-        tableWrap.removeEventListener("transitionend", finishHeightAnimation);
-        tableWrap.classList.remove("is-height-animating");
-        tableWrap.style.maxHeight = "";
-        tableWrap.scrollLeft = 0;
-      };
-      tableWrap.addEventListener("transitionend", finishHeightAnimation);
+    const finish = () => {
+      if (!expanded) card.classList.remove("ladder-expanded");
+      tableWrap.style.height = "";
+      tableWrap.style.maxHeight = "";
+      tableWrap.classList.remove("is-height-animating");
+      delete tableWrap.dataset.animating;
+      tableWrap.scrollLeft = 0;
+    };
+
+    if (reduceMotion || Math.abs(targetHeight - startHeight) < 1) {
+      finish();
+    } else {
+      const animation = tableWrap.animate(
+        [{ height: startHeight + "px" }, { height: targetHeight + "px" }],
+        { duration: 360, easing: "cubic-bezier(.2,.7,.25,1)" }
+      );
+      animation.onfinish = finish;
+      animation.oncancel = finish;
     }
 
     ladderExpand.setAttribute("aria-expanded", String(expanded));
     ladderExpand.innerHTML = expanded
       ? 'Compact view <span aria-hidden="true">←</span>'
       : 'More stats <span aria-hidden="true">→</span>';
-
-    if (tableWrap) {
-      tableWrap.scrollLeft = 0;
-      requestAnimationFrame(() => { tableWrap.scrollLeft = 0; });
-    }
   });
 }
 
