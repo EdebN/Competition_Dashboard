@@ -640,7 +640,7 @@ function startElementResize(event,id,axis,handle){
   if(axis==="width"){
    const direction=handle.classList.contains("resize-handle-width")?1:-1;
    const steps=Math.round(((e.clientX-startX)*direction)/gridResizeStep());
-   next=Math.max(25,Math.min(100,Math.round(startValue/25)+steps)*25);
+   next=Math.max(25,Math.min(100,(Math.round(startValue/25)+steps)*25));
   }else{
    next=Math.max(8,Math.min(500,Math.round(startValue+(e.clientY-startY))));
   }
