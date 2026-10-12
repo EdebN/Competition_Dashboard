@@ -183,12 +183,21 @@
         <section class="socials-intro">
           <div class="section-title">FROM AROUND THE COMPETITION</div>
           <h1>Socials</h1>
-          <p>Team announcements, match reports and competition news will live here.</p>
+          <p>Announcements, match reports and news from across the competition.</p>
         </section>
-        <section class="card socials-placeholder">
-          <div class="section-title">NEWS FEED</div>
-          <h2>Coming into view</h2>
-          <p>The feed will be connected to the moderated team-post system in a later stage.</p>
+        <section class="social-feed-shell">
+          <div class="social-feed-top">
+            <div><span class="social-feed-kicker">THE NEWSROOM</span><h2>Latest stories</h2></div>
+            <span id="social-feed-count" class="social-feed-count">Loading posts…</span>
+          </div>
+          <div class="social-feed-filters" role="group" aria-label="Filter social posts">
+            <button type="button" class="social-filter is-active" data-social-filter="All posts">All posts</button>
+            <button type="button" class="social-filter" data-social-filter="Announcements">Announcements</button>
+            <button type="button" class="social-filter" data-social-filter="Match reports">Match reports</button>
+            <button type="button" class="social-filter" data-social-filter="Team news">Team news</button>
+          </div>
+          <div id="social-feed" class="social-feed" aria-live="polite"><div class="social-feed-empty">Loading the competition feed…</div></div>
+          <div class="social-feed-footer"><span>Posts are reviewed before publication.</span><a href="team-editor.html">Team managers: open Team Studio ↗</a></div>
         </section>
       </section>
 
