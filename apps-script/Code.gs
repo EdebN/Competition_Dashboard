@@ -52,7 +52,7 @@ function doGet(e) {
           properties.getProperty("SPREADSHEET_ID") &&
           properties.getProperty("ADMIN_TOKEN")
         ),
-        actions: ["health", "getTeamSettings", "getCompetitionSettings", "updateCompetitionSettings", "getTeamEditorPinStatus", "verifyTeamEditorPin", "updateTeamEditorPin", "getTeamPageDesign", "saveTeamPageDesign", "getPublishedTeamPage", "publishTeamPage", "revertTeamPage", "submitFeatureRequest", "getMatchPolls", "submitMatchVote", "getSocialPosts", "getModerationSession", "getModerationQueue"]
+        actions: ["health", "getTeamSettings", "getCompetitionSettings", "updateCompetitionSettings", "getTeamEditorPinStatus", "verifyTeamEditorPin", "updateTeamEditorPin", "getTeamPageDesign", "saveTeamPageDesign", "getPublishedTeamPage", "publishTeamPage", "revertTeamPage", "submitFeatureRequest", "getMatchPolls", "submitMatchVote", "getSocialPosts", "getTeamSocialStatus", "getModerationSession", "getModerationQueue"]
       };
     } else if (action === "getMatchPolls") {
       result = { ok: true, service: SERVICE_NAME, apiVersion: API_VERSION, action: action, polls: readMatchPolls_() };
@@ -111,12 +111,12 @@ function doGet(e) {
 }
 
 /**
- * The only write operation is updateTeamSettings.
- * It cannot write to fixtures, scores, or any other sheet.
+ * POST actions are explicitly allow-listed below. Social writes are isolated
+ * to the Social Posts, Social Audit and Social Posting Bans tabs; they never
+ * modify fixtures, scores, or official competition results.
  *
  * Send JSON as the POST body. For browser no-cors requests, use
- * Content-Type: text/plain;charset=UTF-8, then read the saved settings
- * through the public GET endpoint to verify persistence.
+ * Content-Type: text/plain;charset=UTF-8 and verify through a read endpoint.
  */
 function doPost(e) {
   let body;
