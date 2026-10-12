@@ -1,100 +1,3 @@
-function calculate() {
-
-  const elo =
-    calculateElo();
-
-
-  const ladder =
-    calculateLadder(
-      elo.finalRatings
-    );
-
-
-  renderLadder(
-    ladder
-  );
-
-
-  renderEloTable(
-    elo.rows
-  );
-
-
-  updateGameResults();
-  renderHomeSpotlight();
-
-
-  if (
-    currentPage !== "home" &&
-    currentPage !== "matches" &&
-    currentPage !== "finals" &&
-    currentPage !== "admin"
-  ) {
-
-    renderTeamPage(
-      getTeamNameFromPage(
-        currentPage
-      )
-    );
-
-  }
-
-}
-
-
-/* =========================================================
-   START
-========================================================= */
-
-renderAdminPage();
-loadScoresFromSheet();
-loadCommunitySettings();
-loadSharedCompetitionSettings();
-function renderHomeSpotlight() {
-  const latestContainer = document.getElementById("home-latest-results");
-  const upcomingContainer = document.getElementById("home-upcoming-matches");
-  if (!latestContainer || !upcomingContainer) return;
-
-  const regular = getActiveRegularGames();
-  const latest = regular.filter(game => isPlayed(game)).sort((a, b) => b.id - a.id).slice(0, 3);
-  const upcoming = regular.filter(game => !isPlayed(game)).sort((a, b) => a.id - b.id).slice(0, 3);
-
-  const renderMatch = (game, played) => {
-    const score = played ? scores[game.id] : null;
-    const winner = played
-      ? (Number(score.home) === Number(score.away) ? "Draw" : Number(score.home) > Number(score.away) ? game.home : game.away)
-      : null;
-    return `<button type="button" class="home-match-item" data-match-id="${Number(game.id)}">
-      <span class="home-match-number">GAME ${Number(game.id)}</span>
-      <span class="home-match-teams">
-        <span class="${winner === game.home ? "home-match-winner" : ""}">${escapeHTML(getTeamDisplayName(game.home || "TBD"))}</span>
-        <span class="home-match-versus">${played ? escapeHTML(String(score.home)) + " – " + escapeHTML(String(score.away)) : "VS"}</span>
-        <span class="${winner === game.away ? "home-match-winner" : ""}">${escapeHTML(getTeamDisplayName(game.away || "TBD"))}</span>
-      </span>
-      <span class="home-match-arrow" aria-hidden="true">↗</span>
-    </button>`;
-  };
-
-  latestContainer.innerHTML = latest.length
-    ? latest.map(game => renderMatch(game, true)).join("")
-    : '<div class="home-empty-state">No completed matches yet.</div>';
-  upcomingContainer.innerHTML = upcoming.length
-    ? upcoming.map(game => renderMatch(game, false)).join("")
-    : '<div class="home-empty-state">All regular-season matches have been played.</div>';
-
-  document.querySelectorAll(".home-match-item").forEach(button => {
-    button.addEventListener("click", () => {
-      const id = Number(button.dataset.matchId);
-      if (typeof openMatchDetail === "function") {
-        showPage("matches");
-        openMatchDetail(id);
-      } else {
-        jumpToGame(id);
-      }
-    });
-  });
-}
-
 const TEAMS = [
   "Team A",
   "Team B",
@@ -4662,3 +4565,100 @@ function showSheetStatus(
    MAIN CALCULATION
 ========================================================= */
 
+function renderHomeSpotlight() {
+  const latestContainer = document.getElementById("home-latest-results");
+  const upcomingContainer = document.getElementById("home-upcoming-matches");
+  if (!latestContainer || !upcomingContainer) return;
+
+  const regular = getActiveRegularGames();
+  const latest = regular.filter(game => isPlayed(game)).sort((a, b) => b.id - a.id).slice(0, 3);
+  const upcoming = regular.filter(game => !isPlayed(game)).sort((a, b) => a.id - b.id).slice(0, 3);
+
+  const renderMatch = (game, played) => {
+    const score = played ? scores[game.id] : null;
+    const winner = played
+      ? (Number(score.home) === Number(score.away) ? "Draw" : Number(score.home) > Number(score.away) ? game.home : game.away)
+      : null;
+    return `<button type="button" class="home-match-item" data-match-id="${Number(game.id)}">
+      <span class="home-match-number">GAME ${Number(game.id)}</span>
+      <span class="home-match-teams">
+        <span class="${winner === game.home ? "home-match-winner" : ""}">${escapeHTML(getTeamDisplayName(game.home || "TBD"))}</span>
+        <span class="home-match-versus">${played ? escapeHTML(String(score.home)) + " – " + escapeHTML(String(score.away)) : "VS"}</span>
+        <span class="${winner === game.away ? "home-match-winner" : ""}">${escapeHTML(getTeamDisplayName(game.away || "TBD"))}</span>
+      </span>
+      <span class="home-match-arrow" aria-hidden="true">↗</span>
+    </button>`;
+  };
+
+  latestContainer.innerHTML = latest.length
+    ? latest.map(game => renderMatch(game, true)).join("")
+    : '<div class="home-empty-state">No completed matches yet.</div>';
+  upcomingContainer.innerHTML = upcoming.length
+    ? upcoming.map(game => renderMatch(game, false)).join("")
+    : '<div class="home-empty-state">All regular-season matches have been played.</div>';
+
+  document.querySelectorAll(".home-match-item").forEach(button => {
+    button.addEventListener("click", () => {
+      const id = Number(button.dataset.matchId);
+      if (typeof openMatchDetail === "function") {
+        showPage("matches");
+        openMatchDetail(id);
+      } else {
+        jumpToGame(id);
+      }
+    });
+  });
+}
+
+function calculate() {
+
+  const elo =
+    calculateElo();
+
+
+  const ladder =
+    calculateLadder(
+      elo.finalRatings
+    );
+
+
+  renderLadder(
+    ladder
+  );
+
+
+  renderEloTable(
+    elo.rows
+  );
+
+
+  updateGameResults();
+  renderHomeSpotlight();
+
+
+  if (
+    currentPage !== "home" &&
+    currentPage !== "matches" &&
+    currentPage !== "finals" &&
+    currentPage !== "admin"
+  ) {
+
+    renderTeamPage(
+      getTeamNameFromPage(
+        currentPage
+      )
+    );
+
+  }
+
+}
+
+
+/* =========================================================
+   START
+========================================================= */
+
+renderAdminPage();
+loadScoresFromSheet();
+loadCommunitySettings();
+loadSharedCompetitionSettings();
