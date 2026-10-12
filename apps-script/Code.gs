@@ -764,7 +764,7 @@ function socialSheet_(name,headers){const id=PropertiesService.getScriptProperti
 function socialPostsSheet_(){return socialSheet_(SOCIAL_POSTS_TAB,SOCIAL_POST_HEADERS);}
 function socialAuditSheet_(){return socialSheet_(SOCIAL_AUDIT_TAB,["Timestamp","Action","Post ID","Team ID","Actor","Reason"]);}
 function socialBansSheet_(){return socialSheet_(SOCIAL_BANS_TAB,["Team ID","Banned","Reason","Updated At"]);}
-function socialPost_(r){return {postId:String(r[0]||""),submittedAt:r[1]?new Date(r[1]).toISOString():"",teamId:String(r[2]||""),title:String(r[3]||""),body:String(r[4]||""),imageUrl:String(r[5]||""),category:String(r[6]||"Team news"),reviewStatus:String(r[7]||"Unviewed"),publicationStatus:String(r[8]||"Pending"),publishedAt:r[9]?new Date(r[9]).toISOString():"",updatedAt:r[10]?new Date(r[10]).toISOString():"",moderationNote:String(r[11]||""),featured:String(r[12]).toLowerCase()==="true"};}
+function socialPost_(r){return {postId:String(r[0]||""),submittedAt:r[1]?new Date(r[1]).toISOString():"",teamId:String(r[2]||""),title:String(r[3]||""),body:String(r[4]||""),category:String(r[6]||"Team news"),reviewStatus:String(r[7]||"Unviewed"),publicationStatus:String(r[8]||"Pending"),publishedAt:r[9]?new Date(r[9]).toISOString():"",updatedAt:r[10]?new Date(r[10]).toISOString():"",moderationNote:String(r[11]||""),featured:String(r[12]).toLowerCase()==="true"};}
 function allSocialPosts_(){const sh=socialPostsSheet_(),n=sh.getLastRow();return n<2?[]:sh.getRange(2,1,n-1,SOCIAL_POST_HEADERS.length).getValues().map(socialPost_).filter(p=>p.postId);}
 function readPublicSocialPosts_(){return allSocialPosts_().filter(p=>p.publicationStatus==="Published").sort((a,b)=>Number(b.featured)-Number(a.featured)||String(b.publishedAt).localeCompare(String(a.publishedAt))).slice(0,100);}
 function readModerationPosts_(){return allSocialPosts_().sort((a,b)=>String(b.submittedAt).localeCompare(String(a.submittedAt)));}
@@ -780,12 +780,10 @@ function submitSocialPost_(b) {
   const title = String(b.title || "").trim();
   const body = String(b.body || "").trim();
   const category = String(b.category || "Team news");
-  const imageUrl = String(b.imageUrl || "").trim();
   if (!TEAM_IDS.includes(team) || getSessionTeam_(b.sessionToken) !== team) return jsonResponse_({ ok: false, error: "Team Studio session expired." });
   if (title.length < 3 || title.length > 120) return jsonResponse_({ ok: false, error: "Headline must be 3–120 characters." });
   if (body.length < 10 || body.length > 5000) return jsonResponse_({ ok: false, error: "Post text must be 10–5000 characters." });
   if (!["Announcements", "Match reports", "Team news"].includes(category)) return jsonResponse_({ ok: false, error: "Invalid category." });
-  if (imageUrl && (!imageUrl.toLowerCase().startsWith("https://") || imageUrl.length > 1000)) return jsonResponse_({ ok: false, error: "Image must be an HTTPS URL." });
   const bans = readSocialBans_();
   if (bans[team] && bans[team].banned) return jsonResponse_({ ok: false, error: "This team is blocked from submitting posts." });
   const lock = LockService.getScriptLock();
@@ -794,7 +792,7 @@ function submitSocialPost_(b) {
     const sh = socialPostsSheet_();
     if (sh.getLastRow() > 5000) return jsonResponse_({ ok: false, error: "Post archive is full." });
     const id = Utilities.getUuid(), now = new Date();
-    sh.appendRow([id, now, team, title, body, imageUrl, category, "Unviewed", "Pending", "", now, "", false]);
+    sh.appendRow([id, now, team, title, body, "", category, "Unviewed", "Pending", "", now, "", false]);
     logSocial_("Submitted", id, team, "Team " + team, "");
     return jsonResponse_({ ok: true, saved: true, postId: id });
   } catch (e) {
@@ -804,16 +802,15 @@ function submitSocialPost_(b) {
 }
 function submitOfficialSocialPost_(b){
   if(!getModerationSession_(b.sessionToken))return jsonResponse_({ok:false,error:"Admin session expired."});
-  const title=String(b.title||"").trim(),body=String(b.body||"").trim(),category=String(b.category||"Announcements"),image=String(b.imageUrl||"").trim();
+  const title=String(b.title||"").trim(),body=String(b.body||"").trim(),category=String(b.category||"Announcements");
   if(title.length<3||title.length>120)return jsonResponse_({ok:false,error:"Headline must be 3–120 characters."});
   if(body.length<10||body.length>5000)return jsonResponse_({ok:false,error:"Post text must be 10–5000 characters."});
   if(!["Announcements","Match reports","Team news"].includes(category))return jsonResponse_({ok:false,error:"Invalid category."});
-  if(image&&(!image.toLowerCase().startsWith("https://")||image.length>1000))return jsonResponse_({ok:false,error:"Image must be an HTTPS URL."});
   const lock=LockService.getScriptLock();if(!lock.tryLock(5000))return jsonResponse_({ok:false,error:"Service busy."});
   try{
     const sh=socialPostsSheet_();if(sh.getLastRow()>5000)return jsonResponse_({ok:false,error:"Post archive is full."});
     const id=Utilities.getUuid(),now=new Date();
-    sh.appendRow([id,now,"OFFICIAL",title,body,image,category,"Viewed","Published",now,now,"",false]);
+    sh.appendRow([id,now,"OFFICIAL",title,body,"",category,"Viewed","Published",now,now,"",false]);
     logSocial_("Official post published",id,"OFFICIAL","Competition Official","");
     return jsonResponse_({ok:true,saved:true,published:true,postId:id});
   }catch(e){console.error(e);return jsonResponse_({ok:false,error:"Could not publish official post."});}
