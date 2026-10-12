@@ -431,7 +431,7 @@ function renderToolbar(){
  html+='<div class="toolbar-panel-heading">Content</div>';
  if(b.type==="image"){
   html+='<div class="field"><label for="tb-alt">Image description</label><input id="tb-alt" type="text" value="'+esc(b.alt||"")+'" placeholder="Describe the image"></div>';
-  html+='<div class="field"><label for="tb-src">Image URL</label><input id="tb-src" type="url" value="'+esc(b.src||"")+'" placeholder="Paste an image URL"></div>';
+  html+='<div class="field"><label for="tb-src">Image URL</label><input id="tb-src" type="url" value="'+esc((b.src||"").startsWith("data:")?"":b.src||"")+'" placeholder="'+((b.src||"").startsWith("data:")?"Embedded upload · paste URL to replace":"Paste an image URL")+'"></div>';
   html+='<button type="button" class="toolbar-upload" id="tb-upload-more">Upload image…</button><div class="toolbar-inline-note">Uploaded images are embedded in the draft and exported design.</div>';
  }else if(b.type==="stat"){
   html+='<div class="field"><label for="tb-text">Card label</label><input id="tb-text" type="text" value="'+esc(b.text||"")+'"></div>';
@@ -449,7 +449,7 @@ function renderToolbar(){
  html+='</div><div class="toolbar-grid-two"><div class="field"><label for="tb-verticalAlign">Vertical alignment</label><select id="tb-verticalAlign">'+[['top','Top'],['middle','Middle'],['bottom','Bottom']].map(([v,l])=>'<option value="'+v+'" '+((b.verticalAlign||"top")===v?"selected":"")+'>'+l+'</option>').join("")+'</select></div>';
  if(["button","card","stat","quote","badge","divider"].includes(b.type)){
   html+='<div class="field"><label for="tb-padding">'+(b.type==="divider"?"Vertical spacing":"Inner spacing")+' (px)</label><input id="tb-padding" type="number" min="0" max="100" value="'+esc(b.padding||0)+'"></div>';
- }else html+='<div class="field"><label for="tb-padding">Spacing (px)</label><input id="tb-padding" type="number" min="0" max="100" value="'+esc(b.padding||0)+'"></div>';
+ }
  html+='</div>';
  if(["image","button","card","stat","quote","badge"].includes(b.type)){
   html+='<div class="field"><label for="tb-radius">Corner rounding (px)</label><input id="tb-radius" type="number" min="0" max="100" value="'+esc(b.radius||0)+'"></div>';
@@ -534,9 +534,11 @@ function positionToolbar(){
  const edge=7,gap=10;
  let left=targetRect.left+targetRect.width/2-toolbarRect.width/2;
  left=Math.max(stageRect.left+edge,Math.min(left,stageRect.right-toolbarRect.width-edge));
+ const stagebarBottom=stage.querySelector(".stagebar")?.getBoundingClientRect().bottom||stageRect.top;
+ const minTop=Math.max(66,stagebarBottom+4);
  let top=targetRect.top-toolbarRect.height-gap;
- if(top<Math.max(66,stageRect.top+4))top=Math.min(targetRect.bottom+gap,window.innerHeight-toolbarRect.height-8);
- top=Math.max(66,Math.min(top,window.innerHeight-toolbarRect.height-8));
+ if(top<minTop)top=Math.min(targetRect.bottom+gap,window.innerHeight-toolbarRect.height-8);
+ top=Math.max(minTop,Math.min(top,window.innerHeight-toolbarRect.height-8));
  floatingToolbar.style.left=Math.round(left)+"px";
  floatingToolbar.style.top=Math.round(top)+"px";
 }
