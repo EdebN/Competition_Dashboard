@@ -2846,6 +2846,7 @@ select {
   .home-latest-link:hover > span:last-child,
   .match-centre-row:hover .match-open-arrow {
     transform: none !important;
-    padding-left: initial;
   }
+  .nav-button:hover { padding-left: 13px; }
+  .hero-primary:hover, .hero-secondary:hover { transform: none !important; }
 }
