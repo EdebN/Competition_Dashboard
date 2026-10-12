@@ -88,6 +88,11 @@ function formMarkup(t,list){
  if(!list.length)return '<div class="match-muted">No completed matches recorded.</div>';
  return '<div class="match-form-list">'+list.map(g=>'<button class="match-form-chip '+(teamResult(g,t)==="W"?"form-win":teamResult(g,t)==="L"?"form-loss":"form-draw")+'" onclick="openMatchDetail('+Number(g.id)+')" type="button"><b>'+teamResult(g,t)+'</b><small>G'+Number(g.id)+'</small></button>').join("")+'</div>';
 }
+function withMatchViewTransition(update) {
+ const reduceMotion=window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+ if(document.startViewTransition&&!reduceMotion) document.startViewTransition(update);
+ else update();
+}
 function renderMatchCentre(){
  const page=document.getElementById("matches-page");if(!page)return;
  if(selectedMatchId!==null){renderMatchDetail(selectedMatchId);return}
@@ -98,9 +103,9 @@ function renderMatchCentre(){
   rows+='<button class="match-centre-row" type="button" onclick="openMatchDetail('+Number(g.id)+')"><span class="match-centre-number"><b>GAME '+num+'</b><small>'+escapeHTML(matchRound(g))+'</small></span><span class="match-centre-teams"><span class="'+(w===g.home?"match-team-winner":"")+'">'+escapeHTML(getTeamDisplayName(g.home||"TBD"))+'<b>'+(s?s.home:"–")+'</b></span><span class="'+(w===g.away?"match-team-winner":"")+'">'+escapeHTML(getTeamDisplayName(g.away||"TBD"))+'<b>'+(s?s.away:"–")+'</b></span>'+(g.referee?'<small>REFEREE · '+escapeHTML(getTeamDisplayName(g.referee))+'</small>':"")+'</span><span class="match-centre-summary"><b class="'+(s?"match-status-played":"match-status-upcoming")+'">'+(s?(w==="Draw"?"DRAW":"FINAL"):"UPCOMING")+'</b><small>'+(s&&e?"Elo "+e.preA.toFixed(0)+" → "+e.postA.toFixed(0):"Elo "+getMatchPrediction(g).home.toFixed(0)+"% win chance")+'</small></span><span class="match-open-arrow">›</span></button>';
  });
  page.innerHTML='<div class="match-page-heading"><div><div class="section-title">COMPETITION</div><h1 class="match-page-title">Match Centre</h1><p class="match-page-subtitle">Fixtures, results and rating changes for the competition.</p><button type="button" class="match-filter" onclick="showPage(\'finals\')">View finals →</button></div><div class="match-count"><strong>'+all.filter(isPlayed).length+'</strong><span>of '+all.length+' played</span></div></div><section class="card"><div class="match-toolbar"><div><div class="section-title">FIXTURES & RESULTS</div><h2>Regular season</h2></div><div class="match-filters"><button class="match-filter '+(matchCentreFilter==="all"?"active":"")+'" data-filter="all">All</button><button class="match-filter '+(matchCentreFilter==="played"?"active":"")+'" data-filter="played">Results</button><button class="match-filter '+(matchCentreFilter==="upcoming"?"active":"")+'" data-filter="upcoming">Upcoming</button></div></div><div class="match-centre-list">'+(rows||'<div class="empty">No matches match this filter.</div>')+'</div></section>';
- page.querySelectorAll("[data-filter]").forEach(b=>b.addEventListener("click",()=>{matchCentreFilter=b.dataset.filter;renderMatchCentre()}));
+ page.querySelectorAll("[data-filter]").forEach(b=>b.addEventListener("click",()=>{if(matchCentreFilter===b.dataset.filter)return;withMatchViewTransition(()=>{matchCentreFilter=b.dataset.filter;renderMatchCentre()})}));
 }
-function openMatchDetail(id){if(!games.some(g=>Number(g.id)===Number(id)))return;selectedMatchId=Number(id);showPage("matches");renderMatchDetail(id)}
+function openMatchDetail(id){if(!games.some(g=>Number(g.id)===Number(id)))return;if(typeof currentPage!=="undefined"&&currentPage!=="matches"){selectedMatchId=Number(id);showPage("matches");requestAnimationFrame(()=>withMatchViewTransition(()=>renderMatchDetail(id)));return;}withMatchViewTransition(()=>{selectedMatchId=Number(id);renderMatchDetail(id)})}
 function renderMatchDetail(id){
  const page=document.getElementById("matches-page"),g=games.find(x=>Number(x.id)===Number(id));if(!page||!g){selectedMatchId=null;renderMatchCentre();return}
  const s=matchScore(g),w=matchWinner(g),e=matchElo(g),home=getTeamDisplayName(g.home||"TBD"),away=getTeamDisplayName(g.away||"TBD");
@@ -114,6 +119,6 @@ function renderMatchDetail(id){
  '<div class="match-detail-grid">'+pollMarkup(g)+'<section class="card"><div class="section-title">RATING CHANGE</div><h2>Elo before & after</h2><div class="match-elo-table"><div class="match-elo-head"><span>TEAM</span><span>BEFORE</span><span>CHANGE</span><span>AFTER</span></div><div><span>'+escapeHTML(home)+'</span><b>'+(e?e.preA.toFixed(2):"—")+'</b><b class="'+(hc===null?"":hc>=0?"positive":"negative")+'">'+ch(hc)+'</b><b>'+(s&&e?e.postA.toFixed(2):"—")+'</b></div><div><span>'+escapeHTML(away)+'</span><b>'+(e?e.preB.toFixed(2):"—")+'</b><b class="'+(ac===null?"":ac>=0?"positive":"negative")+'">'+ch(ac)+'</b><b>'+(s&&e?e.postB.toFixed(2):"—")+'</b></div></div><p class="match-footnote">'+(s?"Uses the dashboard’s existing Elo calculation.":"Elo changes appear when both scores are recorded in Google Sheets.")+'</p></section>'+
  '<section class="card"><div class="section-title">HEAD-TO-HEAD</div><h2>Previous meetings</h2><div class="h2h-score"><b>'+hw+'</b><span>WINS</span><i>:</i><b>'+aw+'</b><span>WINS</span></div><div class="h2h-subline">'+d+' draw'+(d===1?"":"s")+' · '+meetings.length+' completed meeting'+(meetings.length===1?"":"s")+' this regular season</div><div class="h2h-history">'+(history||'<div class="match-muted">No previous completed meetings.</div>')+'</div></section>'+
  '<section class="card"><div class="section-title">RECENT FORM</div><h2>'+escapeHTML(home)+'</h2>'+formMarkup(g.home,recentH)+'</section><section class="card"><div class="section-title">RECENT FORM</div><h2>'+escapeHTML(away)+'</h2>'+formMarkup(g.away,recentA)+'</section></div>';
- document.getElementById("matchBack").addEventListener("click",()=>{selectedMatchId=null;renderMatchCentre()});
+ document.getElementById("matchBack").addEventListener("click",()=>withMatchViewTransition(()=>{selectedMatchId=null;renderMatchCentre()}));
 }
 document.addEventListener("DOMContentLoaded",()=>{renderMatchCentre();loadMatchPolls();});
