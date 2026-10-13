@@ -2005,9 +2005,15 @@ function renderFinalsPage() {
         scores[game.id].away
       );
 
-    if (
-      homeScore === awayScore
-    ) {
+    if (homeScore === awayScore) {
+      const homeElo = Number(elo.finalRatings[game.home]);
+      const awayElo = Number(elo.finalRatings[game.away]);
+
+      if (Number.isFinite(homeElo) && Number.isFinite(awayElo)) {
+        // A tied finals score is decided by end-of-regular-season Elo.
+        // If ratings are exactly equal, use the home team as a stable fallback.
+        return homeElo >= awayElo ? game.home : game.away;
+      }
       return null;
     }
 
@@ -2037,9 +2043,13 @@ function renderFinalsPage() {
         scores[game.id].away
       );
 
-    if (
-      homeScore === awayScore
-    ) {
+    if (homeScore === awayScore) {
+      const homeElo = Number(elo.finalRatings[game.home]);
+      const awayElo = Number(elo.finalRatings[game.away]);
+
+      if (Number.isFinite(homeElo) && Number.isFinite(awayElo)) {
+        return homeElo >= awayElo ? game.away : game.home;
+      }
       return null;
     }
 
