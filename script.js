@@ -1722,48 +1722,26 @@ function updateGameResults() {
    GAME JUMP
 ========================================================= */
 
-function jumpToGame(
-  gameId
-) {
+function jumpToGame(gameId) {
+  const id = Number(gameId);
+  if (!Number.isFinite(id)) return;
 
+  // Use the same match-detail route as the clickable match cards.
+  if (typeof openMatchDetail === "function") {
+    showPage("matches");
+    setTimeout(() => openMatchDetail(id), 80);
+    return;
+  }
+
+  // Graceful fallback for builds where match details are unavailable.
   showPage("home");
-
-
   setTimeout(() => {
-
-    const row =
-      document.querySelector(
-        `.game[data-game-id="${gameId}"]`
-      );
-
-    if (!row)
-      return;
-
-
-    row.scrollIntoView({
-
-      behavior: "smooth",
-
-      block: "center"
-
-    });
-
-
-    row.classList.add(
-      "game-highlight"
-    );
-
-
-    setTimeout(() => {
-
-      row.classList.remove(
-        "game-highlight"
-      );
-
-    }, 1800);
-
+    const row = document.querySelector(`.game[data-game-id="${id}"]`);
+    if (!row) return;
+    row.scrollIntoView({ behavior: "smooth", block: "center" });
+    row.classList.add("game-highlight");
+    setTimeout(() => row.classList.remove("game-highlight"), 1800);
   }, 80);
-
 }
 
 
@@ -3614,61 +3592,117 @@ function getTeamEloHistory(
 }
 
 
-function buildTeamEloGraph(teamName, history) {
-  const rows = Array.isArray(history) ? history : [];
-  const points = [];
-  if (rows.length) {
-    points.push({ game: Math.max(0, Number(rows[0].game) - 1), rating: Number(rows[0].pre), label: "Starting rating" });
-    rows.forEach(row => points.push({
-      game: Number(row.game), rating: Number(row.post), opponent: String(row.opponent || ""),
-      score: String(row.teamScore) + "–" + String(row.opponentScore), change: Number(row.change),
-      label: "Game " + row.game
-    }));
-  }
-  const valid = points.filter(point => Number.isFinite(point.rating));
-  const last = valid[valid.length - 1], first = valid[0];
+function buildTeamEloGraph(teamName, historyOrTeams) {
+  const elo = calculateElo();
+  const isTeamList = Array.isArray(historyOrTeams) && (!historyOrTeams.length || typeof historyOrTeams[0] === "string");
+  const selectedTeams = isTeamList
+    ? historyOrTeams.filter(name => TEAMS.includes(name))
+    : [teamName];
+  const histories = {};
+  TEAMS.forEach(name => {
+    histories[name] = (!isTeamList && name === teamName && Array.isArray(historyOrTeams))
+      ? historyOrTeams
+      : getTeamEloHistory(name, elo.rows);
+  });
+  const colors = ["#c5a15d", "#a5adb8", "#8295a8", "#b49acb", "#8ea99a"];
+  const series = selectedTeams.map(name => ({
+    name,
+    color: colors[TEAMS.indexOf(name) % colors.length],
+    rows: histories[name] || [],
+    points: (() => {
+      const rows = histories[name] || [];
+      if (!rows.length) return [];
+      return [
+        { game: Math.max(0, Number(rows[0].game) - 1), rating: Number(rows[0].pre), label: "Starting rating", change: null, clickGame: null },
+        ...rows.map(row => ({
+          game: Number(row.game), rating: Number(row.post), opponent: String(row.opponent || ""),
+          score: String(row.teamScore) + "–" + String(row.opponentScore), change: Number(row.change),
+          label: "Game " + row.game, clickGame: Number(row.game)
+        }))
+      ].filter(point => Number.isFinite(point.game) && Number.isFinite(point.rating));
+    })()
+  }));
+  const primaryRows = histories[teamName] || [];
+  const primaryPoints = series.find(item => item.name === teamName)?.points || [];
+  const first = primaryPoints[0], last = primaryPoints[primaryPoints.length - 1];
   const net = first && last ? last.rating - first.rating : 0;
   const netClass = net > 0.000001 ? "is-up" : net < -0.000001 ? "is-down" : "is-flat";
   const netLabel = (net > 0 ? "+" : "") + net.toFixed(1);
-  let chart = '<div class="elo-graph-empty">Complete a match to start building this team’s rating timeline.</div>';
-  if (valid.length >= 2) {
-    const W = 900, H = 300, left = 58, right = 24, top = 24, bottom = 42;
+  const plotted = series.flatMap(item => item.points);
+  let chart = '<div class="elo-graph-empty">' +
+    (selectedTeams.length ? "Complete matches to build the selected teams’ rating timelines." : "Select one or more teams to compare their rating histories.") +
+    '</div>';
+
+  if (plotted.length >= 2) {
+    const W = 900, H = 310, left = 60, right = 24, top = 24, bottom = 42;
     const plotW = W - left - right, plotH = H - top - bottom;
-    let min = Math.min(...valid.map(point => point.rating));
-    let max = Math.max(...valid.map(point => point.rating));
-    const spread = max - min, pad = Math.max(30, spread * 0.22);
+    let min = Math.min(...plotted.map(point => point.rating));
+    let max = Math.max(...plotted.map(point => point.rating));
+    const pad = Math.max(35, (max - min) * 0.16);
     min = Math.floor((min - pad) / 25) * 25;
     max = Math.ceil((max + pad) / 25) * 25;
     if (max - min < 100) { const mid = (max + min) / 2; min = Math.floor((mid - 50) / 25) * 25; max = min + 100; }
-    const minGame = valid[0].game, maxGame = valid[valid.length - 1].game;
+    const minGame = Math.min(...plotted.map(point => point.game));
+    const maxGame = Math.max(...plotted.map(point => point.game));
     const x = game => left + (maxGame === minGame ? plotW / 2 : ((game - minGame) / (maxGame - minGame)) * plotW);
     const y = rating => top + ((max - rating) / (max - min)) * plotH;
-    const coords = valid.map(point => ({ ...point, x: x(point.game), y: y(point.rating) }));
-    const linePath = coords.map((point, index) => (index ? "L" : "M") + point.x.toFixed(2) + "," + point.y.toFixed(2)).join(" ");
-    const areaPath = linePath + " L" + coords[coords.length - 1].x.toFixed(2) + "," + (top + plotH) + " L" + coords[0].x.toFixed(2) + "," + (top + plotH) + " Z";
     const grid = [0, 1, 2, 3, 4].map(i => {
       const value = max - ((max - min) * i / 4), yy = y(value);
       return '<line class="elo-graph-grid" x1="' + left + '" y1="' + yy.toFixed(2) + '" x2="' + (W - right) + '" y2="' + yy.toFixed(2) + '"/><text class="elo-graph-label" x="' + (left - 10) + '" y="' + (yy + 4).toFixed(2) + '" text-anchor="end">' + Math.round(value) + '</text>';
     }).join("");
-    const xLabels = [...new Set([0, Math.floor((coords.length - 1) / 2), coords.length - 1])].map(index => {
-      const point = coords[index];
-      return '<text class="elo-graph-label" x="' + point.x.toFixed(2) + '" y="' + (H - 14) + '" text-anchor="middle">' + (point.label === "Starting rating" ? "Start" : "Game " + point.game) + '</text>';
+    const xLabels = [...new Set([minGame, Math.round((minGame + maxGame) / 2), maxGame])].map(game =>
+      '<text class="elo-graph-label" x="' + x(game).toFixed(2) + '" y="' + (H - 14) + '" text-anchor="middle">Game ' + game + '</text>'
+    ).join("");
+    const lines = series.map((item, si) => {
+      const coords = item.points.map(point => ({ ...point, x: x(point.game), y: y(point.rating) }));
+      if (coords.length < 2) return "";
+      const path = coords.map((point, index) => (index ? "L" : "M") + point.x.toFixed(2) + "," + point.y.toFixed(2)).join(" ");
+      const line = '<path class="elo-series-line ' + (item.name === teamName ? "elo-series-primary" : "") + '" d="' + path + '" stroke="' + item.color + '"/>';
+      const dots = coords.map((point, index) => {
+        const hasChange = Number.isFinite(point.change);
+        const dotColor = !hasChange ? item.color : point.change > 0.000001 ? "#4caf7d" : point.change < -0.000001 ? "#d96666" : "#929aa5";
+        const changeText = hasChange ? "Rating change: " + (point.change > 0 ? "+" : "") + point.change.toFixed(2) : "Starting rating";
+        const title = item.name + " · " + point.label + "\nRating: " + point.rating.toFixed(2) + "\n" + changeText +
+          (point.opponent ? "\nvs " + getTeamDisplayName(point.opponent) + " · " + point.score : "") +
+          (point.clickGame ? "\nClick to open match" : "");
+        return '<circle class="elo-graph-point ' + (point.clickGame ? "is-match-point" : "is-start-point") + '" cx="' + point.x.toFixed(2) + '" cy="' + point.y.toFixed(2) + '" r="' + (index === coords.length - 1 ? 4.8 : 3.8) + '" fill="' + dotColor + '"' +
+          (point.clickGame ? ' tabindex="0" role="button" aria-label="' + escapeHTML(title.replace(/\n/g, ". ")) + '" onclick="jumpToGame(' + point.clickGame + ')" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();jumpToGame(' + point.clickGame + ')}"' : "") +
+          '><title>' + escapeHTML(title) + '</title></circle>';
+      }).join("");
+      return line + dots;
     }).join("");
-    const suffix = String(teamName).slice(-1).toLowerCase();
-    const gradientId = "elo-area-" + suffix, glowId = "elo-glow-" + suffix;
-    const dots = coords.map((point, index) => {
-      const title = point.label + ": " + point.rating.toFixed(1) +
-        (point.opponent ? "\nvs " + getTeamDisplayName(point.opponent) + " · " + point.score : "") +
-        (Number.isFinite(point.change) ? "\nChange: " + (point.change > 0 ? "+" : "") + point.change.toFixed(1) : "");
-      return '<circle class="elo-graph-point" cx="' + point.x.toFixed(2) + '" cy="' + point.y.toFixed(2) + '" r="' + (index === coords.length - 1 ? 5 : 3.5) + '" fill="' + (point.change < 0 ? "#fb7185" : "#91a0af") + '"><title>' + escapeHTML(title) + '</title></circle>';
-    }).join("");
-    chart = '<svg class="elo-graph" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Rating history for ' + escapeHTML(getTeamDisplayName(teamName)) + '">' +
-      '<defs><linearGradient id="' + gradientId + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#91a0af" stop-opacity=".10"/><stop offset="100%" stop-color="#91a0af" stop-opacity="0"/></linearGradient><filter id="' + glowId + '" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>' +
-      grid + '<line class="elo-graph-axis" x1="' + left + '" y1="' + (top + plotH) + '" x2="' + (W - right) + '" y2="' + (top + plotH) + '"/>' +
-      '<path d="' + areaPath + '" fill="url(#' + gradientId + ')"/><path d="' + linePath + '" fill="none" stroke="#91a0af" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" filter="url(#' + glowId + ')"/>' + dots + xLabels + '</svg>';
+    chart = '<svg class="elo-graph" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Rating history comparison">' +
+      '<defs><linearGradient id="elo-gold-area" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#c5a15d" stop-opacity=".16"/><stop offset="100%" stop-color="#c5a15d" stop-opacity="0"/></linearGradient></defs>' +
+      grid + '<line class="elo-graph-axis" x1="' + left + '" y1="' + (top + plotH) + '" x2="' + (W - right) + '" y2="' + (top + plotH) + '"/>' + lines + xLabels + '</svg>';
   }
-  return '<section class="card elo-trend-card"><div class="elo-trend-heading"><div><div class="section-title">PERFORMANCE OVER TIME</div><h2>Rating trajectory</h2><p class="elo-trend-subtitle">Your rating after each completed match.</p></div><div class="elo-trend-summary"><span class="elo-trend-current">' + (last ? last.rating.toFixed(1) : "—") + '<small>CURRENT</small></span><span class="elo-trend-net ' + netClass + '">' + (last ? netLabel : "—") + '<small>NET CHANGE</small></span></div></div><div class="elo-graph-wrap">' + chart + '</div><div class="elo-graph-legend"><span class="elo-graph-legend-item active"><i class="elo-graph-legend-dot" style="background:#91a0af"></i>Rating after each match</span><span class="elo-graph-legend-item">' + rows.length + ' completed ' + (rows.length === 1 ? "match" : "matches") + '</span><span class="elo-graph-legend-item">Hover points for match details</span></div></section>';
+
+  const checkboxes = TEAMS.map(name =>
+    '<label class="elo-team-option"><input type="checkbox" value="' + escapeHTML(name) + '"' + (selectedTeams.includes(name) ? " checked" : "") +
+    ' onchange="updateTeamEloGraph(this, \'TEAM\', \' ' + escapeHTML(teamName) + '\')"><span class="elo-team-swatch" style="--team-series-color:' + colors[TEAMS.indexOf(name) % colors.length] + '"></span>' +
+    escapeHTML(getTeamDisplayName(name)) + '</label>'
+  ).join("");
+  const allChecked = selectedTeams.length === TEAMS.length;
+  return '<section class="card elo-trend-card" data-primary-team="' + escapeHTML(teamName) + '">' +
+    '<div class="elo-trend-heading"><div><div class="section-title">PERFORMANCE OVER TIME</div><h2>Rating trajectory</h2><p class="elo-trend-subtitle">Compare rating changes after completed matches. Select any teams or all teams.</p></div>' +
+    '<div class="elo-trend-summary"><span class="elo-trend-current">' + (last ? last.rating.toFixed(1) : "—") + '<small>CURRENT RATING</small></span><span class="elo-trend-net ' + netClass + '">' + (last ? netLabel : "—") + '<small>NET CHANGE</small></span></div></div>' +
+    '<div class="elo-team-picker"><label class="elo-team-option elo-team-all"><input type="checkbox" value="ALL"' + (allChecked ? " checked" : "") +
+    ' onchange="updateTeamEloGraph(this, \'ALL\', \' ' + escapeHTML(teamName) + '\')"><strong>All teams</strong></label><div class="elo-team-options">' + checkboxes + '</div></div>' +
+    '<div class="elo-graph-wrap">' + chart + '</div><div class="elo-graph-legend"><span class="elo-graph-legend-item"><i class="elo-graph-legend-dot" style="background:#c5a15d"></i>Rating trajectory</span><span class="elo-graph-legend-item"><i class="elo-graph-legend-dot" style="background:#4caf7d"></i>Rating gain</span><span class="elo-graph-legend-item"><i class="elo-graph-legend-dot" style="background:#d96666"></i>Rating loss</span><span class="elo-graph-legend-item">' + primaryRows.length + ' matches for ' + escapeHTML(getTeamDisplayName(teamName)) + '</span></div></section>';
 }
+
+function updateTeamEloGraph(control, mode, primaryTeam) {
+  const card = control && control.closest(".elo-trend-card");
+  if (!card) return;
+  const primary = String(primaryTeam || card.dataset.primaryTeam || "").trim();
+  let selected;
+  if (mode === "ALL") {
+    selected = control.checked ? TEAMS.slice() : [];
+  } else {
+    selected = Array.from(card.querySelectorAll(".elo-team-options input[type=checkbox]:checked")).map(input => input.value);
+  }
+  card.outerHTML = buildTeamEloGraph(primary, selected);
+}
+
 
 function getTeamPageId(
   teamName
