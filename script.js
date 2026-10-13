@@ -3745,9 +3745,18 @@ function updateTeamEloGraph(control, mode, primaryTeam) {
   if (mode === "ALL") {
     selected = control.checked ? TEAMS.slice() : [];
   } else {
-    selected = Array.from(card.querySelectorAll(".elo-team-options input[type=checkbox]:checked")).map(input => input.value);
+    selected = Array.from(card.querySelectorAll(".elo-team-options input[type="checkbox"]:checked")).map(input => input.value);
   }
-  card.outerHTML = buildTeamEloGraph(primary, selected, true);
+
+  // Rebuild the selected series, then animate only this graph's lines from
+  // their first point to their last. This is deliberately tied to checkbox
+  // changes rather than scroll visibility or a page-wide mutation observer.
+  const wrapper = document.createElement("div");
+  wrapper.innerHTML = buildTeamEloGraph(primary, selected, true);
+  const replacement = wrapper.firstElementChild;
+  if (!replacement) return;
+  card.replaceWith(replacement);
+  requestAnimationFrame(() => animateEloGraphLines(replacement));
 }
 
 
@@ -5124,53 +5133,44 @@ function renderSocialModerationContent() {
   }));
 }
 
-// Draw graph paths only when their SVG enters view. Web Animations API uses the
-// measured path length, avoiding inconsistent pathLength/stroke-dash CSS behaviour.
-(function installEloGraphDrawing() {
-  if (typeof document === "undefined" || !document.documentElement) return;
-  const reduceMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const draw = path => {
-    if (!path || path.dataset.drawObserved === "1") return;
-    path.dataset.drawObserved = "1";
-    const start = () => {
-      if (!path.isConnected || path.dataset.drawn === "1") return;
-      path.dataset.drawn = "1";
-      let length = 0;
-      try { length = path.getTotalLength(); } catch (_) {}
-      if (!Number.isFinite(length) || length <= 0 || reduceMotion() || typeof path.animate !== "function") {
-        path.style.strokeDasharray = "none";
-        path.style.strokeDashoffset = "0";
-        return;
-      }
-      path.style.strokeDasharray = String(length);
-      path.style.strokeDashoffset = String(length);
-      path.animate(
-        [{ strokeDashoffset: length }, { strokeDashoffset: 0 }],
-        { duration: 950, delay: Number.parseFloat(path.style.animationDelay) || 0, easing: "cubic-bezier(.22,.7,.25,1)", fill: "forwards" }
-      ).onfinish = () => { path.style.strokeDashoffset = "0"; path.style.strokeDasharray = "none"; };
-    };
-    if (typeof IntersectionObserver === "function") {
-      const observer = new IntersectionObserver(entries => {
-        if (entries.some(entry => entry.isIntersecting)) {
-          observer.disconnect();
-          start();
-        }
-      }, { threshold: 0.12 });
-      observer.observe(path);
-    } else {
-      requestAnimationFrame(start);
+// Animate rating-series paths on demand. Calling this after a checkbox change
+// resets each path so it visibly grows from the first match to the last.
+function animateEloGraphLines(root) {
+  if (!root) return;
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  root.querySelectorAll(".elo-series-line").forEach((path, index) => {
+    let length = 0;
+    try { length = path.getTotalLength(); } catch (_) {}
+    if (!Number.isFinite(length) || length <= 0) return;
+
+    // Cancel any previous run and establish a fully hidden stroke before
+    // starting the new draw animation. Inline styles beat the static CSS.
+    if (path._eloDrawAnimation) path._eloDrawAnimation.cancel();
+    path.style.animation = "none";
+    path.style.strokeDasharray = String(length);
+    path.style.strokeDashoffset = String(length);
+
+    if (reduceMotion || typeof path.animate !== "function") {
+      path.style.strokeDasharray = "none";
+      path.style.strokeDashoffset = "0";
+      return;
     }
-  };
-  const scan = node => {
-    if (!node || node.nodeType !== 1) return;
-    if (node.matches && node.matches(".elo-series-line")) draw(node);
-    if (node.querySelectorAll) node.querySelectorAll(".elo-series-line").forEach(draw);
-  };
-  const start = () => {
-    scan(document.documentElement);
-    new MutationObserver(records => records.forEach(record => record.addedNodes.forEach(scan)))
-      .observe(document.documentElement, { childList: true, subtree: true });
-  };
-  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start, { once: true });
-  else start();
-})();
+
+    // Force the initial dash state to be painted before animating it.
+    void path.getBoundingClientRect();
+    path._eloDrawAnimation = path.animate(
+      [{ strokeDashoffset: length }, { strokeDashoffset: 0 }],
+      {
+        duration: 1100,
+        delay: index * 120,
+        easing: "cubic-bezier(.22,.7,.25,1)",
+        fill: "forwards"
+      }
+    );
+    path._eloDrawAnimation.onfinish = () => {
+      path.style.strokeDashoffset = "0";
+      path.style.strokeDasharray = "none";
+      path._eloDrawAnimation = null;
+    };
+  });
+}
