@@ -94,6 +94,22 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
 .block .divider{height:2px;background:#37516b;width:100%}
 .block .stat{padding:18px;border-radius:12px;background:#12243a;border:1px solid #304a66;color:var(--text)}
 .block .stat strong{display:block;font-size:28px;color:var(--accent-bright)}
+.studio-infographic-title{margin:0 0 12px;color:var(--accent-bright);font-size:13px;font-weight:850;letter-spacing:.03em}
+.studio-rating-graph-preview{min-width:0;overflow:hidden;border:1px solid #1e2731;border-radius:10px;background:#0b0e13}
+.studio-rating-graph-preview .elo-trend-heading,.studio-rating-graph-preview .elo-team-picker{display:none}
+.studio-rating-graph-preview .elo-graph-wrap{padding:8px;border:0}
+.studio-rating-graph-preview .elo-graph{width:100%;height:auto;display:block}
+.studio-rating-graph-preview .elo-graph-label{fill:#8b98a8;font-size:10px}
+.studio-rating-graph-preview .elo-graph-grid{stroke:#26303b}
+.studio-rating-graph-preview .elo-graph-empty{min-height:140px}
+.studio-recent-form-preview{display:grid;gap:7px}
+.studio-form-row{display:grid;grid-template-columns:28px auto minmax(0,1fr) auto;align-items:center;gap:8px;padding:9px;border:1px solid #304a66;border-radius:9px;background:#0b1929;color:#b9c9dc;font-size:11px}
+.studio-form-row strong{color:var(--text);font-variant-numeric:tabular-nums}
+.studio-form-result{display:grid;place-items:center;width:25px;height:25px;border-radius:7px;font-weight:900}
+.studio-form-result.win{background:#174d3b;color:#7ee0b3}
+.studio-form-result.loss{background:#552936;color:#ff9aa8}
+.studio-form-result.draw{background:#41414a;color:#d4d7df}
+@media(max-width:520px){.studio-form-row{grid-template-columns:26px minmax(0,1fr) auto}.studio-form-row>span:nth-child(3){grid-column:2;grid-row:2}.studio-form-row strong{grid-column:3;grid-row:1}}
 .empty{text-align:center;padding:80px 20px;color:var(--muted);border:1px dashed #3c5875;border-radius:12px;grid-column:1/-1;background:#0d1c2d}
 .empty strong{display:block;font-size:20px;color:var(--text);margin-bottom:8px}
 .inspector-empty{padding:16px;border:1px dashed #314b66;border-radius:11px;background:#0b1929;color:var(--muted);font-size:12px;line-height:1.75}
@@ -256,7 +272,9 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
     <button class="tool" data-add="button" title="Add button"><span>▰</span><small>Button</small></button>
     <button class="tool" data-add="card" title="Add card"><span>▣</span><small>Card</small></button>
     <button class="tool" data-add="stat" title="Add competition statistic"><span>↗</span><small>Stat</small></button>
-    <button class="tool" data-add="divider" title="Add divider"><span>━</span><small>Line</small></button>
+    <button class="tool" data-add="ratingGraph" title="Add rating history graph"><span>⌁</span><small>Rating graph</small></button>
+    <button class="tool" data-add="recentForm" title="Add recent results infographic"><span>▥</span><small>Recent form</small></button>
+    <button class="tool" data-add="divider title="Add divider"><span>━</span><small>Line</small></button>
     <button class="tool" data-add="spacer" title="Add spacing"><span>↕</span><small>Space</small></button>
   </div>
   <div id="toolEmpty" class="tool-empty">No matching elements. Try a shorter search.</div>
@@ -309,6 +327,8 @@ const defaults={
  button:{text:"Explore more",fontSize:15,color:"#0b1726",bg:"#e0b95a",align:"center",padding:13,radius:9,width:100},
  card:{text:"Card title\nAdd a short description to this card. Use it for a team intro, announcement, or any other content.",fontSize:16,color:"#e8eff8",bg:"#12243a",align:"left",padding:22,radius:14,width:100},
  stat:{text:"Wins",metric:"wins",fontSize:16,color:"#e8eff8",bg:"#12243a",align:"left",padding:20,radius:12,width:100},
+ ratingGraph:{text:"Rating trajectory",fontSize:16,color:"#e8eff8",bg:"#0b0e13",align:"left",padding:12,radius:12,width:100},
+ recentForm:{text:"Recent form",fontSize:16,color:"#e8eff8",bg:"#12243a",align:"left",padding:16,radius:12,width:100},
  divider:{text:"",fontSize:16,color:"#d7dce5",bg:"transparent",align:"left",padding:8,radius:0,width:100},
  spacer:{text:"",fontSize:16,color:"#182033",bg:"transparent",align:"left",padding:8,radius:0,width:100,height:48},
  badge:{text:"NEW SEASON",fontSize:12,color:"#f4d57f",bg:"#26351f",align:"left",padding:8,radius:99,width:100},
@@ -350,6 +370,33 @@ function refreshStatPreviews(){
   if(note)note.textContent="LIVE · competition data";
  });
 }
+function refreshInfographicPreviews(){
+ const hostTeam="Team "+(validStudioTeam||"A");
+ if(statsFrame&&statsFrame.contentWindow){
+  try{
+   const win=statsFrame.contentWindow;
+   if(typeof win.buildTeamEloGraph==="function"&&typeof win.calculateElo==="function"&&typeof win.getTeamEloHistory==="function"){
+    const elo=win.calculateElo();
+    const history=win.getTeamEloHistory(hostTeam,elo.rows);
+    blocks.filter(b=>b.type==="ratingGraph").forEach(b=>{
+     const target=canvas.querySelector('[data-id="'+b.id+'"] .studio-rating-graph-preview');
+     if(target)target.innerHTML=win.buildTeamEloGraph(hostTeam,history).replace(/ onchange="[^"]*"/g,"").replace(/ onclick="[^"]*"/g,"").replace(/ onkeydown="[^"]*"/g,"");
+    });
+   }
+  }catch(error){/* Wait for dashboard data to load. */}
+ }
+ blocks.filter(b=>b.type==="recentForm").forEach(b=>{
+  const target=canvas.querySelector('[data-id="'+b.id+'"] .studio-recent-form-preview');
+  if(!target)return;
+  const form=Array.isArray(liveTeamStats&&liveTeamStats.form)?liveTeamStats.form.slice(0,5):[];
+  target.innerHTML=form.length?form.map(item=>{
+   const result=String(item.result||"D").toUpperCase();
+   const tone=result==="W"?"win":result==="L"?"loss":"draw";
+   const score=item.score||((item.scoreFor==null?"":item.scoreFor)+"–"+(item.scoreAgainst==null?"":item.scoreAgainst));
+   return '<div class="studio-form-row"><span class="studio-form-result '+tone+'">'+esc(result)+'</span><span>Game '+esc(item.game)+'</span><span>vs '+esc(item.opponent||"")+'</span><strong>'+esc(score)+'</strong></div>';
+  }).join(""):'<div class="elo-graph-empty">No completed matches yet.</div>';
+ });
+}
 function startStatsPreview(){
  if(statsFrame)return;
  statsFrame=document.createElement("iframe");
@@ -370,6 +417,7 @@ function startStatsPreview(){
      const teamName="Team "+(validStudioTeam||"A");
      liveTeamStats=ladder.find(team=>team.team===teamName)||null;
      refreshStatPreviews();
+     refreshInfographicPreviews();
      clearInterval(timer);
     }
    }catch(error){/* Wait for the same-origin dashboard data to finish loading. */}
@@ -503,6 +551,8 @@ function blockInner(b){
  if(b.type==="button")return "<div style='text-align:"+b.align+"'><span data-editable-part='text' contenteditable='false' spellcheck='false' style='display:inline-block;background:"+b.bg+";color:"+b.color+";font-size:"+b.fontSize+"px;padding:"+b.padding+"px 20px;border-radius:"+b.radius+"px;font-weight:750'>"+esc(b.text)+"</span></div>";
  if(b.type==="card")return "<div style='"+css(b)+";border:1px solid #304a66;white-space:pre-wrap'><div data-editable-part='card-title' contenteditable='false' spellcheck='false' style='font-size:"+Math.round(b.fontSize*1.35)+"px;font-weight:800;margin-bottom:8px'>"+esc(lines[0])+"</div><div data-editable-part='card-body' contenteditable='false' spellcheck='false' style='min-height:1em'>"+esc(lines.slice(1).join("\n"))+"</div></div>";
  if(b.type==="stat"){const metric=STAT_METRICS.find(m=>m.key===b.metric)||STAT_METRICS[0];return "<div class='stat' data-stat='"+esc(metric.key)+"' style='"+css(b)+"'><span data-editable-part='text' contenteditable='false' spellcheck='false'>"+esc(b.text||metric.label)+"</span><strong>—</strong><small style='display:block;margin-top:5px;font-size:10px;letter-spacing:.08em;text-transform:uppercase;opacity:.65'>Value fills on the team page</small></div>";}
+ if(b.type==="ratingGraph")return "<div class='studio-infographic' style='"+css(b)+"'><div class='studio-infographic-title' data-editable-part='text' contenteditable='false' spellcheck='false'>"+esc(b.text||"Rating trajectory")+"</div><div class='studio-rating-graph-preview'><div class='placeholder'>Loading live rating history…</div></div></div>";
+ if(b.type==="recentForm")return "<div class='studio-infographic' style='"+css(b)+"'><div class='studio-infographic-title' data-editable-part='text' contenteditable='false' spellcheck='false'>"+esc(b.text||"Recent form")+"</div><div class='studio-recent-form-preview'><div class='placeholder'>Loading recent results…</div></div></div>";
  if(b.type==="divider")return "<div class='divider' style='background:"+b.color+";margin:"+b.padding+"px 0'></div>";
  if(b.type==="spacer")return "<div style='height:"+Math.max(8,Number(b.height)||48)+"px'></div>";
  if(b.type==="badge")return "<div><span data-editable-part='text' contenteditable='false' spellcheck='false' class='badge' style='background:"+b.bg+";color:"+b.color+";font-size:"+b.fontSize+"px;padding:"+Math.max(3,b.padding/2)+"px "+b.padding+"px;border-radius:"+b.radius+"px'>"+esc(b.text)+"</span></div>";
@@ -527,7 +577,7 @@ function render(options={}){
  });
  $("blockCount").textContent="· "+blocks.length+" block"+(blocks.length===1?"":"s");
  renderSelectionHandles();
- if(!options.keepToolbar)renderToolbar();updateHistoryButtons();refreshStatPreviews();positionToolbar();
+ if(!options.keepToolbar)renderToolbar();updateHistoryButtons();refreshStatPreviews();refreshInfographicPreviews();positionToolbar();
 }
 canvas.addEventListener("click",()=>select(null));
 const viewport=document.querySelector(".viewport");
