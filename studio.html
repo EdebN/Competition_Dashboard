@@ -398,7 +398,7 @@ const studioOrbit=(()=>{
  function tick(t){if(!host.classList.contains("active")){raf=0;return}draw(t-start);raf=requestAnimationFrame(tick)}
  function show(message,title="Your design is in motion"){ $("studioOrbitTitle").textContent=title;$("studioOrbitMessage").textContent=message;host.classList.add("active");host.setAttribute("aria-hidden","false");resize();if(!raf){start=performance.now();raf=requestAnimationFrame(tick)}}
  function hide(){host.classList.remove("active");host.setAttribute("aria-hidden","true");if(raf)cancelAnimationFrame(raf);raf=0;pulses=[]}
- host.addEventListener("pointerdown",event=>{if(!host.classList.contains("active"))return;const color=["#6ebce7","#f4d57f","#9ad7f5","#d5baff","#79e0c0"][pulses.length%5];pulses.push({x:event.clientX,y:event.clientY,started:performance.now(),color});if(!raf){start=performance.now();raf=requestAnimationFrame(tick)}});
+ host.addEventListener("pointerdown",event=>{if(!host.classList.contains("active"))return;const color=["#6ebce7","#f4d57f","#9ad7f5","#d5baff","#79e0c0"][pulses.length%5];pulses.push({x:event.clientX,y:event.clientY,started:performance.now()-start,color});if(!raf){start=performance.now();raf=requestAnimationFrame(tick)}});
  addEventListener("resize",()=>{if(host.classList.contains("active"))resize()});
  return {show,hide};
 })();
