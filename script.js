@@ -3659,7 +3659,7 @@ function buildTeamEloGraph(teamName, historyOrTeams, selectionMode = false) {
       const coords = item.points.map(point => ({ ...point, x: x(point.game), y: y(point.rating) }));
       if (coords.length < 2) return "";
       const path = coords.map((point, index) => (index ? "L" : "M") + point.x.toFixed(2) + "," + point.y.toFixed(2)).join(" ");
-      const line = '<path class="elo-series-line ' + (item.name === teamName ? "elo-series-primary" : "") + '" pathLength="1" style="animation-delay:' + (si * 120) + 'ms" d="' + path + '" stroke="' + item.color + '"/>';
+      const line = '<path class="elo-series-line ' + (item.name === teamName ? "elo-series-primary" : "") + '" data-team="' + escapeHTML(item.name) + '" d="' + path + '" stroke="' + item.color + '"/>';
       const dots = coords.map((point, index) => {
         const hasChange = Number.isFinite(point.change);
         const dotColor = !hasChange ? item.color : point.change > 0.000001 ? "#4caf7d" : point.change < -0.000001 ? "#d96666" : "#929aa5";
@@ -3741,22 +3741,27 @@ function updateTeamEloGraph(control, mode, primaryTeam) {
   const card = control && control.closest(".elo-trend-card");
   if (!card) return;
   const primary = String(primaryTeam || card.dataset.primaryTeam || "").trim();
+  const previouslyDrawn = new Set(
+    Array.from(card.querySelectorAll(".elo-series-line[data-team]"))
+      .map(path => path.dataset.team)
+  );
   let selected;
   if (mode === "ALL") {
     selected = control.checked ? TEAMS.slice() : [];
   } else {
-    selected = Array.from(card.querySelectorAll(".elo-team-options input[type="checkbox"]:checked")).map(input => input.value);
+    selected = Array.from(card.querySelectorAll('.elo-team-options input[type="checkbox"]:checked'))
+      .map(input => input.value);
   }
 
-  // Rebuild the selected series, then animate only this graph's lines from
-  // their first point to their last. This is deliberately tied to checkbox
-  // changes rather than scroll visibility or a page-wide mutation observer.
+  // Rebuild the graph, but animate only series newly added by this checkbox
+  // change. Existing selected teams remain visually stable.
+  const newlySelected = new Set(selected.filter(name => !previouslyDrawn.has(name)));
   const wrapper = document.createElement("div");
   wrapper.innerHTML = buildTeamEloGraph(primary, selected, true);
   const replacement = wrapper.firstElementChild;
   if (!replacement) return;
   card.replaceWith(replacement);
-  requestAnimationFrame(() => animateEloGraphLines(replacement));
+  requestAnimationFrame(() => animateEloGraphLines(replacement, newlySelected));
 }
 
 
@@ -5135,16 +5140,18 @@ function renderSocialModerationContent() {
 
 // Animate rating-series paths on demand. Calling this after a checkbox change
 // resets each path so it visibly grows from the first match to the last.
-function animateEloGraphLines(root) {
+function animateEloGraphLines(root, teamsToAnimate = null) {
   if (!root) return;
   const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  root.querySelectorAll(".elo-series-line").forEach((path, index) => {
+  root.querySelectorAll(".elo-series-line").forEach(path => {
+    // A provided set means checkbox-driven updates: leave every pre-existing
+    // team line alone and animate only the newly selected team's path.
+    if (teamsToAnimate && !teamsToAnimate.has(path.dataset.team)) return;
+
     let length = 0;
     try { length = path.getTotalLength(); } catch (_) {}
     if (!Number.isFinite(length) || length <= 0) return;
 
-    // Cancel any previous run and establish a fully hidden stroke before
-    // starting the new draw animation. Inline styles beat the static CSS.
     if (path._eloDrawAnimation) path._eloDrawAnimation.cancel();
     path.style.animation = "none";
     path.style.strokeDasharray = String(length);
@@ -5156,14 +5163,14 @@ function animateEloGraphLines(root) {
       return;
     }
 
-    // Force the initial dash state to be painted before animating it.
+    // Start from the leftmost point and reveal the SVG path in its authored
+    // order, which follows the team's rating history from oldest to newest.
     void path.getBoundingClientRect();
     path._eloDrawAnimation = path.animate(
       [{ strokeDashoffset: length }, { strokeDashoffset: 0 }],
       {
-        duration: 1100,
-        delay: index * 120,
-        easing: "cubic-bezier(.22,.7,.25,1)",
+        duration: 1400,
+        easing: "cubic-bezier(.4,0,.2,1)",
         fill: "forwards"
       }
     );
