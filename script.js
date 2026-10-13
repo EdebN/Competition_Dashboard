@@ -3623,7 +3623,10 @@ function buildTeamEloGraph(teamName, historyOrTeams, selectionMode = false) {
     })()
   }));
   const primaryRows = histories[teamName] || [];
-  const primaryPoints = series.find(item => item.name === teamName)?.points || [];
+  const primaryPoints = primaryRows.length ? [
+    { game: Math.max(0, Number(primaryRows[0].game) - 1), rating: Number(primaryRows[0].pre) },
+    ...primaryRows.map(row => ({ game: Number(row.game), rating: Number(row.post) }))
+  ].filter(point => Number.isFinite(point.game) && Number.isFinite(point.rating)) : [];
   const first = primaryPoints[0], last = primaryPoints[primaryPoints.length - 1];
   const net = first && last ? last.rating - first.rating : 0;
   const netClass = net > 0.000001 ? "is-up" : net < -0.000001 ? "is-down" : "is-flat";
