@@ -3592,9 +3592,9 @@ function getTeamEloHistory(
 }
 
 
-function buildTeamEloGraph(teamName, historyOrTeams) {
+function buildTeamEloGraph(teamName, historyOrTeams, selectionMode = false) {
   const elo = calculateElo();
-  const isTeamList = Array.isArray(historyOrTeams) && (!historyOrTeams.length || typeof historyOrTeams[0] === "string");
+  const isTeamList = selectionMode || (Array.isArray(historyOrTeams) && historyOrTeams.length > 0 && typeof historyOrTeams[0] === "string");
   const selectedTeams = isTeamList
     ? historyOrTeams.filter(name => TEAMS.includes(name))
     : [teamName];
@@ -3700,7 +3700,7 @@ function updateTeamEloGraph(control, mode, primaryTeam) {
   } else {
     selected = Array.from(card.querySelectorAll(".elo-team-options input[type=checkbox]:checked")).map(input => input.value);
   }
-  card.outerHTML = buildTeamEloGraph(primary, selected);
+  card.outerHTML = buildTeamEloGraph(primary, selected, true);
 }
 
 
