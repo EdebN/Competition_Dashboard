@@ -3659,7 +3659,7 @@ function buildTeamEloGraph(teamName, historyOrTeams, selectionMode = false) {
       const coords = item.points.map(point => ({ ...point, x: x(point.game), y: y(point.rating) }));
       if (coords.length < 2) return "";
       const path = coords.map((point, index) => (index ? "L" : "M") + point.x.toFixed(2) + "," + point.y.toFixed(2)).join(" ");
-      const line = '<path class="elo-series-line ' + (item.name === teamName ? "elo-series-primary" : "") + '" d="' + path + '" stroke="' + item.color + '"/>';
+      const line = '<path class="elo-series-line ' + (item.name === teamName ? "elo-series-primary" : "") + '" pathLength="1" style="animation-delay:' + (si * 120) + 'ms" d="' + path + '" stroke="' + item.color + '"/>';
       const dots = coords.map((point, index) => {
         const hasChange = Number.isFinite(point.change);
         const dotColor = !hasChange ? item.color : point.change > 0.000001 ? "#4caf7d" : point.change < -0.000001 ? "#d96666" : "#929aa5";
@@ -3668,6 +3668,8 @@ function buildTeamEloGraph(teamName, historyOrTeams, selectionMode = false) {
           (point.opponent ? "\nvs " + getTeamDisplayName(point.opponent) + " · " + point.score : "") +
           (point.clickGame ? "\nClick to open match" : "");
         return '<circle class="elo-graph-point ' + (point.clickGame ? "is-match-point" : "is-start-point") + '" cx="' + point.x.toFixed(2) + '" cy="' + point.y.toFixed(2) + '" r="' + (index === coords.length - 1 ? 4.8 : 3.8) + '" fill="' + dotColor + '"' +
+          ' data-team="' + escapeHTML(getTeamDisplayName(item.name)) + '" data-label="' + escapeHTML(point.label) + '" data-rating="' + point.rating.toFixed(2) + '" data-change="' + (hasChange ? point.change.toFixed(2) : "") + '" data-opponent="' + escapeHTML(point.opponent ? getTeamDisplayName(point.opponent) : "") + '" data-score="' + escapeHTML(point.score || "") + '"' +
+          ' onmouseenter="showEloGraphTooltip(event,this)" onmousemove="moveEloGraphTooltip(event)" onmouseleave="hideEloGraphTooltip()"' +
           (point.clickGame ? ' tabindex="0" role="button" aria-label="' + escapeHTML(title.replace(/\n/g, ". ")) + '" onclick="jumpToGame(' + point.clickGame + ')" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();jumpToGame(' + point.clickGame + ')}"' : "") +
           '><title>' + escapeHTML(title) + '</title></circle>';
       }).join("");
@@ -3689,7 +3691,43 @@ function buildTeamEloGraph(teamName, historyOrTeams, selectionMode = false) {
     '<div class="elo-trend-summary"><span class="elo-trend-current">' + (last ? last.rating.toFixed(1) : "—") + '<small>CURRENT RATING</small></span><span class="elo-trend-net ' + netClass + '">' + (last ? netLabel : "—") + '<small>NET CHANGE</small></span></div></div>' +
     '<div class="elo-team-picker"><label class="elo-team-option elo-team-all"><input type="checkbox" value="ALL"' + (allChecked ? " checked" : "") +
     ' onchange="updateTeamEloGraph(this, \'ALL\', \' ' + escapeHTML(teamName) + '\')"><strong>All teams</strong></label><div class="elo-team-options">' + checkboxes + '</div></div>' +
-    '<div class="elo-graph-wrap">' + chart + '</div><div class="elo-graph-legend"><span class="elo-graph-legend-item"><i class="elo-graph-legend-dot" style="background:#c5a15d"></i>Rating trajectory</span><span class="elo-graph-legend-item"><i class="elo-graph-legend-dot" style="background:#4caf7d"></i>Rating gain</span><span class="elo-graph-legend-item"><i class="elo-graph-legend-dot" style="background:#d96666"></i>Rating loss</span><span class="elo-graph-legend-item">' + primaryRows.length + ' matches for ' + escapeHTML(getTeamDisplayName(teamName)) + '</span></div></section>';
+    '<div class="elo-graph-wrap">' + chart + '<div class="elo-graph-tooltip" role="status" aria-live="polite"></div></div><div class="elo-graph-legend"><span class="elo-graph-legend-item"><i class="elo-graph-legend-dot" style="background:#c5a15d"></i>Rating trajectory</span><span class="elo-graph-legend-item"><i class="elo-graph-legend-dot" style="background:#4caf7d"></i>Rating gain</span><span class="elo-graph-legend-item"><i class="elo-graph-legend-dot" style="background:#d96666"></i>Rating loss</span><span class="elo-graph-legend-item">' + primaryRows.length + ' matches for ' + escapeHTML(getTeamDisplayName(teamName)) + '</span></div></section>';
+}
+
+function showEloGraphTooltip(event, point) {
+  if (!point) return;
+  const wrap = point.closest(".elo-graph-wrap");
+  const tooltip = wrap && wrap.querySelector(".elo-graph-tooltip");
+  if (!tooltip) return;
+  const change = point.dataset.change;
+  const changeNumber = change === "" ? null : Number(change);
+  const changeClass = changeNumber === null ? "flat" : changeNumber > 0.000001 ? "up" : changeNumber < -0.000001 ? "down" : "flat";
+  const changeLabel = changeNumber === null ? "Starting rating" : (changeNumber > 0 ? "+" : "") + changeNumber.toFixed(2) + " rating";
+  tooltip.innerHTML =
+    '<span class="elo-tooltip-team">' + escapeHTML(point.dataset.team || "") + '</span>' +
+    '<span class="elo-tooltip-match">' + escapeHTML(point.dataset.label || "") +
+    (point.dataset.opponent ? ' · vs ' + escapeHTML(point.dataset.opponent) : '') +
+    (point.dataset.score ? ' · ' + escapeHTML(point.dataset.score) : '') + '</span>' +
+    '<span class="elo-tooltip-values"><span>Rating <strong>' + Number(point.dataset.rating).toFixed(2) + '</strong></span>' +
+    '<span class="elo-tooltip-change ' + changeClass + '">Change <strong>' + escapeHTML(changeLabel) + '</strong></span></span>' +
+    (point.classList.contains("is-match-point") ? '<span class="elo-tooltip-hint">Click to open match</span>' : '');
+  tooltip.classList.add("visible");
+  moveEloGraphTooltip(event);
+}
+function moveEloGraphTooltip(event) {
+  const tooltip = document.querySelector(".elo-graph-tooltip.visible");
+  if (!tooltip || !event) return;
+  const gap = 14, pad = 10;
+  const rect = tooltip.getBoundingClientRect();
+  let left = event.clientX + gap;
+  let top = event.clientY + gap;
+  if (left + rect.width > window.innerWidth - pad) left = event.clientX - rect.width - gap;
+  if (top + rect.height > window.innerHeight - pad) top = event.clientY - rect.height - gap;
+  tooltip.style.left = Math.max(pad, left) + "px";
+  tooltip.style.top = Math.max(pad, top) + "px";
+}
+function hideEloGraphTooltip() {
+  document.querySelectorAll(".elo-graph-tooltip.visible").forEach(tooltip => tooltip.classList.remove("visible"));
 }
 
 function updateTeamEloGraph(control, mode, primaryTeam) {
