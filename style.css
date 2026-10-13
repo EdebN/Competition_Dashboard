@@ -3830,3 +3830,39 @@ select {
     transform: none;
   }
 }
+
+
+/* Finals bracket fixture interaction */
+#finals-page .bracket-match.is-clickable {
+  cursor: pointer;
+}
+
+#finals-page .bracket-match.is-clickable:focus-visible {
+  outline: 2px solid #d8b45a;
+  outline-offset: 4px;
+}
+
+#finals-page .bracket-match.is-clickable::after {
+  content: "OPEN MATCH";
+  display: block;
+  padding: 0 14px 10px;
+  color: #a99562;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .12em;
+  opacity: 0;
+  transform: translateY(-3px);
+  transition: opacity .18s ease, transform .18s ease;
+}
+
+#finals-page .bracket-match.is-clickable:hover::after,
+#finals-page .bracket-match.is-clickable:focus-visible::after {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #finals-page .bracket-match.is-clickable::after {
+    transition: none;
+  }
+}
