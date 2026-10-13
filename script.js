@@ -3833,6 +3833,11 @@ function renderPublishedTeamPage(container, design, team) {
     "<style>.published-team-page{box-sizing:border-box;width:100%;min-height:100%;background:var(--published-page-bg);padding:var(--published-page-padding);border-radius:16px}.published-page-title{margin:0 0 22px;font-size:clamp(24px,4vw,40px);line-height:1.15;color:#182033}.published-page-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}.published-page-block{min-width:0;overflow-wrap:anywhere}.published-page-block img{max-width:100%}@media(max-width:720px){.published-page-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.published-page-block{grid-column:span 2!important}}@media(max-width:420px){.published-team-page{padding:16px}}</style>" +
     "<div class='published-team-page' style='--published-page-bg:" + pageBg + ";--published-page-padding:" + pagePadding + "px'>" +
     titleHTML + "<div class='published-page-grid'>" + blocksHTML + "</div></div>";
+  // Keep the rating timeline available even when a custom Team Studio design
+  // replaces the default profile layout.
+  const ratingData = calculateElo();
+  const ratingHistory = getTeamEloHistory(team.team, ratingData.rows);
+  container.insertAdjacentHTML("beforeend", buildTeamEloGraph(team.team, ratingHistory));
   renderTeamNewsSection(container, String(team.team || "").slice(-1).toUpperCase());
 }
 function renderTeamNewsSection(container, teamId) {
