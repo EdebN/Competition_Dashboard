@@ -1122,6 +1122,15 @@ tr:last-child td {
     font-size: 8px;
   }
 }
+
+/* Final overrides for the rating comparison graph */
+.elo-trend-card .elo-graph-wrap { background:#0b0e13; }
+.elo-trend-card .elo-graph-label { fill:#7f8a98; }
+.elo-trend-card .elo-graph-point { opacity:.95; stroke:#0b0e13; stroke-width:1.5; }
+.elo-trend-card .elo-graph-point.is-match-point { cursor:pointer; }
+.elo-trend-card .elo-graph-point.is-match-point:hover,
+.elo-trend-card .elo-graph-point.is-match-point:focus { opacity:1; stroke:#f2e8d3; stroke-width:2.5; outline:none; }
+
 /* =========================
    FINALS
 ========================= */
