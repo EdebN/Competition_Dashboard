@@ -77,28 +77,35 @@ footer{padding:18px;text-align:center;color:#6f859e;font-size:10px}
 @media(max-width:560px){.topbar{align-items:flex-start;flex-direction:column}.toplinks{width:100%;justify-content:flex-start}.toplinks .link-btn{flex:1}.row{grid-template-columns:1fr;gap:0}form{padding:16px}.card-head{padding:16px}.form-actions{align-items:stretch;flex-direction:column}.form-actions .button{width:100%}.form-note{max-width:none}.status{margin:0 16px 16px}.ban-panel{margin:16px}.post-top{flex-direction:column;gap:8px}}
 
 
-/* Interactive orbital companion shown only while a team post is being submitted */
-.publishing-orbit{--orbit-x:0;--orbit-y:0;display:grid;place-items:center;flex:0 0 88px;width:88px;height:58px;padding:0;border:1px solid rgba(110,188,231,.2);border-radius:12px;background:radial-gradient(ellipse at 50% 50%,rgba(110,188,231,.09),rgba(8,17,30,.2) 72%);cursor:pointer;overflow:hidden;transition:border-color .2s ease,background .2s ease}
-.publishing-orbit:hover,.publishing-orbit:focus-visible{border-color:rgba(110,188,231,.58);background:radial-gradient(ellipse at 50% 50%,rgba(110,188,231,.16),rgba(8,17,30,.28) 72%);outline:none}
-.publishing-orbit svg{display:block;width:100%;height:100%;overflow:visible;transform:translate(calc(var(--orbit-x)*3px),calc(var(--orbit-y)*3px));transition:transform .18s ease-out}
-.publishing-orbit .orbit-track{fill:none;stroke:rgba(110,188,231,.42);stroke-width:.8;stroke-dasharray:2 3;transform-origin:50px 35px}
-.publishing-orbit .orbit-track-a{animation:publish-orbit-spin 12s linear infinite}
-.publishing-orbit .orbit-track-b{stroke:rgba(224,185,90,.58);animation:publish-orbit-spin 9s linear infinite reverse}
-.publishing-orbit .orbit-track-c{stroke:rgba(110,188,231,.28);animation:publish-orbit-spin 16s linear infinite}
-.publishing-orbit .orbit-core{fill:#f4d57f;filter:drop-shadow(0 0 4px rgba(244,213,127,.8))}
-.publishing-orbit .orbit-particle{fill:#6ebce7;filter:drop-shadow(0 0 3px rgba(110,188,231,.7))}
-.publishing-orbit .particle-a{animation:publish-particle-a 5s ease-in-out infinite}
-.publishing-orbit .particle-b{fill:#f4d57f;animation:publish-particle-b 4.2s ease-in-out infinite}
-.publishing-orbit .particle-c{animation:publish-particle-c 5.8s ease-in-out infinite}
-.publishing-orbit .orbit-ripple{fill:none;stroke:rgba(244,213,127,.75);stroke-width:1;opacity:0;transform-origin:50px 35px}
-.publishing-orbit.is-pulsing .orbit-ripple{animation:publish-orbit-ripple .65s ease-out}
-@keyframes publish-orbit-spin{to{transform:rotate(360deg)}}
-@keyframes publish-particle-a{50%{transform:translate(4px,-3px)}}
-@keyframes publish-particle-b{50%{transform:translate(-4px,4px)}}
-@keyframes publish-particle-c{50%{transform:translate(3px,3px)}}
-@keyframes publish-orbit-ripple{0%{opacity:.9;transform:scale(.5)}100%{opacity:0;transform:scale(3.3)}}
-@media(max-width:600px){.publishing-orbit{align-self:center}}
-@media(prefers-reduced-motion:reduce){.publishing-orbit .orbit-track,.publishing-orbit .orbit-particle{animation:none!important}.publishing-orbit .orbit-ripple{animation:none!important}.publishing-orbit.is-pulsing .orbit-ripple{opacity:.55}}
+/* Orbit Lab: a persistent, interactive pause while team posts await review */
+.orbit-playground{position:relative;isolation:isolate;margin:0 21px 20px;overflow:hidden;border:1px solid #31506f;border-radius:15px;background:radial-gradient(ellipse at 50% 54%,#153657 0%,#0c1b2d 48%,#081421 100%);box-shadow:inset 0 1px 0 #ffffff08,0 14px 32px #0002}
+.orbit-playground:before{position:absolute;inset:0;z-index:-1;content:"";pointer-events:none;background:linear-gradient(115deg,transparent 15%,#6ebce708 48%,transparent 78%)}
+.orbit-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:16px 17px 0}
+.orbit-title-wrap{min-width:0}
+.orbit-eyebrow{display:flex;align-items:center;gap:7px;margin:0 0 5px;color:var(--gold2);font-size:9px;font-weight:950;letter-spacing:.17em;text-transform:uppercase}
+.orbit-live-dot{width:6px;height:6px;border-radius:50%;background:#7ed9b1;box-shadow:0 0 0 4px #7ed9b11b,0 0 12px #7ed9b1;animation:orbit-live 2s ease-in-out infinite}
+.orbit-heading h2{margin:0;color:#f0f5fc;font-size:16px;letter-spacing:-.035em}
+.orbit-heading p{max-width:420px;margin:5px 0 0;color:#9eb4cd;font-size:10px;line-height:1.65}
+.orbit-tag{flex:0 0 auto;padding:5px 7px;border:1px solid #45627d;border-radius:7px;background:#11263b;color:#b7cde3;font-size:8px;font-weight:900;letter-spacing:.1em}
+.orbit-stage{position:relative;height:230px;margin:3px 8px 0;overflow:hidden;touch-action:pan-y}
+.orbit-stage canvas{display:block;width:100%;height:100%;cursor:crosshair;outline:none}
+.orbit-stage canvas:focus-visible{outline:2px solid var(--gold2);outline-offset:-4px;border-radius:8px}
+.orbit-stage:after{position:absolute;inset:0;content:"";pointer-events:none;background:linear-gradient(90deg,#0b192700,#0b192700 78%,#0b192733),linear-gradient(0deg,#0a1728 0%,transparent 19%,transparent 82%,#0a172866)}
+.orbit-instruction{position:absolute;left:12px;bottom:10px;z-index:1;display:flex;align-items:center;gap:7px;color:#91a9c4;font-size:9px;pointer-events:none}
+.orbit-instruction kbd{display:inline-grid;place-items:center;min-width:19px;height:19px;padding:0 5px;border:1px solid #3a5672;border-radius:5px;background:#10243a;color:#dce9f8;font:inherit;font-weight:900}
+.orbit-controls{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 16px 15px}
+.orbit-prompt{margin:0;color:#8ea7c2;font-size:9px;line-height:1.5}
+.orbit-actions{display:flex;gap:7px;flex:0 0 auto}
+.orbit-action{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:32px;padding:7px 10px;border:1px solid #3a5876;border-radius:8px;background:#132940;color:#dce9f8;font-size:9px;font-weight:900;transition:background .16s ease,border-color .16s ease,transform .16s ease}
+.orbit-action:hover{background:#203d5a;border-color:#7097bb;transform:translateY(-1px)}
+.orbit-action.primary{border-color:#c9a84f;background:linear-gradient(135deg,#f1d47d,#d7ad49);color:#142033}
+.orbit-action.primary:hover{background:#ffe49a;border-color:#ffe49a}
+.orbit-playground.is-submitting{border-color:#d8b75e;box-shadow:0 0 0 1px #e0b95a25,0 0 35px #e0b95a12}
+.orbit-playground.is-submitting .orbit-live-dot{background:var(--gold2);box-shadow:0 0 0 4px #e0b95a20,0 0 13px #e0b95a}
+.orbit-playground.is-submitting .orbit-tag{border-color:#8b733b;background:#2a2417;color:#f0d18a}
+@keyframes orbit-live{50%{opacity:.45;box-shadow:0 0 0 6px #7ed9b10b,0 0 5px #7ed9b1}}
+@media(max-width:560px){.orbit-playground{margin:0 16px 16px}.orbit-heading{padding:14px 13px 0}.orbit-stage{height:205px;margin-inline:3px}.orbit-controls{align-items:flex-start;flex-direction:column;padding:0 13px 13px}.orbit-actions{width:100%}.orbit-action{flex:1}.orbit-tag{font-size:7px}}
+@media(prefers-reduced-motion:reduce){.orbit-live-dot{animation:none!important}.orbit-action{transition:none!important}}
 </style>
 </head>
 <body>
@@ -142,6 +149,27 @@ footer{padding:18px;text-align:center;color:#6f859e;font-size:10px}
         </div>
       </form>
       <div id="postStatus" class="status" role="status" aria-live="polite" hidden></div>
+      <section class="orbit-playground" id="orbitPlayground" aria-labelledby="orbitHeading">
+        <div class="orbit-heading">
+          <div class="orbit-title-wrap">
+            <p class="orbit-eyebrow"><span class="orbit-live-dot"></span><span id="orbitEyebrow">A little break between big moments</span></p>
+            <h2 id="orbitHeading">Orbit Lab</h2>
+            <p id="orbitDescription">Bend the field. Send a pulse through the system. There are no wrong moves, which is more than can be said for most admin dashboards.</p>
+          </div>
+          <span class="orbit-tag" id="orbitTag">LIVE SYSTEM</span>
+        </div>
+        <div class="orbit-stage">
+          <canvas id="orbitCanvas" tabindex="0" role="img" aria-label="Interactive orbital field. Move your pointer or finger across it to bend the orbit, and click or tap to create a pulse.">Interactive orbital animation.</canvas>
+          <div class="orbit-instruction"><kbd>MOVE</kbd> bend the field <kbd>TAP</kbd> send a pulse</div>
+        </div>
+        <div class="orbit-controls">
+          <p class="orbit-prompt" id="orbitPrompt">Your move changes the whole system.</p>
+          <div class="orbit-actions">
+            <button class="orbit-action primary" id="orbitPulse" type="button">◎ Send a pulse</button>
+            <button class="orbit-action" id="orbitReset" type="button">↺ Reset field</button>
+          </div>
+        </div>
+      </section>
       <div id="banPanel" class="ban-panel" role="alert">Posting is currently disabled for this team. Contact the competition administrator if you believe this is a mistake.</div>
     </section>
     <section class="card posts-card">
@@ -183,22 +211,128 @@ async function postAction(payload){
 function showStatus(message,state="info"){
  const node=$("postStatus");node.textContent=message;node.dataset.state=state;node.hidden=false;
 }
-function setPublishingOrbit(active) {
- const status=$("postStatus");
- if(!status)return;
- let orbit=document.querySelector(".publishing-orbit");
- if(!active){orbit?.remove();return;}
- if(orbit)return;
- orbit=document.createElement("button");
- orbit.type="button";
- orbit.className="publishing-orbit";
- orbit.setAttribute("aria-label","Interactive orbital animation. Click to send a ripple.");
- orbit.title="Give the orbit a little nudge";
- orbit.innerHTML='<svg viewBox="0 0 100 70" aria-hidden="true"><ellipse class="orbit-track orbit-track-a" cx="50" cy="35" rx="34" ry="13"/><ellipse class="orbit-track orbit-track-b" cx="50" cy="35" rx="24" ry="20" transform="rotate(-32 50 35)"/><ellipse class="orbit-track orbit-track-c" cx="50" cy="35" rx="15" ry="28" transform="rotate(42 50 35)"/><circle class="orbit-core" cx="50" cy="35" r="4"/><circle class="orbit-particle particle-a" cx="16" cy="35" r="2.5"/><circle class="orbit-particle particle-b" cx="67" cy="17" r="2"/><circle class="orbit-particle particle-c" cx="61" cy="59" r="2.2"/><circle class="orbit-ripple" cx="50" cy="35" r="8"/></svg>';
- orbit.addEventListener("pointermove",event=>{const rect=orbit.getBoundingClientRect();orbit.style.setProperty("--orbit-x",(((event.clientX-rect.left)/rect.width)-.5).toFixed(2));orbit.style.setProperty("--orbit-y",(((event.clientY-rect.top)/rect.height)-.5).toFixed(2));});
- orbit.addEventListener("click",()=>{orbit.classList.remove("is-pulsing");void orbit.offsetWidth;orbit.classList.add("is-pulsing");});
- status.before(orbit);
+function initOrbitLab(){
+ const canvas=$("orbitCanvas"),host=$("orbitPlayground");
+ if(!canvas||!host)return;
+ const ctx=canvas.getContext("2d");
+ if(!ctx)return;
+ const reducedMotion=window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+ let width=0,height=0,dpr=1,frame=0,lastTime=0,elapsed=0,pointer=null,pulses=[],sparks=[],active=false;
+ const stars=Array.from({length:88},(_,i)=>({x:Math.random(),y:Math.random(),r:.35+Math.random()*1.15,a:.15+Math.random()*.55,phase:Math.random()*Math.PI*2}));
+ const bodies=[
+  {orbit:0.29,angle:.35,speed:.42,size:4.2,color:"#6ebce7",tilt:-.25},
+  {orbit:0.43,angle:2.2,speed:-.28,size:3.1,color:"#f4d57f",tilt:.47},
+  {orbit:0.57,angle:4.4,speed:.19,size:2.7,color:"#8dd5f4",tilt:-.56},
+  {orbit:0.69,angle:1.3,speed:-.12,size:2.1,color:"#d5baff",tilt:.19}
+ ];
+ function resize(){
+  const rect=canvas.getBoundingClientRect();if(!rect.width||!rect.height)return;
+  width=rect.width;height=rect.height;dpr=Math.min(window.devicePixelRatio||1,2);
+  canvas.width=Math.round(width*dpr);canvas.height=Math.round(height*dpr);
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  draw(0);
+ }
+ function pointFromEvent(event){
+  const rect=canvas.getBoundingClientRect();
+  pointer={x:event.clientX-rect.left,y:event.clientY-rect.top,until:elapsed+2.4};
+ }
+ function pulse(x=width*.5,y=height*.5){
+  pulses.push({x,y,r:3,alpha:.95,speed:reducedMotion?100:145});
+  for(let i=0;i<18;i++){
+   const angle=Math.random()*Math.PI*2,speed=22+Math.random()*92;
+   sparks.push({x,y,vx:Math.cos(angle)*speed,vy:Math.sin(angle)*speed,r:1+Math.random()*1.7,life:.45+Math.random()*.65,max:.45+Math.random()*.65,color:Math.random()>.42?"#f4d57f":"#6ebce7"});
+  }
+  if(sparks.length>160)sparks.splice(0,sparks.length-160);
+  if(pulses.length>8)pulses.shift();
+ }
+ function draw(dt){
+  if(!width||!height)return;
+  const cx=width*.5,cy=height*.51,scale=Math.min(width/520,height/235,1.15);
+  ctx.clearRect(0,0,width,height);
+  const glow=ctx.createRadialGradient(cx,cy,2,cx,cy,Math.max(width,height)*.52);
+  glow.addColorStop(0,"rgba(55,119,165,.15)");glow.addColorStop(.65,"rgba(16,47,76,.08)");glow.addColorStop(1,"rgba(8,17,30,0)");
+  ctx.fillStyle=glow;ctx.fillRect(0,0,width,height);
+  for(const s of stars){
+   const twinkle=reducedMotion?1:(.7+.3*Math.sin(elapsed*1.1+s.phase));
+   ctx.globalAlpha=s.a*twinkle;ctx.fillStyle="#c5e3ff";ctx.beginPath();ctx.arc(s.x*width,s.y*height,s.r,0,Math.PI*2);ctx.fill();
+  }
+  ctx.globalAlpha=1;
+  const mx=pointer&&pointer.until>elapsed?pointer.x-cx:0,my=pointer&&pointer.until>elapsed?pointer.y-cy:0;
+  const bend=pointer&&pointer.until>elapsed?Math.min(1,Math.hypot(mx,my)/Math.max(width,height)):.0;
+  const fieldX=cx+mx*.055,fieldY=cy+my*.045;
+  for(let i=0;i<3;i++){
+   const rx=(78+i*49)*scale,ry=(27+i*15)*scale,rotation=(-.42+i*.39)+(reducedMotion?0:elapsed*(i%2?-.035:.025));
+   ctx.save();ctx.translate(fieldX,fieldY);ctx.rotate(rotation);
+   ctx.beginPath();ctx.ellipse(0,0,rx,ry,0,0,Math.PI*2);
+   ctx.strokeStyle=i===1?"rgba(224,185,90,.62)":"rgba(110,188,231,"+(i===0?".48":".24")+")";
+   ctx.lineWidth=i===1?1.15:.8;ctx.setLineDash(i===1?[2,5]:[1.5,5]);
+   ctx.lineDashOffset=reducedMotion?0:-elapsed*(i===1?3:1.8)*(i===2?-1:1);ctx.stroke();ctx.restore();
+  }
+  // Fine radial lines make the field feel like a system, not a sticker.
+  ctx.save();ctx.translate(fieldX,fieldY);ctx.strokeStyle="rgba(119,169,210,.10)";ctx.lineWidth=.6;
+  for(let i=0;i<24;i++){const a=i*Math.PI/12;ctx.beginPath();ctx.moveTo(Math.cos(a)*15*scale,Math.sin(a)*15*scale);ctx.lineTo(Math.cos(a)*190*scale,Math.sin(a)*95*scale);ctx.stroke();}
+  ctx.restore();
+  for(let i=0;i<bodies.length;i++){
+   const b=bodies[i],angle=b.angle+(reducedMotion?0:elapsed*b.speed);
+   const radiusX=(80+b.orbit*210)*scale,radiusY=(28+b.orbit*72)*scale;
+   const localX=Math.cos(angle)*radiusX,localY=Math.sin(angle)*radiusY;
+   const ca=Math.cos(b.tilt),sa=Math.sin(b.tilt);
+   const x=fieldX+localX*ca-localY*sa,y=fieldY+localX*sa+localY*ca;
+   ctx.beginPath();ctx.moveTo(fieldX,fieldY);ctx.lineTo(x,y);ctx.strokeStyle="rgba(129,174,212,.10)";ctx.setLineDash([2,5]);ctx.stroke();ctx.setLineDash([]);
+   const halo=ctx.createRadialGradient(x,y,0,x,y,b.size*4.8);halo.addColorStop(0,b.color+"66");halo.addColorStop(1,b.color+"00");
+   ctx.fillStyle=halo;ctx.beginPath();ctx.arc(x,y,b.size*4.8,0,Math.PI*2);ctx.fill();
+   ctx.fillStyle=b.color;ctx.beginPath();ctx.arc(x,y,b.size,0,Math.PI*2);ctx.fill();
+   ctx.fillStyle="#ffffff";ctx.globalAlpha=.78;ctx.beginPath();ctx.arc(x-b.size*.25,y-b.size*.25,Math.max(.65,b.size*.24),0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;
+  }
+  const coreGlow=ctx.createRadialGradient(fieldX,fieldY,1,fieldX,fieldY,34*scale);
+  coreGlow.addColorStop(0,"rgba(244,213,127,.26)");coreGlow.addColorStop(.4,"rgba(224,185,90,.09)");coreGlow.addColorStop(1,"rgba(224,185,90,0)");
+  ctx.fillStyle=coreGlow;ctx.beginPath();ctx.arc(fieldX,fieldY,34*scale,0,Math.PI*2);ctx.fill();
+  ctx.save();ctx.translate(fieldX,fieldY);ctx.rotate(reducedMotion?0:elapsed*.22);ctx.strokeStyle="rgba(244,213,127,.72)";ctx.lineWidth=1;
+  ctx.beginPath();ctx.arc(0,0,11*scale,0,Math.PI*1.6);ctx.stroke();ctx.beginPath();ctx.arc(0,0,7*scale,Math.PI*.15,Math.PI*1.55);ctx.stroke();ctx.restore();
+  ctx.fillStyle="#ffe69a";ctx.shadowColor="#f4d57f";ctx.shadowBlur=16*scale;ctx.beginPath();ctx.arc(fieldX,fieldY,3.8*scale,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;
+  for(let i=pulses.length-1;i>=0;i--){
+   const p=pulses[i];p.r+=p.speed*dt;p.alpha-=dt*1.05;
+   if(p.alpha<=0){pulses.splice(i,1);continue;}
+   ctx.globalAlpha=p.alpha;ctx.strokeStyle=i%2?"#6ebce7":"#f4d57f";ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.stroke();
+   ctx.globalAlpha=p.alpha*.45;ctx.beginPath();ctx.arc(p.x,p.y,p.r*.72,0,Math.PI*2);ctx.stroke();ctx.globalAlpha=1;
+  }
+  for(let i=sparks.length-1;i>=0;i--){
+   const s=sparks[i];s.x+=s.vx*dt;s.y+=s.vy*dt;s.vx*=Math.pow(.04,dt);s.vy*=Math.pow(.04,dt);s.life-=dt;
+   if(s.life<=0){sparks.splice(i,1);continue;}
+   ctx.globalAlpha=Math.max(0,s.life/s.max);ctx.fillStyle=s.color;ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);ctx.fill();
+  }
+  ctx.globalAlpha=1;
+  if(pointer&&pointer.until>elapsed){
+   ctx.globalAlpha=.55;ctx.strokeStyle="#a9dfff";ctx.lineWidth=.8;ctx.beginPath();ctx.arc(pointer.x,pointer.y,6+Math.sin(elapsed*6)*2,0,Math.PI*2);ctx.stroke();ctx.globalAlpha=1;
+  }
+ }
+ function tick(time){
+  if(!active)return;
+  const dt=lastTime?Math.min((time-lastTime)/1000,.04):0;lastTime=time;
+  elapsed+=dt;
+  if(!reducedMotion||pulses.length||sparks.length)draw(dt);
+  frame=requestAnimationFrame(tick);
+ }
+ function start(){if(active)return;active=true;lastTime=0;frame=requestAnimationFrame(tick);}
+ function stop(){active=false;if(frame)cancelAnimationFrame(frame);frame=0;}
+ canvas.addEventListener("pointermove",pointFromEvent);
+ canvas.addEventListener("pointerleave",()=>{if(pointer)pointer.until=elapsed;});
+ canvas.addEventListener("pointerdown",event=>{pointFromEvent(event);pulse(pointer.x,pointer.y);});
+ canvas.addEventListener("keydown",event=>{if(event.key==="Enter"||event.key===" "){event.preventDefault();pulse();}});
+ $("orbitPulse").addEventListener("click",()=>pulse(pointer&&pointer.until>elapsed?pointer.x:width*.5,pointer&&pointer.until>elapsed?pointer.y:height*.5));
+ $("orbitReset").addEventListener("click",()=>{pointer=null;pulses=[];sparks=[];bodies.forEach((b,i)=>b.angle=[.35,2.2,4.4,1.3][i]);pulse(width*.5,height*.5);});
+ window.addEventListener("resize",resize);
+ document.addEventListener("visibilitychange",()=>document.hidden?stop():start());
+ resize();start();
+ return {setSubmitting(value){
+  host.classList.toggle("is-submitting",value);
+  $("orbitEyebrow").textContent=value?"Your post is moving through the system":"A little break between big moments";
+  $("orbitTag").textContent=value?"VERIFYING POST":"LIVE SYSTEM";
+  $("orbitDescription").textContent=value?"While the dashboard checks your submission, take the controls for a spin. The orbit is yours to mess with.":"Bend the field. Send a pulse through the system. Every nudge changes the motion, and every pulse ripples across the field.";
+  $("orbitPrompt").textContent=value?"Submission in progress. Give the field a pulse while it verifies.":"Move through the field, then send a pulse and watch it travel.";
+ }};
 }
+const orbitLab=initOrbitLab();
 function setSubmitting(submitting){
  $("submitPost").disabled=submitting||!teamStatus||teamStatus.banned;
  $("submitPost").textContent=submitting?"Submitting…":"Submit for review ↗";
@@ -269,7 +403,7 @@ $("postForm").addEventListener("submit",async event=>{
  if(body.length<10||body.length>5000){showStatus("Post text must be 10–5,000 characters.","error");return;}
  
  const knownIds=new Set((teamStatus.posts||[]).map(post=>post.postId));
- const button=$("submitPost");setSubmitting(true);button.textContent="Submitting…";showStatus("Sending your post and verifying the submission…","info");setPublishingOrbit(true);
+ const button=$("submitPost");setSubmitting(true);button.textContent="Submitting…";showStatus("Sending your post and verifying the submission…","info");orbitLab?.setSubmitting(true);
  try{
   await postAction({action:"submitSocialPost",teamId:TEAM_ID,sessionToken:SESSION_TOKEN,title,body,category});
   let verifiedPost=null,lastError=null;
@@ -291,7 +425,7 @@ $("postForm").addEventListener("submit",async event=>{
   showStatus("Post submitted successfully. It is now awaiting moderator review.","success");
  }catch(error){
   showStatus("Could not verify your post: "+(error?.message||"Unknown error")+". Refresh your submissions before retrying.","error");
- }finally{setPublishingOrbit(false);setSubmitting(false);}
+ }finally{orbitLab?.setSubmitting(false);setSubmitting(false);}
 });
 loadStatus();
 </script>
