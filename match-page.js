@@ -41,14 +41,21 @@ function hasVoted(g) {
   try { return localVotedMatches.has(String(g.id)) || localStorage.getItem("competitionMatchVoted:" + g.id) === "1"; }
   catch (error) { return localVotedMatches.has(String(g.id)); }
 }
+function getSavedVote(matchId) {
+  try { return String(localStorage.getItem("competitionMatchVote:" + matchId) || "").toUpperCase(); }
+  catch (error) { return ""; }
+}
 async function castMatchVote(matchId, team) {
   const g = games.find(x => Number(x.id) === Number(matchId));
-  if (!g || isPlayed(g) || ![g.home, g.away].includes(team) || hasVoted(g)) return;
+  if (!g || isPlayed(g) || ![g.home, g.away].includes(team)) return;
   document.querySelectorAll('[id^="vote-' + Number(matchId) + '-"]').forEach(button => { button.disabled = true; });
   try {
     await postCommunityAction({ action: "submitMatchVote", matchId: Number(matchId), teamId: team.slice(-1), voterToken: getVoterToken() });
     localVotedMatches.add(String(matchId));
-    try { localStorage.setItem("competitionMatchVoted:" + matchId, "1"); } catch (error) {}
+    try {
+      localStorage.setItem("competitionMatchVoted:" + matchId, "1");
+      localStorage.setItem("competitionMatchVote:" + matchId, team.slice(-1));
+    } catch (error) {}
     await delayCommunityApi(500);
     const response = await readCommunityApi("getMatchPolls");
     if (!response || response.ok !== true) throw new Error("Vote sent, but totals could not be refreshed.");
@@ -57,10 +64,18 @@ async function castMatchVote(matchId, team) {
   renderMatchCentre();
 }
 function pollMarkup(g) {
-  const counts = getPollCounts(g), prediction = getMatchPrediction(g), voted = hasVoted(g), closed = isPlayed(g);
+  const counts = getPollCounts(g), prediction = getMatchPrediction(g), voted = hasVoted(g), selectedVote = getSavedVote(g.id), closed = isPlayed(g);
   const pct = (n, total) => total ? Math.round(n * 100 / total) : 0;
   const bar = (name, count, total) => '<div class="poll-result"><div><span>' + escapeHTML(name) + '</span><b>' + pct(count, total) + '% <small>(' + count + ')</small></b></div><div class="poll-track"><i style="width:' + pct(count, total) + '%"></i></div></div>';
-  let actions = closed ? '<p class="poll-note">Voting is closed because a result is recorded.</p>' : voted ? '<p class="poll-note">Your vote has been recorded on this browser.</p>' : '<div class="poll-vote-buttons"><button type="button" id="vote-' + Number(g.id) + '-' + String(g.home).slice(-1) + '" onclick="castMatchVote(' + Number(g.id) + ',\'' + g.home + '\')">' + escapeHTML(getTeamDisplayName(g.home)) + '</button><button type="button" id="vote-' + Number(g.id) + '-' + String(g.away).slice(-1) + '" onclick="castMatchVote(' + Number(g.id) + ',\'' + g.away + '\')">' + escapeHTML(getTeamDisplayName(g.away)) + '</button></div>';
+  const voteButton = team => {
+    const id = String(team).slice(-1), selected = voted && selectedVote === id;
+    return '<button type="button" class="' + (selected ? 'vote-selected' : '') + '" id="vote-' + Number(g.id) + '-' + id + '" onclick="castMatchVote(' + Number(g.id) + ',\'' + team + '\')">' + escapeHTML(getTeamDisplayName(team)) + (selected ? ' · Your pick' : '') + '</button>';
+  };
+  let actions = closed
+    ? '<p class="poll-note">Voting is closed because a result is recorded.</p>'
+    : '<div class="poll-vote-buttons">' + voteButton(g.home) + voteButton(g.away) + '</div>' + (voted
+      ? '<p class="poll-note">' + (selectedVote ? 'Your vote is recorded. You can change it until the result is entered.' : 'Your vote is recorded. Select either team to update your vote.') + '</p>'
+      : '<p class="poll-note">You can change your vote until the result is entered.</p>');
   return '<section class="card match-poll-card"><div class="section-title">COMMUNITY POLL</div><h2>Who will win?</h2><div class="poll-results">' + bar(getTeamDisplayName(g.home), counts.home, counts.total) + bar(getTeamDisplayName(g.away), counts.away, counts.total) + '</div><p class="poll-total">' + counts.total + ' vote' + (counts.total === 1 ? '' : 's') + '</p>' + (!matchPollsLoaded ? '<p class="poll-note">' + (matchPollsError ? 'Poll totals temporarily unavailable.' : 'Loading shared votes…') + '</p>' : actions) + '<div class="prediction-block"><div><span>ELO PREDICTION</span><b>' + prediction.home.toFixed(0) + '% <small>vs</small> ' + prediction.away.toFixed(0) + '%</b></div><p>Calculated from pre-match Elo ratings, not the community vote.</p></div></section>';
 }
 
