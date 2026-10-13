@@ -4877,31 +4877,6 @@ async function refreshSocialModeration() {
     if (status) status.textContent = "Could not load moderation queue: " + (error?.message || "Unknown error");
   }
 }
-function setPublishingOrbit(active) {
-  const actions = document.querySelector(".official-post-actions");
-  const status = document.getElementById("officialPostStatus");
-  if (!actions || !status) return;
-  let orbit = actions.querySelector(".publishing-orbit");
-  if (!active) { orbit?.remove(); return; }
-  if (orbit) return;
-  orbit = document.createElement("button");
-  orbit.type = "button";
-  orbit.className = "publishing-orbit";
-  orbit.setAttribute("aria-label", "Interactive orbital animation. Click to send a ripple.");
-  orbit.title = "Give the orbit a little nudge";
-  orbit.innerHTML = '<svg viewBox="0 0 100 70" aria-hidden="true"><ellipse class="orbit-track orbit-track-a" cx="50" cy="35" rx="34" ry="13"/><ellipse class="orbit-track orbit-track-b" cx="50" cy="35" rx="24" ry="20" transform="rotate(-32 50 35)"/><ellipse class="orbit-track orbit-track-c" cx="50" cy="35" rx="15" ry="28" transform="rotate(42 50 35)"/><circle class="orbit-core" cx="50" cy="35" r="4"/><circle class="orbit-particle particle-a" cx="16" cy="35" r="2.5"/><circle class="orbit-particle particle-b" cx="67" cy="17" r="2"/><circle class="orbit-particle particle-c" cx="61" cy="59" r="2.2"/><circle class="orbit-ripple" cx="50" cy="35" r="8"/></svg>';
-  orbit.addEventListener("pointermove", event => {
-    const rect = orbit.getBoundingClientRect();
-    orbit.style.setProperty("--orbit-x", (((event.clientX - rect.left) / rect.width) - .5).toFixed(2));
-    orbit.style.setProperty("--orbit-y", (((event.clientY - rect.top) / rect.height) - .5).toFixed(2));
-  });
-  orbit.addEventListener("click", () => {
-    orbit.classList.remove("is-pulsing");
-    void orbit.offsetWidth;
-    orbit.classList.add("is-pulsing");
-  });
-  status.before(orbit);
-}
 function initSocialModerationPanel() {
   document.getElementById("officialPostForm")?.addEventListener("submit", async event => {
     event.preventDefault();
@@ -4912,7 +4887,6 @@ function initSocialModerationPanel() {
     if (!socialAdminSessionToken) { if (status) status.textContent = "Admin session expired. Lock and unlock Admin again."; return; }
     if (!confirm("Publish this immediately as Competition Official? It will be visible on the public Socials page.")) return;
     button.disabled = true; button.textContent = "PUBLISHING…";
-    setPublishingOrbit(true);
     if (status) status.textContent = "Publishing and verifying the official post…";
     try {
       await postCommunityAction({ action: "submitOfficialSocialPost", sessionToken: socialAdminSessionToken, title, body, category });
@@ -4930,7 +4904,6 @@ function initSocialModerationPanel() {
     } catch (error) {
       if (status) status.textContent = "Could not verify publication: " + (error?.message || "Unknown error");
     } finally {
-      setPublishingOrbit(false);
       button.disabled = false; button.textContent = "PUBLISH AS OFFICIAL";
     }
   });
