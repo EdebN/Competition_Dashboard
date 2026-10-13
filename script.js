@@ -3737,10 +3737,40 @@ function hideEloGraphTooltip() {
   document.querySelectorAll(".elo-graph-tooltip.visible").forEach(tooltip => tooltip.classList.remove("visible"));
 }
 
+function getEloGraphLineProgress(root) {
+  const progress = new Map();
+  if (!root) return progress;
+
+  root.querySelectorAll(".elo-series-line[data-team]").forEach(path => {
+    let length = 0;
+    try { length = path.getTotalLength(); } catch (_) {}
+    if (!Number.isFinite(length) || length <= 0) return;
+
+    const offset = Number.parseFloat(getComputedStyle(path).strokeDashoffset);
+    const fraction = path.style.strokeDasharray === "none" || !Number.isFinite(offset)
+      ? 1
+      : Math.max(0, Math.min(1, 1 - offset / length));
+    const animation = path._eloDrawAnimation || path._eloUndrawAnimation;
+    const duration = animation?.effect?.getTiming?.().duration;
+    const currentTime = animation?.currentTime;
+    const remaining = Number.isFinite(duration) && Number.isFinite(currentTime)
+      ? Math.max(0, duration - currentTime)
+      : 0;
+    progress.set(path.dataset.team, {
+      fraction,
+      remaining,
+      undrawing: Boolean(path._eloUndrawAnimation)
+    });
+  });
+
+  return progress;
+}
+
 function updateTeamEloGraph(control, mode, primaryTeam) {
   const card = control && control.closest(".elo-trend-card");
   if (!card) return;
   const primary = String(primaryTeam || card.dataset.primaryTeam || "").trim();
+  const previousProgress = getEloGraphLineProgress(card);
   const previouslyDrawn = new Set(
     Array.from(card.querySelectorAll(".elo-series-line[data-team]"))
       .map(path => path.dataset.team)
@@ -3755,8 +3785,6 @@ function updateTeamEloGraph(control, mode, primaryTeam) {
 
   const newlySelected = new Set(selected.filter(name => !previouslyDrawn.has(name)));
   const newlyDeselected = new Set([...previouslyDrawn].filter(name => !selected.includes(name)));
-  // Keep deselected series in the replacement SVG long enough to animate them
-  // backwards. Their checkboxes still reflect the actual selected set.
   const teamsToRender = [...selected, ...[...newlyDeselected].filter(name => !selected.includes(name))];
   const wrapper = document.createElement("div");
   wrapper.innerHTML = buildTeamEloGraph(primary, teamsToRender, true);
@@ -3771,9 +3799,50 @@ function updateTeamEloGraph(control, mode, primaryTeam) {
 
   card.replaceWith(replacement);
   requestAnimationFrame(() => {
+    // Continue each surviving line from its own previous visible fraction.
+    // Rebuilding the SVG must not make unrelated teams restart in lockstep.
+    replacement.querySelectorAll(".elo-series-line[data-team]").forEach(path => {
+      const team = path.dataset.team;
+      const previous = previousProgress.get(team);
+      if (!previous || newlySelected.has(team) || newlyDeselected.has(team)) return;
+      resumeEloGraphLine(path, previous);
+    });
     animateEloGraphLines(replacement, newlySelected);
     undrawEloGraphLines(replacement, newlyDeselected);
   });
+}
+
+function resumeEloGraphLine(path, previous) {
+  let length = 0;
+  try { length = path.getTotalLength(); } catch (_) {}
+  if (!Number.isFinite(length) || length <= 0) return;
+
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (reduceMotion || typeof path.animate !== "function" || previous.fraction >= 0.999) {
+    path.style.strokeDasharray = "none";
+    path.style.strokeDashoffset = "0";
+    return;
+  }
+
+  const startOffset = length * (1 - previous.fraction);
+  path.style.strokeDasharray = String(length);
+  path.style.strokeDashoffset = String(startOffset);
+  const duration = previous.remaining > 0 ? previous.remaining : 1400 * (1 - previous.fraction);
+  if (duration <= 0) {
+    path.style.strokeDasharray = "none";
+    path.style.strokeDashoffset = "0";
+    return;
+  }
+
+  path._eloDrawAnimation = path.animate(
+    [{ strokeDashoffset: startOffset }, { strokeDashoffset: 0 }],
+    { duration, easing: "cubic-bezier(.4,0,.2,1)", fill: "forwards" }
+  );
+  path._eloDrawAnimation.onfinish = () => {
+    path.style.strokeDashoffset = "0";
+    path.style.strokeDasharray = "none";
+    path._eloDrawAnimation = null;
+  };
 }
 
 function undrawEloGraphLines(root, teamsToUndraw) {
@@ -3798,11 +3867,16 @@ function undrawEloGraphLines(root, teamsToUndraw) {
 
     if (path._eloDrawAnimation) path._eloDrawAnimation.cancel();
     path.style.strokeDasharray = String(length);
-    path.style.strokeDashoffset = "0";
+    const computedOffset = Number.parseFloat(getComputedStyle(path).strokeDashoffset);
+    const startOffset = Number.isFinite(computedOffset)
+      ? Math.max(0, Math.min(length, computedOffset))
+      : 0;
+    path.style.strokeDashoffset = String(startOffset);
     const animation = path.animate(
-      [{ strokeDashoffset: 0 }, { strokeDashoffset: length }],
-      { duration: 700, easing: "cubic-bezier(.4,0,.2,1)", fill: "forwards" }
+      [{ strokeDashoffset: startOffset }, { strokeDashoffset: length }],
+      { duration: Math.max(160, 700 * (1 - startOffset / length)), easing: "cubic-bezier(.4,0,.2,1)", fill: "forwards" }
     );
+    path._eloUndrawAnimation = animation;
 
     points.forEach(point => {
       point.style.pointerEvents = "none";
