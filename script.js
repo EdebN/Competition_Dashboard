@@ -3603,7 +3603,7 @@ function buildTeamEloGraph(teamName, historyOrTeams, selectionMode = false) {
       ? historyOrTeams
       : getTeamEloHistory(name, elo.rows);
   });
-  const colors = ["#c5a15d", "#a5adb8", "#8295a8", "#b49acb", "#8ea99a"];
+  const colors = ["#d8b45a", "#55b8ff", "#d879f9", "#a8b3c2", "#4fd6a0"];
   const series = selectedTeams.map(name => ({
     name,
     color: colors[TEAMS.indexOf(name) % colors.length],
