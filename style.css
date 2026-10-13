@@ -1091,7 +1091,7 @@ tr:last-child td {
 
 .elo-graph-tooltip {
   position: fixed;
-  z-index: 1000;
+  z-index: 20000;
   pointer-events: none;
   padding: 8px 10px;
   border: 1px solid #303b48;
@@ -3501,8 +3501,7 @@ select {
 
 
 /* Rating graph interaction polish */
-.elo-series-line { stroke-dasharray:1; stroke-dashoffset:1; animation:elo-line-draw 900ms cubic-bezier(.22,.7,.25,1) forwards; }
-@keyframes elo-line-draw { to { stroke-dashoffset:0; } }
+.elo-series-line { stroke-dasharray:none; stroke-dashoffset:0; animation:none; }
 .elo-graph-point { transition:r 140ms ease,opacity 140ms ease,stroke-width 140ms ease; }
 .elo-graph-point.is-match-point:hover,.elo-graph-point.is-match-point:focus-visible { r:6.5; stroke:#e7d5ad; stroke-width:2.5; outline:none; }
 .elo-graph-tooltip { display:grid; gap:5px; min-width:190px; max-width:280px; padding:11px 13px; border:1px solid #3b3427; border-radius:10px; background:rgba(17,19,23,.97); color:#e6e8eb; font-size:11px; font-weight:500; box-shadow:0 12px 34px rgba(0,0,0,.34); backdrop-filter:blur(12px); }
