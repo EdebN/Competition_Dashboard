@@ -82,6 +82,7 @@ footer{padding:18px;text-align:center;color:#6f859e;font-size:10px}
 .orbit-stage{position:relative;height:clamp(300px,38vw,440px);min-height:300px;overflow:hidden;background:#03070d;touch-action:pan-y}
 .orbit-stage canvas{display:block;width:100%;height:100%;cursor:crosshair;outline:none}
 .orbit-stage canvas:focus-visible{outline:2px solid var(--gold2);outline-offset:-5px}
+.orbit-reset{position:absolute;z-index:2;top:14px;right:14px;padding:9px 12px;border:1px solid #d8bb6b88;border-radius:9px;background:#08111edb;color:#f4d57f;font-size:10px;font-weight:900;letter-spacing:.1em;text-transform:uppercase;opacity:0;pointer-events:none;transition:opacity .25s ease,background .2s ease}.orbit-reset:hover{background:#1b2b40}.orbit-playground.is-awake .orbit-reset{opacity:1;pointer-events:auto}
 .orbit-gate{position:absolute;inset:0;z-index:3;display:grid;place-items:center;border:0;background:rgba(1,4,9,.94);color:#f3d783;cursor:pointer;transition:background .75s ease,opacity .75s ease,visibility .75s ease}
 .orbit-gate:before,.orbit-gate:after{position:absolute;content:"";width:min(48vw,230px);aspect-ratio:1;border:1px solid #d7b65b2b;border-radius:50%;transition:transform 1s ease,opacity .7s ease}
 .orbit-gate:after{width:min(65vw,320px);border-color:#6ebce71f}
@@ -119,7 +120,8 @@ footer{padding:18px;text-align:center;color:#6f859e;font-size:10px}
       <header class="card-head"><h2>Create a post</h2><p>Add a headline and the details you want to share.</p></header>
       <section class="orbit-playground" id="orbitPlayground" aria-label="Interactive orbital field">
         <div class="orbit-stage">
-          <canvas id="orbitCanvas" tabindex="0" role="img" aria-label="Interactive orbital field. Click or tap to send pulses that bend the paths of the orbiting particles.">Interactive orbital animation.</canvas>
+          <canvas id="orbitCanvas" tabindex="0" role="img" aria-label="Interactive orbital field. Click or tap to send pulses that push planets into free movement; they bounce off the walls.">Interactive orbital animation.</canvas>
+          <button class="orbit-reset" id="orbitReset" type="button">Reset</button>
           <button class="orbit-gate" id="orbitGate" type="button" aria-label="Click me to reveal the orbital field"><span class="orbit-gate-label">CLICK ME</span></button>
         </div>
       </section>
@@ -183,25 +185,36 @@ function showStatus(message,state="info"){
  const node=$("postStatus");node.textContent=message;node.dataset.state=state;node.hidden=false;
 }
 function initOrbitLab(){
- const canvas=$("orbitCanvas"),host=$("orbitPlayground"),gate=$("orbitGate");
+ const canvas=$("orbitCanvas"),host=$("orbitPlayground"),gate=$("orbitGate"),resetButton=$("orbitReset");
  if(!canvas||!host||!gate)return;
  const ctx=canvas.getContext("2d");if(!ctx)return;
  const reducedMotion=window.matchMedia("(prefers-reduced-motion: reduce)").matches;
- let width=0,height=0,dpr=1,frame=0,lastTime=0,elapsed=0,awake=false,pointer=null,pulses=[],sparks=[],lastPulse=0;
+ let width=0,height=0,dpr=1,frame=0,lastTime=0,elapsed=0,awake=false,pointer=null,pulses=[],sparks=[];
  const stars=Array.from({length:190},()=>({x:Math.random(),y:Math.random(),r:.3+Math.random()*1.35,a:.12+Math.random()*.6,phase:Math.random()*6.28}));
  const bodies=[
-  {a:102,b:43,angle:.35,speed:.46,size:4.4,color:"#6ebce7",tilt:-.24,phase:0,kick:0},
-  {a:148,b:64,angle:2.2,speed:-.32,size:3.7,color:"#f4d57f",tilt:.45,phase:1,kick:0},
-  {a:196,b:83,angle:4.4,speed:.22,size:3.2,color:"#8dd5f4",tilt:-.53,phase:2,kick:0},
-  {a:239,b:101,angle:1.3,speed:-.16,size:2.6,color:"#d5baff",tilt:.18,phase:3,kick:0},
-  {a:73,b:31,angle:5.1,speed:.62,size:2.4,color:"#f4d57f",tilt:.78,phase:4,kick:0},
-  {a:174,b:74,angle:3.1,speed:.27,size:2.2,color:"#79e0c0",tilt:-.1,phase:5,kick:0}
+  {a:.19,b:.115,angle:.35,speed:.46,size:4.4,color:"#6ebce7",tilt:-.24},
+  {a:.29,b:.17,angle:2.2,speed:-.32,size:3.7,color:"#f4d57f",tilt:.45},
+  {a:.39,b:.22,angle:4.4,speed:.22,size:3.2,color:"#8dd5f4",tilt:-.53},
+  {a:.47,b:.27,angle:1.3,speed:-.16,size:2.6,color:"#d5baff",tilt:.18},
+  {a:.13,b:.08,angle:5.1,speed:.62,size:2.4,color:"#f4d57f",tilt:.78},
+  {a:.34,b:.2,angle:3.1,speed:.27,size:2.2,color:"#79e0c0",tilt:-.1}
  ];
+ function seedBodies(){
+  const cx=width*.5,cy=height*.51,unit=Math.min(width/620,height/380,1.2);
+  for(const b of bodies){
+   const rx=b.a*width,ry=b.b*height,ca=Math.cos(b.tilt),sa=Math.sin(b.tilt),lx=Math.cos(b.angle)*rx,ly=Math.sin(b.angle)*ry;
+   b.x=cx+lx*ca-ly*sa;b.y=cy+lx*sa+ly*ca;
+   const tangent=b.angle+Math.PI/2;
+   b.vx=Math.cos(tangent)*b.speed*18*unit;b.vy=Math.sin(tangent)*b.speed*12*unit;
+  }
+ }
  function resize(){
   const rect=canvas.getBoundingClientRect();if(!rect.width||!rect.height)return;
-  width=rect.width;height=rect.height;dpr=Math.min(window.devicePixelRatio||1,2);
-  canvas.width=Math.round(width*dpr);canvas.height=Math.round(height*dpr);
-  ctx.setTransform(dpr,0,0,dpr,0,0);draw(0);
+  const oldW=width,oldH=height;width=rect.width;height=rect.height;dpr=Math.min(window.devicePixelRatio||1,2);
+  canvas.width=Math.round(width*dpr);canvas.height=Math.round(height*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);
+  if(oldW&&oldH){const sx=width/oldW,sy=height/oldH;for(const b of bodies){b.x*=sx;b.y*=sy;b.vx*=sx;b.vy*=sy;}}
+  else seedBodies();
+  draw(0);
  }
  function pointerAt(e){const r=canvas.getBoundingClientRect();pointer={x:e.clientX-r.left,y:e.clientY-r.top,until:elapsed+2.1};}
  function emitPulse(x=width*.5,y=height*.5,power=1){
@@ -212,16 +225,18 @@ function initOrbitLab(){
    sparks.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,r:.8+Math.random()*2.1,life,max:life,color:Math.random()>.43?"#f4d57f":"#6ebce7"});
   }
   if(sparks.length>340)sparks.splice(0,sparks.length-340);
+  // A pulse transfers momentum. Planets keep that velocity and are free to leave their guide ellipse.
   for(const b of bodies){
-   const ang=b.angle+(reducedMotion?0:elapsed*b.speed),rx=b.a,ry=b.b;
-   const px=width*.5+Math.cos(ang)*rx,py=height*.51+Math.sin(ang)*ry;
-   const dist=Math.hypot(px-x,py-y),influence=Math.exp(-dist/Math.max(80,Math.min(width,height)*.3))*power;
-   b.kick+=((Math.atan2(py-y,px-x)>0?1:-1)*(.7+influence*2.8))*influence;
-   b.speed+=Math.sign(Math.sin(ang-(Math.atan2(y-height*.51,x-width*.5))))*influence*.28;
-   b.a=Math.max(45,Math.min(width*.49,b.a+(Math.random()-.45)*influence*30));
-   b.b=Math.max(20,Math.min(height*.38,b.b+(Math.random()-.5)*influence*22));
+   const dx=b.x-x,dy=b.y-y,dist=Math.max(12,Math.hypot(dx,dy));
+   const influence=Math.exp(-dist/Math.max(90,Math.min(width,height)*.36))*power;
+   const kick=(90+210*influence)*power*influence;
+   b.vx+=(dx/dist)*kick+(Math.random()-.5)*18*influence;
+   b.vy+=(dy/dist)*kick+(Math.random()-.5)*18*influence;
   }
-  lastPulse=elapsed;
+ }
+ function resetBodies(){
+  pulses=[];sparks=[];pointer=null;seedBodies();
+  if(awake)draw(0);
  }
  function draw(dt){
   if(!width||!height)return;
@@ -234,40 +249,45 @@ function initOrbitLab(){
   ctx.globalAlpha=1;
   const mx=pointer&&pointer.until>elapsed?pointer.x-cx:0,my=pointer&&pointer.until>elapsed?pointer.y-cy:0;
   const fieldX=cx+mx*.08,fieldY=cy+my*.06;
-  // The pulse front physically displaces orbital paths; each body retains a decaying orbital impulse.
   for(let i=pulses.length-1;i>=0;i--){const p=pulses[i];p.r+=p.speed*dt;p.alpha-=dt*.47;if(p.alpha<=0)pulses.splice(i,1);}
+  // Soft central gravity and drag give the planets a loose, lively field, not an orbital rail.
   for(const b of bodies){
-   b.kick*=Math.pow(.22,dt);
-   if(!reducedMotion)b.angle+=b.speed*dt;
+   const dx=fieldX-b.x,dy=fieldY-b.y,dist=Math.max(30,Math.hypot(dx,dy));
+   const gravity=13/(1+dist/150);
+   b.vx+=dx/dist*gravity*dt;b.vy+=dy/dist*gravity*dt;
+   b.vx*=Math.pow(.999,dt*60);b.vy*=Math.pow(.999,dt*60);
+   b.x+=b.vx*dt;b.y+=b.vy*dt;
+   const pad=b.size+2;
+   if(b.x<pad){b.x=pad;b.vx=Math.abs(b.vx)*.88;}
+   else if(b.x>width-pad){b.x=width-pad;b.vx=-Math.abs(b.vx)*.88;}
+   if(b.y<pad){b.y=pad;b.vy=Math.abs(b.vy)*.88;}
+   else if(b.y>height-pad){b.y=height-pad;b.vy=-Math.abs(b.vy)*.88;}
+   const speed=Math.hypot(b.vx,b.vy),maxSpeed=420;
+   if(speed>maxSpeed){b.vx*=maxSpeed/speed;b.vy*=maxSpeed/speed;}
   }
+  // Original ellipses are only faint reference tracks; the bodies are no longer constrained to them.
   for(let j=0;j<4;j++){
    const rx=(75+j*47)*unit,ry=(30+j*19)*unit;
    ctx.save();ctx.translate(fieldX,fieldY);ctx.rotate((j-1.5)*.19+(reducedMotion?0:Math.sin(elapsed*.25+j)*.035));
    ctx.beginPath();
    for(let k=0;k<=180;k++){
-    const a=k/180*Math.PI*2;
-    let displacement=0;
+    const a=k/180*Math.PI*2;let displacement=0;
     for(const p of pulses){const dist=Math.abs(Math.hypot(Math.cos(a)*rx,Math.sin(a)*ry)-p.r);displacement+=Math.exp(-dist/18)*p.alpha*p.power*13;}
     const x=Math.cos(a)*(rx+displacement),y=Math.sin(a)*(ry+displacement);
     if(k===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);
    }
-   ctx.strokeStyle=j===1?"rgba(244,213,127,.57)":"rgba(110,188,231,"+(j===0?".38":".20")+")";ctx.lineWidth=j===1?1.35:.8;ctx.setLineDash(j===1?[2,5]:[1,6]);ctx.lineDashOffset=reducedMotion?0:-elapsed*(j%2?2.4:1.3);ctx.stroke();ctx.restore();
+   ctx.strokeStyle=j===1?"rgba(244,213,127,.42)":"rgba(110,188,231,"+(j===0?".30":".14")+")";ctx.lineWidth=j===1?1.2:.8;ctx.setLineDash(j===1?[2,5]:[1,6]);ctx.lineDashOffset=reducedMotion?0:-elapsed*(j%2?2.4:1.3);ctx.stroke();ctx.restore();
   }
-  // Moving orbiting bodies with pulse-driven wobble and orbital velocity changes.
+  // Render trails from actual velocity so a kicked planet's new path is visible.
   for(const b of bodies){
-   let wave=0;
-   for(const p of pulses){const dist=Math.hypot(cx+Math.cos(b.angle)*b.a*unit-p.x,cy+Math.sin(b.angle)*b.b*unit-p.y);wave+=Math.sin((dist-p.r)*.075)*p.alpha*p.power*Math.exp(-Math.abs(dist-p.r)/85)*18;}
-   const radial=(b.kick*14+wave)*unit;
-   const a=b.angle,rx=(b.a+radial)*unit,ry=(b.b+radial*.55)*unit;
-   const ca=Math.cos(b.tilt),sa=Math.sin(b.tilt),lx=Math.cos(a)*rx,ly=Math.sin(a)*ry;
-   const x=fieldX+lx*ca-ly*sa,y=fieldY+lx*sa+ly*ca;
-   const trail=ctx.createLinearGradient(x,y,x-Math.cos(a)*b.speed*24,y-Math.sin(a)*b.speed*12);trail.addColorStop(0,b.color+"aa");trail.addColorStop(1,b.color+"00");
-   ctx.strokeStyle=trail;ctx.lineWidth=b.size*.7;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x-Math.cos(a)*b.speed*24,y-Math.sin(a)*b.speed*12);ctx.stroke();
-   const halo=ctx.createRadialGradient(x,y,0,x,y,b.size*7);halo.addColorStop(0,b.color+"aa");halo.addColorStop(.3,b.color+"35");halo.addColorStop(1,b.color+"00");ctx.fillStyle=halo;ctx.beginPath();ctx.arc(x,y,b.size*7,0,Math.PI*2);ctx.fill();
-   ctx.fillStyle=b.color;ctx.beginPath();ctx.arc(x,y,b.size+Math.min(2,Math.abs(b.kick)),0,Math.PI*2);ctx.fill();
-   ctx.fillStyle="#fff";ctx.globalAlpha=.8;ctx.beginPath();ctx.arc(x-b.size*.25,y-b.size*.25,Math.max(.7,b.size*.22),0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;
+   const speed=Math.hypot(b.vx,b.vy),trailLen=Math.min(46,Math.max(10,speed*.13));
+   const tx=b.x-(speed?b.vx/speed*trailLen:0),ty=b.y-(speed?b.vy/speed*trailLen:0);
+   const trail=ctx.createLinearGradient(b.x,b.y,tx,ty);trail.addColorStop(0,b.color+"cc");trail.addColorStop(1,b.color+"00");
+   ctx.strokeStyle=trail;ctx.lineWidth=b.size*.8;ctx.beginPath();ctx.moveTo(b.x,b.y);ctx.lineTo(tx,ty);ctx.stroke();
+   const halo=ctx.createRadialGradient(b.x,b.y,0,b.x,b.y,b.size*7);halo.addColorStop(0,b.color+"aa");halo.addColorStop(.3,b.color+"35");halo.addColorStop(1,b.color+"00");ctx.fillStyle=halo;ctx.beginPath();ctx.arc(b.x,b.y,b.size*7,0,Math.PI*2);ctx.fill();
+   ctx.fillStyle=b.color;ctx.beginPath();ctx.arc(b.x,b.y,b.size,0,Math.PI*2);ctx.fill();
+   ctx.fillStyle="#fff";ctx.globalAlpha=.8;ctx.beginPath();ctx.arc(b.x-b.size*.25,b.y-b.size*.25,Math.max(.7,b.size*.22),0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;
   }
-  // The centre reacts to the accumulated energy from recent pulses.
   let energy=0;for(const p of pulses)energy+=p.alpha*p.power;
   const coreR=(26+Math.min(35,energy*8))*unit;
   const core=ctx.createRadialGradient(fieldX,fieldY,1,fieldX,fieldY,coreR*2.2);core.addColorStop(0,"rgba(255,225,144,.34)");core.addColorStop(.35,"rgba(224,185,90,.12)");core.addColorStop(1,"rgba(224,185,90,0)");
@@ -285,6 +305,7 @@ function initOrbitLab(){
  function tick(time){if(!awake)return;const dt=lastTime?Math.min((time-lastTime)/1000,.04):0;lastTime=time;elapsed+=dt;draw(dt);frame=requestAnimationFrame(tick);}
  function wake(){if(awake)return;awake=true;host.classList.add("is-awake");lastTime=0;frame=requestAnimationFrame(tick);emitPulse(width*.5,height*.5,1.25);}
  gate.addEventListener("click",wake);
+ resetButton.addEventListener("click",resetBodies);
  canvas.addEventListener("pointermove",pointerAt);
  canvas.addEventListener("pointerleave",()=>{if(pointer)pointer.until=elapsed;});
  canvas.addEventListener("pointerdown",e=>{if(!awake){wake();return;}pointerAt(e);emitPulse(pointer.x,pointer.y,1.1);});
@@ -293,7 +314,7 @@ function initOrbitLab(){
  window.addEventListener("resize",resize);
  document.addEventListener("visibilitychange",()=>{if(document.hidden&&frame){cancelAnimationFrame(frame);frame=0;}else if(awake&&!frame){lastTime=0;frame=requestAnimationFrame(tick);}});
  resize();
- return {setSubmitting(value){}};
+ return {reset:resetBodies};
 }
 const orbitLab=initOrbitLab();
 function setSubmitting(submitting){
