@@ -949,6 +949,24 @@ tr:last-child td {
     text-align: left;
   }
 }
+
+.elo-trend-card { position:relative; overflow:hidden; isolation:isolate; }
+.elo-trend-card::before { content:""; position:absolute; z-index:-1; top:-110px; right:-70px; width:280px; height:220px; background:radial-gradient(ellipse,rgba(101,230,196,.10),transparent 68%); pointer-events:none; }
+.elo-trend-heading { display:flex; align-items:flex-start; justify-content:space-between; gap:20px; margin-bottom:18px; }
+.elo-trend-heading h2 { margin:5px 0 0; color:#f4f7fa; font-size:23px; letter-spacing:-.035em; }
+.elo-trend-subtitle { margin:7px 0 0; color:#8290a0; font-size:12px; }
+.elo-trend-summary { display:flex; gap:10px; }
+.elo-trend-current,.elo-trend-net { display:flex; flex-direction:column; gap:5px; min-width:90px; padding:11px 13px; border:1px solid #26343e; border-radius:10px; background:rgba(11,14,19,.72); color:#f5f8fb; font-size:19px; font-weight:800; font-variant-numeric:tabular-nums; }
+.elo-trend-current small,.elo-trend-net small { color:#778697; font-size:8px; font-weight:800; letter-spacing:.12em; }
+.elo-trend-net.is-up { color:#65e6c4; border-color:rgba(101,230,196,.28); }
+.elo-trend-net.is-down { color:#fb7185; border-color:rgba(251,113,133,.28); }
+.elo-trend-net.is-flat { color:#c0cad5; }
+.elo-graph-wrap { background:radial-gradient(ellipse at 50% 0%,rgba(101,230,196,.035),transparent 65%),#0b0e13; }
+.elo-graph-point { cursor:help; opacity:.78; transition:opacity .16s ease,r .16s ease; }
+.elo-graph-point:hover { opacity:1; stroke:#f4f7fa; stroke-width:2.5; }
+.elo-graph-empty { display:grid; place-items:center; min-height:220px; padding:24px; color:#8290a0; font-size:13px; text-align:center; }
+@media (max-width:620px) { .elo-trend-heading { flex-direction:column; } .elo-trend-summary { width:100%; } .elo-trend-current,.elo-trend-net { flex:1; } .elo-trend-heading h2 { font-size:20px; } }
+
 /* ─────────────────────────
    ELO TREND GRAPH
 ───────────────────────── */
