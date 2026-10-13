@@ -212,6 +212,19 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
 @media(max-width:1180px){.sidebar.right{position:static;max-height:none;overflow:visible}.workspace{grid-template-columns:210px minmax(0,1fr)}.right{grid-column:2/-1;border-left:0;border-top:1px solid var(--line);display:block}.stage{min-height:700px}}
 @media(max-width:760px){.right{grid-column:auto;display:block}.floating-toolbar{max-width:calc(100vw - 12px);padding:5px}.toolbar-main{gap:3px}.toolbar-type{padding-right:5px}.toolbar-more-panel{right:-4px;width:min(360px,calc(100vw - 20px))}.toolbar-text{width:105px}.toolbar-number{width:50px}.toolbar-icon-button{min-width:29px;padding:0 6px}}
 
+
+/* Full-screen orbital lab for real save and publish operations only */
+#studioOrbitWait{position:fixed;inset:0;z-index:1000;display:none;overflow:hidden;background:#02060b;color:#edf5ff}
+#studioOrbitWait.active{display:block}
+#studioOrbitCanvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.studio-orbit-status{position:absolute;left:50%;bottom:clamp(24px,7vh,64px);transform:translateX(-50%);display:grid;justify-items:center;gap:10px;width:min(440px,calc(100vw - 36px));padding:22px 26px 20px;border:1px solid #6ebce755;border-radius:15px;background:linear-gradient(145deg,rgba(7,17,30,.92),rgba(3,8,15,.88));box-shadow:0 18px 65px #0008,0 0 42px #6ebce718;text-align:center;backdrop-filter:blur(12px)}
+.studio-orbit-kicker{font-size:10px;letter-spacing:.2em;font-weight:800;color:#f4d57f}
+.studio-orbit-title{font-size:19px;font-weight:750;letter-spacing:.015em}
+.studio-orbit-message{font-size:13px;line-height:1.5;color:#b6c8dc}
+.studio-orbit-progress{display:block;position:relative;width:min(220px,75%);height:2px;margin-top:5px;overflow:hidden;background:#6ebce72b;border-radius:3px}
+.studio-orbit-progress i{position:absolute;inset:0 auto 0 -45%;width:42%;background:linear-gradient(90deg,transparent,#6ebce7,#f4d57f,transparent);animation:studio-orbit-progress 1.8s ease-in-out infinite}
+@keyframes studio-orbit-progress{to{left:110%}}
+@media(prefers-reduced-motion:reduce){.studio-orbit-progress i{animation:none;left:0;width:100%;opacity:.6}}
 </style>
 </head>
 <body>
@@ -268,6 +281,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
 <input id="imageFile" class="file" type="file" accept="image/*">
 <input id="jsonFile" class="file" type="file" accept=".json,application/json">
 <div id="toast" class="toast" role="status"></div>
+<div id="studioOrbitWait" aria-hidden="true" role="status" aria-live="polite"><canvas id="studioOrbitCanvas" aria-hidden="true"></canvas><div class="studio-orbit-status"><span class="studio-orbit-kicker">TEAM PAGE STUDIO</span><span class="studio-orbit-title" id="studioOrbitTitle">Your design is in motion</span><span class="studio-orbit-message" id="studioOrbitMessage">Saving your design…</span><span class="studio-orbit-progress" aria-hidden="true"><i></i></span></div></div>
 <div id="requestFeatureModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="requestFeatureTitle"><form id="requestFeatureForm" class="request-modal"><h2 id="requestFeatureTitle">Request a feature</h2><p>Suggest an improvement for the Team Page Studio. Requests are saved to the private competition spreadsheet.</p><label class="field"><span>What should we add or improve?</span><textarea id="featureRequestText" minlength="8" maxlength="1500" required placeholder="Describe the feature and what it would help you do…"></textarea></label><div class="modal-actions"><button id="cancelFeatureRequest" type="button">Cancel</button><button class="primary" type="submit">Submit request</button></div></form></div>
 <script>
 const studioParams = new URLSearchParams(location.search);
@@ -367,6 +381,25 @@ function startStatsPreview(){
 
 function snapshot(){return JSON.stringify({blocks,selected,pageTitle:$("pageTitle").value,pageBg:$("pageBg").value,pagePadding:$("pagePadding").value});}
 function setWorkspaceStatus(message,state="saved"){const el=$("workspaceStatus");if(el){el.textContent=message;el.dataset.state=state;}}
+const studioOrbit=(()=>{
+ const host=$("studioOrbitWait"),canvas=$("studioOrbitCanvas"),ctx=canvas.getContext("2d");
+ let w=0,h=0,dpr=1,raf=0,start=0,stars=Array.from({length:210},()=>({x:Math.random(),y:Math.random(),r:.35+Math.random()*1.25,a:.15+Math.random()*.65}));
+ const planets=[{r:.16,ry:.10,s:1.0,size:4.2,color:"#6ebce7",phase:.4},{r:.26,ry:.16,s:-.68,size:3.6,color:"#f4d57f",phase:2.2},{r:.36,ry:.22,s:.43,size:3.1,color:"#9ad7f5",phase:4.1},{r:.45,ry:.27,s:-.31,size:2.8,color:"#d5baff",phase:1.1},{r:.11,ry:.07,s:1.35,size:2.5,color:"#79e0c0",phase:5.1}];
+ function resize(){w=innerWidth;h=innerHeight;dpr=Math.min(devicePixelRatio||1,2);canvas.width=Math.round(w*dpr);canvas.height=Math.round(h*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);}
+ function draw(t){
+  const cx=w*.5,cy=h*.49,scale=Math.min(w/760,h/560,1.25);ctx.clearRect(0,0,w,h);
+  const bg=ctx.createRadialGradient(cx,cy,0,cx,cy,Math.max(w,h)*.75);bg.addColorStop(0,"rgba(25,66,102,.55)");bg.addColorStop(.5,"rgba(7,20,36,.65)");bg.addColorStop(1,"rgba(2,6,12,1)");ctx.fillStyle=bg;ctx.fillRect(0,0,w,h);
+  for(const s of stars){ctx.globalAlpha=s.a*(.72+.28*Math.sin(t*.001+s.x*19));ctx.fillStyle="#d4eaff";ctx.beginPath();ctx.arc(s.x*w,s.y*h,s.r,0,Math.PI*2);ctx.fill()}ctx.globalAlpha=1;
+  for(let i=0;i<5;i++){ctx.save();ctx.translate(cx,cy);ctx.rotate(i*.21+Math.sin(t*.00015+i)*.025);ctx.beginPath();ctx.ellipse(0,0,(.13+i*.075)*Math.min(w,h)*1.15,(.07+i*.043)*Math.min(w,h)*.9,0,0,Math.PI*2);ctx.strokeStyle=i===2?"rgba(244,213,127,.44)":"rgba(110,188,231,.17)";ctx.lineWidth=i===2?1.2:.8;ctx.setLineDash(i===2?[2,5]:[1,7]);ctx.lineDashOffset=-t*.008*(i%2?1:-1);ctx.stroke();ctx.restore()}
+  for(const p of planets){const a=p.phase+t*.00022*p.s,rx=p.r*Math.min(w,h)*1.7,ry=p.ry*Math.min(w,h)*1.7,x=cx+Math.cos(a)*rx,y=cy+Math.sin(a)*ry;const trail=ctx.createLinearGradient(x,y,x-Math.cos(a)*40*scale,y-Math.sin(a)*25*scale);trail.addColorStop(0,p.color+"dd");trail.addColorStop(1,p.color+"00");ctx.strokeStyle=trail;ctx.lineWidth=p.size;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x-Math.cos(a)*40*scale,y-Math.sin(a)*25*scale);ctx.stroke();const halo=ctx.createRadialGradient(x,y,0,x,y,p.size*7);halo.addColorStop(0,p.color+"99");halo.addColorStop(.35,p.color+"30");halo.addColorStop(1,p.color+"00");ctx.fillStyle=halo;ctx.beginPath();ctx.arc(x,y,p.size*7,0,Math.PI*2);ctx.fill();ctx.fillStyle=p.color;ctx.beginPath();ctx.arc(x,y,p.size,0,Math.PI*2);ctx.fill()}
+  const glow=ctx.createRadialGradient(cx,cy,1,cx,cy,90*scale);glow.addColorStop(0,"rgba(255,225,144,.45)");glow.addColorStop(.35,"rgba(224,185,90,.12)");glow.addColorStop(1,"rgba(224,185,90,0)");ctx.fillStyle=glow;ctx.beginPath();ctx.arc(cx,cy,90*scale,0,Math.PI*2);ctx.fill();ctx.save();ctx.translate(cx,cy);ctx.rotate(t*.00018);ctx.strokeStyle="#f4d57fbb";ctx.lineWidth=1.1;ctx.beginPath();ctx.ellipse(0,0,28*scale,18*scale,0,0,Math.PI*2);ctx.stroke();ctx.rotate(-t*.0004);ctx.beginPath();ctx.ellipse(0,0,17*scale,38*scale,0,0,Math.PI*2);ctx.stroke();ctx.restore();ctx.fillStyle="#fff0b7";ctx.shadowColor="#f4d57f";ctx.shadowBlur=22;ctx.beginPath();ctx.arc(cx,cy,4.5*scale,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;
+ }
+ function tick(t){if(!host.classList.contains("active")){raf=0;return}draw(t-start);raf=requestAnimationFrame(tick)}
+ function show(message,title="Your design is in motion"){ $("studioOrbitTitle").textContent=title;$("studioOrbitMessage").textContent=message;host.classList.add("active");host.setAttribute("aria-hidden","false");resize();if(!raf){start=performance.now();raf=requestAnimationFrame(tick)}}
+ function hide(){host.classList.remove("active");host.setAttribute("aria-hidden","true");if(raf)cancelAnimationFrame(raf);raf=0}
+ addEventListener("resize",()=>{if(host.classList.contains("active"))resize()});
+ return {show,hide};
+})();
 function pushHistory(){if(suppressHistory)return;const s=snapshot();if(history[historyIndex]===s)return;history=history.slice(0,historyIndex+1);history.push(s);if(history.length>80)history.shift();historyIndex=history.length-1;updateHistoryButtons();setWorkspaceStatus("Unsaved changes","dirty");}
 function restore(s){suppressHistory=true;const d=JSON.parse(s);blocks=d.blocks||[];selected=d.selected||null;$("pageTitle").value=d.pageTitle||"My page";$("pageBg").value=d.pageBg||"#0b0e14";$("pagePadding").value=d.pagePadding||30;seq=Math.max(seq,...blocks.map(b=>Number(b.id.slice(1))||0));render();suppressHistory=false;updateHistoryButtons();setWorkspaceStatus("Unsaved changes","dirty");}
 function undo(){if(historyIndex>0){historyIndex--;restore(history[historyIndex]);}}
@@ -750,7 +783,7 @@ $("imageFile").addEventListener("change",e=>{const file=e.target.files?.[0];if(!
 function studioSessionToken(){return sessionStorage.getItem("team-editor-session-token")||"";}
 function sharedDesignRequest(action,extra={}){return new Promise((resolve,reject)=>{if(!validStudioTeam||!studioSessionToken()){reject(new Error("Sign in to your team editor again to use shared storage."));return;}const callback="studioApi_"+Date.now()+"_"+Math.floor(Math.random()*1e6);const script=document.createElement("script");const url=new URL(STUDIO_API);url.searchParams.set("action",action);url.searchParams.set("teamId",validStudioTeam);url.searchParams.set("sessionToken",studioSessionToken());url.searchParams.set("callback",callback);url.searchParams.set("_",Date.now());Object.entries(extra).forEach(([k,v])=>url.searchParams.set(k,String(v)));window[callback]=data=>{delete window[callback];script.remove();resolve(data);};script.onerror=()=>{delete window[callback];script.remove();reject(new Error("Could not contact shared storage. The Apps Script update may not be deployed yet."));};script.src=url.toString();document.head.appendChild(script);});}
 async function saveSharedDesign(){const design=JSON.parse(snapshot());const payload={action:"saveTeamPageDesign",teamId:validStudioTeam,sessionToken:studioSessionToken(),design};const response=await fetch(STUDIO_API,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=UTF-8"},body:JSON.stringify(payload)});await new Promise(resolve=>setTimeout(resolve,900));const result=await sharedDesignRequest("getTeamPageDesign");if(!result||!result.ok||JSON.stringify(result.design)!==JSON.stringify(design))throw new Error(result&&result.error||"Shared save could not be verified.");}
-$("saveBtn").onclick=async()=>{try{const current=snapshot();localStorage.setItem(studioDraftKey,current);setWorkspaceStatus("Saving draft…","dirty");if(validStudioTeam){$("saveBtn").disabled=true;$("saveBtn").textContent="Saving…";try{await saveSharedDesign();toast("Draft saved to the shared competition sheet.");setWorkspaceStatus("Draft saved","saved");}catch(e){toast("Saved in this browser only: "+e.message);setWorkspaceStatus("Local save only","error");}finally{$("saveBtn").disabled=false;$("saveBtn").textContent="Save draft";}}else toast("Draft saved in this browser.");setWorkspaceStatus("Draft saved locally","saved");}catch(e){toast("Draft too large for browser storage. Export JSON instead.");}};
+$("saveBtn").onclick=async()=>{try{const current=snapshot();localStorage.setItem(studioDraftKey,current);setWorkspaceStatus("Saving draft…","dirty");if(validStudioTeam){$("saveBtn").disabled=true;$("saveBtn").textContent="Saving…";try{studioOrbit.show("Saving and verifying your draft in the competition sheet…","Saving your design");await saveSharedDesign();toast("Draft saved to the shared competition sheet.");setWorkspaceStatus("Draft saved","saved");}catch(e){toast("Saved in this browser only: "+e.message);setWorkspaceStatus("Local save only","error");}finally{studioOrbit.hide();$("saveBtn").disabled=false;$("saveBtn").textContent="Save draft";}}else toast("Draft saved in this browser.");setWorkspaceStatus("Draft saved locally","saved");}catch(e){toast("Draft too large for browser storage. Export JSON instead.");}};
 const revertButton=$("revertTeamPageBtn");
 if(!validStudioTeam){revertButton.disabled=true;revertButton.title="Open the Studio from your team's editor to revert.";}
 revertButton.onclick=async()=>{
@@ -776,7 +809,7 @@ publishButton.onclick=async()=>{
  if(!validStudioTeam){toast("Open the Studio from your team's editor to publish.");return;}
  if(!confirm("Update the live Team "+validStudioTeam+" page with the design currently on this canvas? The original page will be replaced for this team."))return;
  const design=JSON.parse(snapshot());
- publishButton.disabled=true;publishButton.textContent="Publishing…";setWorkspaceStatus("Publishing page…","dirty");
+ publishButton.disabled=true;publishButton.textContent="Publishing…";setWorkspaceStatus("Publishing page…","dirty");studioOrbit.show("Saving the design, publishing it, and verifying the live page…","Publishing your team page");
  try{
   localStorage.setItem(studioDraftKey,snapshot());
   await saveSharedDesign();
@@ -786,7 +819,7 @@ publishButton.onclick=async()=>{
   if(!result||!result.ok||JSON.stringify(result.design)!==JSON.stringify(design))throw new Error(result&&result.error||"The published page could not be verified. Check that the Apps Script deployment is updated.");
   toast("Team "+validStudioTeam+" page updated. The public page may take a minute to refresh.");setWorkspaceStatus("Published successfully","saved");
  }catch(error){toast("Could not update the live page: "+error.message);setWorkspaceStatus("Publish failed","error");}
- finally{publishButton.disabled=false;publishButton.textContent="Update team page";}
+ finally{studioOrbit.hide();publishButton.disabled=false;publishButton.textContent="Update team page";}
 };
 $("loadBtn").onclick=async()=>{if(validStudioTeam){$("loadBtn").disabled=true;$("loadBtn").textContent="Loading…";try{const result=await sharedDesignRequest("getTeamPageDesign");if(result&&result.ok&&result.design){restore(JSON.stringify(result.design));pushHistory();localStorage.setItem(studioDraftKey,snapshot());toast("Shared Team "+validStudioTeam+" draft loaded.");setWorkspaceStatus("Shared draft loaded","saved");return;}}catch(e){toast("Shared load unavailable; checking this browser.");}finally{$("loadBtn").disabled=false;$("loadBtn").textContent="Load draft";}}const saved=localStorage.getItem(studioDraftKey);if(!saved){toast("No saved draft found.");return;}try{restore(saved);pushHistory();toast("Browser draft loaded.");setWorkspaceStatus("Browser draft loaded","saved");}catch(e){toast("Could not load that draft.");}};
 function download(name,data,type){const blob=new Blob([data],{type}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
