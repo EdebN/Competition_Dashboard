@@ -93,6 +93,13 @@ footer{padding:18px;text-align:center;color:#6f859e;font-size:10px}
 .orbit-playground.is-awake .orbit-gate:after{transform:scale(1.7);opacity:0}
 @media(max-width:560px){.orbit-stage{height:330px;min-height:330px}.orbit-gate-label{width:100px;height:100px;font-size:11px}}
 @media(prefers-reduced-motion:reduce){.orbit-gate,.orbit-gate:before,.orbit-gate:after,.orbit-gate-label{transition:none!important}}
+/* Temporary orbital progress overlay, not a permanent editor feature. */
+.orbit-playground{display:none;position:fixed;inset:0;z-index:9999;margin:0;border:0;background:#03070df2;backdrop-filter:blur(8px)}
+.orbit-playground.is-loading{display:block}.orbit-stage{height:100%;min-height:100%;background:#03070d}.orbit-stage canvas{width:100%;height:100%;cursor:default}
+.orbit-wait-card{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:grid;justify-items:center;gap:13px;width:min(360px,calc(100vw - 40px));padding:34px 28px;border:1px solid #6ebce744;border-radius:18px;background:#07111ee8;box-shadow:0 20px 80px #0009,0 0 50px #6ebce718;color:#edf5ff;text-align:center}
+.orbit-wait-orbit{width:42px;height:42px;border:1px solid #6ebce766;border-radius:50%;position:relative;animation:wait-spin 2.4s linear infinite}.orbit-wait-orbit:before{content:"";position:absolute;width:7px;height:7px;left:-4px;top:16px;border-radius:50%;background:#f4d57f;box-shadow:0 0 15px #f4d57f}
+.orbit-wait-title{font-size:16px;font-weight:700;letter-spacing:.04em}.orbit-wait-message{font-size:13px;line-height:1.5;color:#aabbd0}.orbit-wait-dots{display:flex;gap:6px;margin-top:2px}.orbit-wait-dots i{width:5px;height:5px;border-radius:50%;background:#f4d57f;animation:wait-dot 1s ease-in-out infinite}.orbit-wait-dots i:nth-child(2){animation-delay:.15s}.orbit-wait-dots i:nth-child(3){animation-delay:.3s}
+@keyframes wait-spin{to{transform:rotate(360deg)}}@keyframes wait-dot{0%,80%,100%{opacity:.3;transform:translateY(0)}40%{opacity:1;transform:translateY(-4px)}}@media(prefers-reduced-motion:reduce){.orbit-wait-orbit,.orbit-wait-dots i{animation:none}}
 </style>
 </head>
 <body>
@@ -118,11 +125,12 @@ footer{padding:18px;text-align:center;color:#6f859e;font-size:10px}
   <div class="layout">
     <section class="card">
       <header class="card-head"><h2>Create a post</h2><p>Add a headline and the details you want to share.</p></header>
-      <section class="orbit-playground" id="orbitPlayground" aria-label="Interactive orbital field">
+      <section class="orbit-playground" id="orbitPlayground" aria-label="Background activity while saving" aria-hidden="true">
         <div class="orbit-stage">
-          <canvas id="orbitCanvas" tabindex="0" role="img" aria-label="Interactive orbital field. Click or tap to send pulses that push planets into free movement; they bounce off the walls.">Interactive orbital animation.</canvas>
-          <button class="orbit-reset" id="orbitReset" type="button">Reset</button>
-          <button class="orbit-gate" id="orbitGate" type="button" aria-label="Click me to reveal the orbital field"><span class="orbit-gate-label">CLICK ME</span></button>
+          <canvas id="orbitCanvas" aria-hidden="true">Animated loading background.</canvas>
+          <div class="orbit-wait-card"><span class="orbit-wait-orbit" aria-hidden="true"></span><span class="orbit-wait-title">Working on it</span><span class="orbit-wait-message" id="orbitWaitMessage">Connecting to the competition service…</span><span class="orbit-wait-dots" aria-hidden="true"><i></i><i></i><i></i></span></div>
+          <button class="orbit-reset" id="orbitReset" type="button" hidden>Reset</button>
+          <button class="orbit-gate" id="orbitGate" type="button" hidden aria-hidden="true" tabindex="-1"><span class="orbit-gate-label">Working</span></button>
         </div>
       </section>
       <form id="postForm">
@@ -326,9 +334,11 @@ function initOrbitLab(){
  window.addEventListener("resize",resize);
  document.addEventListener("visibilitychange",()=>{if(document.hidden&&frame){cancelAnimationFrame(frame);frame=0;}else if(awake&&!frame){lastTime=0;frame=requestAnimationFrame(tick);}});
  resize();
- return {reset:resetBodies};
+ return {reset:resetBodies,show(message){$("orbitWaitMessage").textContent=message||"Please wait while the change is saved…";host.classList.add("is-loading","is-awake");host.setAttribute("aria-hidden","false");if(!awake){awake=true;lastTime=0;frame=requestAnimationFrame(tick);}},hide(){host.classList.remove("is-loading");host.setAttribute("aria-hidden","true");if(frame){cancelAnimationFrame(frame);frame=0;}}};
 }
 const orbitLab=initOrbitLab();
+function showWait(message){orbitLab?.show(message);}
+function hideWait(){orbitLab?.hide();}
 function setSubmitting(submitting){
  $("submitPost").disabled=submitting||!teamStatus||teamStatus.banned;
  $("submitPost").textContent=submitting?"Submitting…":"Submit for review ↗";
@@ -360,6 +370,7 @@ function renderPosts(posts){
 }
 async function loadStatus({quiet=false}={}){
  const generation=++loadGeneration;
+ if(!quiet)showWait("Loading your team submissions…");
  if(!quiet)$("postList").innerHTML='<div class="empty"><strong>Loading your posts</strong>Connecting to the competition service…</div>';
  try{
   const result=await apiRead("getTeamSocialStatus",{teamId:TEAM_ID,sessionToken:SESSION_TOKEN});
@@ -386,7 +397,7 @@ async function loadStatus({quiet=false}={}){
   if(!quiet)$("postList").innerHTML='<div class="empty"><strong>Could not load posts</strong>'+esc(error.message)+' Refresh to try again.</div>';
   showStatus(error.message,"error");
   teamStatus=null;setSubmitting(false);
- }
+ }finally{if(!quiet)hideWait();}
 }
 $("postTitle").addEventListener("input",()=>{$("titleCount").textContent=$("postTitle").value.length+" / 120";});
 $("postBody").addEventListener("input",()=>{$("bodyCount").textContent=$("postBody").value.length+" / 5,000";});
@@ -399,7 +410,7 @@ $("postForm").addEventListener("submit",async event=>{
  if(body.length<10||body.length>5000){showStatus("Post text must be 10–5,000 characters.","error");return;}
  
  const knownIds=new Set((teamStatus.posts||[]).map(post=>post.postId));
- const button=$("submitPost");setSubmitting(true);button.textContent="Submitting…";showStatus("Sending your post and verifying the submission…","info");
+ const button=$("submitPost");setSubmitting(true);button.textContent="Submitting…";showStatus("Sending your post and verifying the submission…","info");showWait("Sending your post to the competition sheet…");
  try{
   await postAction({action:"submitSocialPost",teamId:TEAM_ID,sessionToken:SESSION_TOKEN,title,body,category});
   let verifiedPost=null,lastError=null;
@@ -421,7 +432,7 @@ $("postForm").addEventListener("submit",async event=>{
   showStatus("Post submitted successfully. It is now awaiting moderator review.","success");
  }catch(error){
   showStatus("Could not verify your post: "+(error?.message||"Unknown error")+". Refresh your submissions before retrying.","error");
- }finally{setSubmitting(false);}
+ }finally{setSubmitting(false);hideWait();}
 });
 loadStatus();
 </script>
