@@ -380,7 +380,7 @@ function refreshInfographicPreviews(){
     const history=win.getTeamEloHistory(hostTeam,elo.rows);
     blocks.filter(b=>b.type==="ratingGraph").forEach(b=>{
      const target=canvas.querySelector('[data-id="'+b.id+'"] .studio-rating-graph-preview');
-     if(target)target.innerHTML=win.buildTeamEloGraph(hostTeam,history).replace(/ onchange="[^"]*"/g,"").replace(/ onclick="[^"]*"/g,"").replace(/ onkeydown="[^"]*"/g,"");
+     if(target)target.innerHTML=win.buildTeamEloGraph(hostTeam,history).replace(/ onchange="[^"]*"/g,"").replace(/ onclick="[^"]*"/g,"").replace(/ onkeydown="[^"]*"/g,"").replace(/ onmouseenter="[^"]*"/g,"").replace(/ onmousemove="[^"]*"/g,"").replace(/ onmouseleave="[^"]*"/g,"");
     });
    }
   }catch(error){/* Wait for dashboard data to load. */}
