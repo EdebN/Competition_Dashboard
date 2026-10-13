@@ -3668,7 +3668,7 @@ function buildTeamEloGraph(teamName, historyOrTeams, selectionMode = false) {
           (point.opponent ? "\nvs " + getTeamDisplayName(point.opponent) + " · " + point.score : "") +
           (point.clickGame ? "\nClick to open match" : "");
         return '<circle class="elo-graph-point ' + (point.clickGame ? "is-match-point" : "is-start-point") + '" cx="' + point.x.toFixed(2) + '" cy="' + point.y.toFixed(2) + '" r="' + (index === coords.length - 1 ? 4.8 : 3.8) + '" fill="' + dotColor + '"' +
-          ' data-team="' + escapeHTML(getTeamDisplayName(item.name)) + '" data-label="' + escapeHTML(point.label) + '" data-rating="' + point.rating.toFixed(2) + '" data-change="' + (hasChange ? point.change.toFixed(2) : "") + '" data-opponent="' + escapeHTML(point.opponent ? getTeamDisplayName(point.opponent) : "") + '" data-score="' + escapeHTML(point.score || "") + '"' +
+          ' data-series-team="' + escapeHTML(item.name) + '" data-team="' + escapeHTML(getTeamDisplayName(item.name)) + '" data-label="' + escapeHTML(point.label) + '" data-rating="' + point.rating.toFixed(2) + '" data-change="' + (hasChange ? point.change.toFixed(2) : "") + '" data-opponent="' + escapeHTML(point.opponent ? getTeamDisplayName(point.opponent) : "") + '" data-score="' + escapeHTML(point.score || "") + '"' +
           ' onmouseenter="showEloGraphTooltip(event,this)" onmousemove="moveEloGraphTooltip(event)" onmouseleave="hideEloGraphTooltip()"' +
           (point.clickGame ? ' tabindex="0" role="button" aria-label="' + escapeHTML(title.replace(/\n/g, ". ")) + '" onclick="jumpToGame(' + point.clickGame + ')" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();jumpToGame(' + point.clickGame + ')}"' : "") +
           '><title>' + escapeHTML(title) + '</title></circle>';
@@ -3753,15 +3753,71 @@ function updateTeamEloGraph(control, mode, primaryTeam) {
       .map(input => input.value);
   }
 
-  // Rebuild the graph, but animate only series newly added by this checkbox
-  // change. Existing selected teams remain visually stable.
   const newlySelected = new Set(selected.filter(name => !previouslyDrawn.has(name)));
+  const newlyDeselected = new Set([...previouslyDrawn].filter(name => !selected.includes(name)));
+  // Keep deselected series in the replacement SVG long enough to animate them
+  // backwards. Their checkboxes still reflect the actual selected set.
+  const teamsToRender = [...selected, ...[...newlyDeselected].filter(name => !selected.includes(name))];
   const wrapper = document.createElement("div");
-  wrapper.innerHTML = buildTeamEloGraph(primary, selected, true);
+  wrapper.innerHTML = buildTeamEloGraph(primary, teamsToRender, true);
   const replacement = wrapper.firstElementChild;
   if (!replacement) return;
+
+  replacement.querySelectorAll('.elo-team-options input[type="checkbox"]').forEach(input => {
+    input.checked = selected.includes(input.value);
+  });
+  const allCheckbox = replacement.querySelector('.elo-team-all input[type="checkbox"]');
+  if (allCheckbox) allCheckbox.checked = selected.length === TEAMS.length;
+
   card.replaceWith(replacement);
-  requestAnimationFrame(() => animateEloGraphLines(replacement, newlySelected));
+  requestAnimationFrame(() => {
+    animateEloGraphLines(replacement, newlySelected);
+    undrawEloGraphLines(replacement, newlyDeselected);
+  });
+}
+
+function undrawEloGraphLines(root, teamsToUndraw) {
+  if (!root || !teamsToUndraw || !teamsToUndraw.size) return;
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  teamsToUndraw.forEach(team => {
+    const path = Array.from(root.querySelectorAll(".elo-series-line[data-team]"))
+      .find(line => line.dataset.team === team);
+    if (!path) return;
+
+    let length = 0;
+    try { length = path.getTotalLength(); } catch (_) {}
+    const points = Array.from(root.querySelectorAll(".elo-graph-point[data-series-team]"))
+      .filter(point => point.dataset.seriesTeam === team);
+
+    if (!Number.isFinite(length) || length <= 0 || reduceMotion || typeof path.animate !== "function") {
+      path.remove();
+      points.forEach(point => point.remove());
+      return;
+    }
+
+    if (path._eloDrawAnimation) path._eloDrawAnimation.cancel();
+    path.style.strokeDasharray = String(length);
+    path.style.strokeDashoffset = "0";
+    const animation = path.animate(
+      [{ strokeDashoffset: 0 }, { strokeDashoffset: length }],
+      { duration: 700, easing: "cubic-bezier(.4,0,.2,1)", fill: "forwards" }
+    );
+
+    points.forEach(point => {
+      point.style.pointerEvents = "none";
+      if (point._eloFadeAnimation) point._eloFadeAnimation.cancel();
+      point._eloFadeAnimation = point.animate(
+        [{ opacity: 1 }, { opacity: 0 }],
+        { duration: 240, easing: "ease-out", fill: "forwards" }
+      );
+    });
+
+    animation.onfinish = () => {
+      path.remove();
+      points.forEach(point => point.remove());
+    };
+  });
 }
 
 
