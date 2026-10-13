@@ -605,12 +605,23 @@ function submitMatchVote_(body) {
     const sheet = getMatchPollsSheet_(), last = sheet.getLastRow(), tokenHash = hashVoterToken_(voterToken);
     if (last >= 2) {
       const rows = sheet.getRange(2, 1, last - 1, 3).getDisplayValues();
-      if (rows.some(function (row) { return String(row[0]).trim() === matchId && String(row[2]).trim() === tokenHash; }))
-        return jsonResponse_({ ok: false, error: "This browser has already voted in this match." });
+      const existingIndex = rows.findIndex(function (row) {
+        return String(row[0]).trim() === matchId && String(row[2]).trim() === tokenHash;
+      });
+      if (existingIndex >= 0) {
+        const rowNumber = existingIndex + 2;
+        const previousTeam = String(rows[existingIndex][1] || "").trim().toUpperCase();
+        if (previousTeam === teamId) {
+          return jsonResponse_({ ok: true, action: "submitMatchVote", saved: true, changed: false, matchId: Number(matchId), teamId: teamId });
+        }
+        sheet.getRange(rowNumber, 2).setValue(teamId);
+        sheet.getRange(rowNumber, 4).setValue(new Date());
+        return jsonResponse_({ ok: true, action: "submitMatchVote", saved: true, changed: true, matchId: Number(matchId), teamId: teamId });
+      }
     }
     if (last > 10000) return jsonResponse_({ ok: false, error: "Poll storage is full." });
     sheet.getRange(last + 1, 1, 1, MATCH_POLL_HEADERS.length).setValues([[matchId, teamId, tokenHash, new Date()]]);
-    return jsonResponse_({ ok: true, action: "submitMatchVote", saved: true, matchId: Number(matchId) });
+    return jsonResponse_({ ok: true, action: "submitMatchVote", saved: true, changed: false, matchId: Number(matchId), teamId: teamId });
   } catch (error) {
     console.error(error);
     return jsonResponse_({ ok: false, error: "Could not save the match vote." });
