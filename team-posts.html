@@ -76,6 +76,29 @@ footer{padding:18px;text-align:center;color:#6f859e;font-size:10px}
 @media(max-width:900px){.layout{grid-template-columns:1fr}.posts-card{order:2}.intro{align-items:flex-start;flex-direction:column}.team-chip{align-self:flex-start}}
 @media(max-width:560px){.topbar{align-items:flex-start;flex-direction:column}.toplinks{width:100%;justify-content:flex-start}.toplinks .link-btn{flex:1}.row{grid-template-columns:1fr;gap:0}form{padding:16px}.card-head{padding:16px}.form-actions{align-items:stretch;flex-direction:column}.form-actions .button{width:100%}.form-note{max-width:none}.status{margin:0 16px 16px}.ban-panel{margin:16px}.post-top{flex-direction:column;gap:8px}}
 
+
+/* Interactive orbital companion shown only while a team post is being submitted */
+.publishing-orbit{--orbit-x:0;--orbit-y:0;display:grid;place-items:center;flex:0 0 88px;width:88px;height:58px;padding:0;border:1px solid rgba(110,188,231,.2);border-radius:12px;background:radial-gradient(ellipse at 50% 50%,rgba(110,188,231,.09),rgba(8,17,30,.2) 72%);cursor:pointer;overflow:hidden;transition:border-color .2s ease,background .2s ease}
+.publishing-orbit:hover,.publishing-orbit:focus-visible{border-color:rgba(110,188,231,.58);background:radial-gradient(ellipse at 50% 50%,rgba(110,188,231,.16),rgba(8,17,30,.28) 72%);outline:none}
+.publishing-orbit svg{display:block;width:100%;height:100%;overflow:visible;transform:translate(calc(var(--orbit-x)*3px),calc(var(--orbit-y)*3px));transition:transform .18s ease-out}
+.publishing-orbit .orbit-track{fill:none;stroke:rgba(110,188,231,.42);stroke-width:.8;stroke-dasharray:2 3;transform-origin:50px 35px}
+.publishing-orbit .orbit-track-a{animation:publish-orbit-spin 12s linear infinite}
+.publishing-orbit .orbit-track-b{stroke:rgba(224,185,90,.58);animation:publish-orbit-spin 9s linear infinite reverse}
+.publishing-orbit .orbit-track-c{stroke:rgba(110,188,231,.28);animation:publish-orbit-spin 16s linear infinite}
+.publishing-orbit .orbit-core{fill:#f4d57f;filter:drop-shadow(0 0 4px rgba(244,213,127,.8))}
+.publishing-orbit .orbit-particle{fill:#6ebce7;filter:drop-shadow(0 0 3px rgba(110,188,231,.7))}
+.publishing-orbit .particle-a{animation:publish-particle-a 5s ease-in-out infinite}
+.publishing-orbit .particle-b{fill:#f4d57f;animation:publish-particle-b 4.2s ease-in-out infinite}
+.publishing-orbit .particle-c{animation:publish-particle-c 5.8s ease-in-out infinite}
+.publishing-orbit .orbit-ripple{fill:none;stroke:rgba(244,213,127,.75);stroke-width:1;opacity:0;transform-origin:50px 35px}
+.publishing-orbit.is-pulsing .orbit-ripple{animation:publish-orbit-ripple .65s ease-out}
+@keyframes publish-orbit-spin{to{transform:rotate(360deg)}}
+@keyframes publish-particle-a{50%{transform:translate(4px,-3px)}}
+@keyframes publish-particle-b{50%{transform:translate(-4px,4px)}}
+@keyframes publish-particle-c{50%{transform:translate(3px,3px)}}
+@keyframes publish-orbit-ripple{0%{opacity:.9;transform:scale(.5)}100%{opacity:0;transform:scale(3.3)}}
+@media(max-width:600px){.publishing-orbit{align-self:center}}
+@media(prefers-reduced-motion:reduce){.publishing-orbit .orbit-track,.publishing-orbit .orbit-particle{animation:none!important}.publishing-orbit .orbit-ripple{animation:none!important}.publishing-orbit.is-pulsing .orbit-ripple{opacity:.55}}
 </style>
 </head>
 <body>
@@ -160,6 +183,22 @@ async function postAction(payload){
 function showStatus(message,state="info"){
  const node=$("postStatus");node.textContent=message;node.dataset.state=state;node.hidden=false;
 }
+function setPublishingOrbit(active) {
+ const status=$("postStatus");
+ if(!status)return;
+ let orbit=document.querySelector(".publishing-orbit");
+ if(!active){orbit?.remove();return;}
+ if(orbit)return;
+ orbit=document.createElement("button");
+ orbit.type="button";
+ orbit.className="publishing-orbit";
+ orbit.setAttribute("aria-label","Interactive orbital animation. Click to send a ripple.");
+ orbit.title="Give the orbit a little nudge";
+ orbit.innerHTML='<svg viewBox="0 0 100 70" aria-hidden="true"><ellipse class="orbit-track orbit-track-a" cx="50" cy="35" rx="34" ry="13"/><ellipse class="orbit-track orbit-track-b" cx="50" cy="35" rx="24" ry="20" transform="rotate(-32 50 35)"/><ellipse class="orbit-track orbit-track-c" cx="50" cy="35" rx="15" ry="28" transform="rotate(42 50 35)"/><circle class="orbit-core" cx="50" cy="35" r="4"/><circle class="orbit-particle particle-a" cx="16" cy="35" r="2.5"/><circle class="orbit-particle particle-b" cx="67" cy="17" r="2"/><circle class="orbit-particle particle-c" cx="61" cy="59" r="2.2"/><circle class="orbit-ripple" cx="50" cy="35" r="8"/></svg>';
+ orbit.addEventListener("pointermove",event=>{const rect=orbit.getBoundingClientRect();orbit.style.setProperty("--orbit-x",(((event.clientX-rect.left)/rect.width)-.5).toFixed(2));orbit.style.setProperty("--orbit-y",(((event.clientY-rect.top)/rect.height)-.5).toFixed(2));});
+ orbit.addEventListener("click",()=>{orbit.classList.remove("is-pulsing");void orbit.offsetWidth;orbit.classList.add("is-pulsing");});
+ status.before(orbit);
+}
 function setSubmitting(submitting){
  $("submitPost").disabled=submitting||!teamStatus||teamStatus.banned;
  $("submitPost").textContent=submitting?"Submitting…":"Submit for review ↗";
@@ -230,7 +269,7 @@ $("postForm").addEventListener("submit",async event=>{
  if(body.length<10||body.length>5000){showStatus("Post text must be 10–5,000 characters.","error");return;}
  
  const knownIds=new Set((teamStatus.posts||[]).map(post=>post.postId));
- const button=$("submitPost");setSubmitting(true);button.textContent="Submitting…";showStatus("Sending your post and verifying the submission…","info");
+ const button=$("submitPost");setSubmitting(true);button.textContent="Submitting…";showStatus("Sending your post and verifying the submission…","info");setPublishingOrbit(true);
  try{
   await postAction({action:"submitSocialPost",teamId:TEAM_ID,sessionToken:SESSION_TOKEN,title,body,category});
   let verifiedPost=null,lastError=null;
@@ -252,7 +291,7 @@ $("postForm").addEventListener("submit",async event=>{
   showStatus("Post submitted successfully. It is now awaiting moderator review.","success");
  }catch(error){
   showStatus("Could not verify your post: "+(error?.message||"Unknown error")+". Refresh your submissions before retrying.","error");
- }finally{setSubmitting(false);}
+ }finally{setPublishingOrbit(false);setSubmitting(false);}
 });
 loadStatus();
 </script>
