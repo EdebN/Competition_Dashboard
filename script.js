@@ -2333,7 +2333,7 @@ function renderFinalsPage() {
 
           <!-- FINAL 1 -->
 
-          <div class="bracket-match">
+          <div class="bracket-match" data-final-game="${final1 ? final1.id : 0}">
 
             <div class="bracket-match-title">
               FINAL 1
@@ -2387,7 +2387,7 @@ function renderFinalsPage() {
 
           <!-- FINAL 2 -->
 
-          <div class="bracket-match">
+          <div class="bracket-match" data-final-game="${final2 ? final2.id : 0}">
 
             <div class="bracket-match-title">
               FINAL 2
@@ -2475,7 +2475,7 @@ function renderFinalsPage() {
         <div class="bracket-round bracket-final">
 
 
-          <div class="bracket-match grand-final-match">
+          <div class="bracket-match grand-final-match" data-final-game="${grandFinal ? grandFinal.id : 0}">
 
             <div class="bracket-match-title">
               GRAND FINAL
@@ -2550,7 +2550,7 @@ function renderFinalsPage() {
 
         <div class="third-place-bracket">
 
-          <div class="bracket-match">
+          <div class="bracket-match" data-final-game="${final3 ? final3.id : 0}">
 
             <div class="bracket-match-title">
               FINAL 3
@@ -2610,6 +2610,24 @@ function renderFinalsPage() {
 
   `;
 
+  // Open assigned finals fixtures from the bracket.
+  page.querySelectorAll("[data-final-game]").forEach(matchCard => {
+    const gameId = Number(matchCard.dataset.finalGame);
+    if (!Number.isFinite(gameId) || gameId <= 0) return;
+
+    matchCard.classList.add("is-clickable");
+    matchCard.setAttribute("role", "button");
+    matchCard.setAttribute("tabindex", "0");
+    matchCard.setAttribute("aria-label", "Open match " + gameId);
+
+    const openFixture = () => jumpToGame(gameId);
+    matchCard.addEventListener("click", openFixture);
+    matchCard.addEventListener("keydown", event => {
+      if (event.key !== "Enter" && event.key !== " ") return;
+      event.preventDefault();
+      openFixture();
+    });
+  });
 }
 let adminToken = "";
 let adminUnlocked = false;
