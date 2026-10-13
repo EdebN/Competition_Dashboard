@@ -3696,9 +3696,16 @@ function buildTeamEloGraph(teamName, historyOrTeams, selectionMode = false) {
 
 function showEloGraphTooltip(event, point) {
   if (!point) return;
-  const wrap = point.closest(".elo-graph-wrap");
-  const tooltip = wrap && wrap.querySelector(".elo-graph-tooltip");
-  if (!tooltip) return;
+  // Keep the tooltip outside the graph/card overflow containers so it cannot be clipped.
+  let tooltip = document.getElementById("elo-graph-tooltip");
+  if (!tooltip) {
+    tooltip = document.createElement("div");
+    tooltip.id = "elo-graph-tooltip";
+    tooltip.className = "elo-graph-tooltip";
+    tooltip.setAttribute("role", "status");
+    tooltip.setAttribute("aria-live", "polite");
+    document.body.appendChild(tooltip);
+  }
   const change = point.dataset.change;
   const changeNumber = change === "" ? null : Number(change);
   const changeClass = changeNumber === null ? "flat" : changeNumber > 0.000001 ? "up" : changeNumber < -0.000001 ? "down" : "flat";
@@ -5116,3 +5123,54 @@ function renderSocialModerationContent() {
     }
   }));
 }
+
+// Draw graph paths only when their SVG enters view. Web Animations API uses the
+// measured path length, avoiding inconsistent pathLength/stroke-dash CSS behaviour.
+(function installEloGraphDrawing() {
+  if (typeof document === "undefined" || !document.documentElement) return;
+  const reduceMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const draw = path => {
+    if (!path || path.dataset.drawObserved === "1") return;
+    path.dataset.drawObserved = "1";
+    const start = () => {
+      if (!path.isConnected || path.dataset.drawn === "1") return;
+      path.dataset.drawn = "1";
+      let length = 0;
+      try { length = path.getTotalLength(); } catch (_) {}
+      if (!Number.isFinite(length) || length <= 0 || reduceMotion() || typeof path.animate !== "function") {
+        path.style.strokeDasharray = "none";
+        path.style.strokeDashoffset = "0";
+        return;
+      }
+      path.style.strokeDasharray = String(length);
+      path.style.strokeDashoffset = String(length);
+      path.animate(
+        [{ strokeDashoffset: length }, { strokeDashoffset: 0 }],
+        { duration: 950, delay: Number.parseFloat(path.style.animationDelay) || 0, easing: "cubic-bezier(.22,.7,.25,1)", fill: "forwards" }
+      ).onfinish = () => { path.style.strokeDashoffset = "0"; path.style.strokeDasharray = "none"; };
+    };
+    if (typeof IntersectionObserver === "function") {
+      const observer = new IntersectionObserver(entries => {
+        if (entries.some(entry => entry.isIntersecting)) {
+          observer.disconnect();
+          start();
+        }
+      }, { threshold: 0.12 });
+      observer.observe(path);
+    } else {
+      requestAnimationFrame(start);
+    }
+  };
+  const scan = node => {
+    if (!node || node.nodeType !== 1) return;
+    if (node.matches && node.matches(".elo-series-line")) draw(node);
+    if (node.querySelectorAll) node.querySelectorAll(".elo-series-line").forEach(draw);
+  };
+  const start = () => {
+    scan(document.documentElement);
+    new MutationObserver(records => records.forEach(record => record.addedNodes.forEach(scan)))
+      .observe(document.documentElement, { childList: true, subtree: true });
+  };
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start, { once: true });
+  else start();
+})();
