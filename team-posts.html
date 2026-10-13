@@ -340,7 +340,7 @@ function initOrbitLab(){
  window.addEventListener("resize",resize);
  document.addEventListener("visibilitychange",()=>{if(document.hidden&&frame){cancelAnimationFrame(frame);frame=0;}else if(awake&&!frame){lastTime=0;frame=requestAnimationFrame(tick);}});
  resize();
- return {reset:resetBodies,show(message){$("orbitWaitMessage").textContent=message||"Please wait while the change is saved…";host.classList.add("is-loading","is-awake");host.setAttribute("aria-hidden","false");if(!awake){awake=true;lastTime=0;frame=requestAnimationFrame(tick);}},hide(){host.classList.remove("is-loading");host.setAttribute("aria-hidden","true");if(frame){cancelAnimationFrame(frame);frame=0;}}};
+ return {reset:resetBodies,show(message){$("orbitWaitMessage").textContent=message||"Please wait while the change is saved…";host.classList.add("is-loading","is-awake");host.setAttribute("aria-hidden","false");resize();awake=true;if(!frame){lastTime=0;frame=requestAnimationFrame(tick);}},hide(){host.classList.remove("is-loading");host.setAttribute("aria-hidden","true");if(frame){cancelAnimationFrame(frame);frame=0;}}};
 }
 const orbitLab=initOrbitLab();
 function showWait(message){orbitLab?.show(message);}
