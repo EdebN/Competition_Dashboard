@@ -1728,8 +1728,7 @@ function jumpToGame(gameId) {
 
   // Use the same match-detail route as the clickable match cards.
   if (typeof openMatchDetail === "function") {
-    showPage("matches");
-    setTimeout(() => openMatchDetail(id), 80);
+    openMatchDetail(id);
     return;
   }
 
