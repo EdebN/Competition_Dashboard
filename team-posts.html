@@ -218,21 +218,14 @@ function initOrbitLab(){
  }
  function pointerAt(e){const r=canvas.getBoundingClientRect();pointer={x:e.clientX-r.left,y:e.clientY-r.top,until:elapsed+2.1};}
  function emitPulse(x=width*.5,y=height*.5,power=1){
-  pulses.push({x,y,r:2,alpha:1,speed:(reducedMotion?115:190)*power,power});
+  // The pulse has no effect on planets until its expanding shockwave reaches them.
+  pulses.push({x,y,r:2,previousR:2,alpha:1,speed:(reducedMotion?115:190)*power,power,hit:new Set()});
   if(pulses.length>12)pulses.shift();
   for(let i=0;i<34;i++){
    const a=Math.random()*Math.PI*2,v=(35+Math.random()*155)*power,life=.45+Math.random()*.9;
    sparks.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,r:.8+Math.random()*2.1,life,max:life,color:Math.random()>.43?"#f4d57f":"#6ebce7"});
   }
   if(sparks.length>340)sparks.splice(0,sparks.length-340);
-  // A pulse transfers momentum. Planets keep that velocity and are free to leave their guide ellipse.
-  for(const b of bodies){
-   const dx=b.x-x,dy=b.y-y,dist=Math.max(12,Math.hypot(dx,dy));
-   const influence=Math.exp(-dist/Math.max(90,Math.min(width,height)*.36))*power;
-   const kick=(90+210*influence)*power*influence;
-   b.vx+=(dx/dist)*kick+(Math.random()-.5)*18*influence;
-   b.vy+=(dy/dist)*kick+(Math.random()-.5)*18*influence;
-  }
  }
  function resetBodies(){
   pulses=[];sparks=[];pointer=null;seedBodies();
@@ -249,7 +242,26 @@ function initOrbitLab(){
   ctx.globalAlpha=1;
   const mx=pointer&&pointer.until>elapsed?pointer.x-cx:0,my=pointer&&pointer.until>elapsed?pointer.y-cy:0;
   const fieldX=cx+mx*.08,fieldY=cy+my*.06;
-  for(let i=pulses.length-1;i>=0;i--){const p=pulses[i];p.r+=p.speed*dt;p.alpha-=dt*.47;if(p.alpha<=0)pulses.splice(i,1);}
+  for(let i=pulses.length-1;i>=0;i--){
+   const p=pulses[i];p.previousR=p.r;p.r+=p.speed*dt;p.alpha-=dt*.47;
+   // Detect the shockwave crossing each planet's collision radius this frame, then apply one impulse.
+   for(let bi=0;bi<bodies.length;bi++){
+    if(p.hit.has(bi))continue;
+    const b=bodies[bi],dist=Math.hypot(b.x-p.x,b.y-p.y),planetRadius=b.size+2;
+    if(dist<=p.r+planetRadius&&dist>=p.previousR-planetRadius){
+     p.hit.add(bi);
+     const nx=dist>0?(b.x-p.x)/dist:Math.cos(bi*2.4),ny=dist>0?(b.y-p.y)/dist:Math.sin(bi*2.4);
+     const kick=(105+65*p.power)*p.power;
+     b.vx+=nx*kick+(Math.random()-.5)*12*p.power;
+     b.vy+=ny*kick+(Math.random()-.5)*12*p.power;
+     for(let k=0;k<10;k++){
+      const a=Math.random()*Math.PI*2,v=20+Math.random()*85,life=.25+Math.random()*.45;
+      sparks.push({x:b.x,y:b.y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,r:.7+Math.random()*1.5,life,max:life,color:k%2?"#f4d57f":"#6ebce7"});
+     }
+    }
+   }
+   if(p.alpha<=0)pulses.splice(i,1);
+  }
   // Soft central gravity and drag give the planets a loose, lively field, not an orbital rail.
   for(const b of bodies){
    const dx=fieldX-b.x,dy=fieldY-b.y,dist=Math.max(30,Math.hypot(dx,dy));
