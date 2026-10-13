@@ -4025,6 +4025,19 @@ function publishedBlockHTML(block, team) {
   } else if (type === "stat") {
     const label = text || String(b.metric || "wins");
     inner = "<div style='" + common + ";border:1px solid #e0e5ef'><span style='display:block;font-size:12px;font-weight:750;letter-spacing:.08em;text-transform:uppercase'>" + escapeHTML(label) + "</span><strong style='display:block;font-size:" + Math.round(fontSize * 2) + "px;margin-top:7px'>" + escapeHTML(publishedStatValue(String(b.metric || "wins"), team)) + "</strong><small style='display:block;margin-top:5px;font-size:10px;letter-spacing:.08em;text-transform:uppercase;opacity:.65'>Live competition data</small></div>";
+  } else if (type === "ratingGraph") {
+    const history = getTeamEloHistory(team.team, calculateElo().rows);
+    inner = "<div class='published-infographic'><h3 style='margin:0 0 12px;color:" + color + "'>" + escapeHTML(text || "Rating trajectory") + "</h3>" + buildTeamEloGraph(team.team, history) + "</div>";
+  } else if (type === "recentForm") {
+    const form = Array.isArray(team.form) ? team.form.slice(0, 5) : [];
+    const rows = form.map(item => {
+      const result = String(item.result || "D").toUpperCase();
+      const tone = result === "W" ? "#7ed9b1" : result === "L" ? "#ff9f9f" : "#c7d0dc";
+      const bgTone = result === "W" ? "#173d32" : result === "L" ? "#48242d" : "#303b4a";
+      const score = item.score || ((item.scoreFor == null ? "" : item.scoreFor) + "–" + (item.scoreAgainst == null ? "" : item.scoreAgainst));
+      return "<div style='display:grid;grid-template-columns:28px minmax(0,1fr) auto;align-items:center;gap:9px;padding:10px;border:1px solid #304a66;border-radius:9px;background:#0b1929;color:#b9c9dc;font-size:12px;margin-top:7px'><span style='display:grid;place-items:center;width:25px;height:25px;border-radius:7px;background:" + bgTone + ";color:" + tone + ";font-weight:900'>" + escapeHTML(result) + "</span><span>Game " + escapeHTML(item.game) + " · vs " + escapeHTML(getTeamDisplayName(item.opponent || "")) + "</span><strong style='color:#edf3fb'>" + escapeHTML(score) + "</strong></div>";
+    }).join("");
+    inner = "<div style='" + common + "'><h3 style='margin:0 0 12px;color:" + color + "'>" + escapeHTML(text || "Recent form") + "</h3>" + (rows || "<div style='padding:20px;text-align:center;color:#93a7c0'>No completed matches yet.</div>") + "</div>";
   } else if (type === "divider") {
     inner = "<div style='height:2px;background:" + safePublishedColor(b.color, "#d7dce5") + ";margin:" + padding + "px 0'></div>";
   } else if (type === "spacer") {
@@ -4055,14 +4068,16 @@ function renderPublishedTeamPage(container, design, team) {
   const titleHTML = pageTitle ? "<h1 class='published-page-title'>" + escapeHTML(pageTitle) + "</h1>" : "";
   const blocksHTML = design.blocks.map(block => publishedBlockHTML(block, team)).join("");
   container.innerHTML =
-    "<style>.published-team-page{box-sizing:border-box;width:100%;min-height:100%;background:var(--published-page-bg);padding:var(--published-page-padding);border-radius:16px}.published-page-title{margin:0 0 22px;font-size:clamp(24px,4vw,40px);line-height:1.15;color:#182033}.published-page-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}.published-page-block{min-width:0;overflow-wrap:anywhere}.published-page-block img{max-width:100%}@media(max-width:720px){.published-page-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.published-page-block{grid-column:span 2!important}}@media(max-width:420px){.published-team-page{padding:16px}}</style>" +
+    "<style>.published-team-page{box-sizing:border-box;width:100%;min-height:100%;background:var(--published-page-bg);padding:var(--published-page-padding);border-radius:16px}.published-page-title{margin:0 0 22px;font-size:clamp(24px,4vw,40px);line-height:1.15;color:#182033}.published-page-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}.published-page-block{min-width:0;overflow-wrap:anywhere}.published-page-block img{max-width:100%}.published-infographic{width:100%;min-width:0;overflow:hidden}.published-infographic .elo-trend-heading{display:flex;flex-wrap:wrap}.published-infographic .elo-team-picker{margin-top:10px}.published-infographic .elo-graph-wrap{padding:10px}.published-infographic .elo-graph{width:100%;height:auto;display:block}.published-infographic .elo-graph-label{fill:#8b98a8}.published-infographic .elo-graph-grid{stroke:#26303b}@media(max-width:720px){.published-page-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.published-page-block{grid-column:span 2!important}}@media(max-width:420px){.published-team-page{padding:16px}}</style>" +
     "<div class='published-team-page' style='--published-page-bg:" + pageBg + ";--published-page-padding:" + pagePadding + "px'>" +
     titleHTML + "<div class='published-page-grid'>" + blocksHTML + "</div></div>";
   // Keep the rating timeline available even when a custom Team Studio design
   // replaces the default profile layout.
   const ratingData = calculateElo();
   const ratingHistory = getTeamEloHistory(team.team, ratingData.rows);
-  container.insertAdjacentHTML("beforeend", buildTeamEloGraph(team.team, ratingHistory));
+  if (!design.blocks.some(block => block && block.type === "ratingGraph")) {
+    container.insertAdjacentHTML("beforeend", buildTeamEloGraph(team.team, ratingHistory));
+  }
   renderTeamNewsSection(container, String(team.team || "").slice(-1).toUpperCase());
 }
 function renderTeamNewsSection(container, teamId) {
