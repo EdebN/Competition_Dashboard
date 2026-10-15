@@ -677,10 +677,11 @@ function glickoVolatility(phi, sigma, delta, variance) {
 }
 
 /*
- * Logarithmic margin weight adapted from the FiveThirtyEight NBA Elo
- * margin-of-victory correction. It is used as a weight on the Glicko-2
- * match evidence, so larger margins provide more evidence without creating
- * a separate underdog exception.
+ * Optimised custom Glicko margin weighting.
+ * The historical bake-off's selected contender used scale=1.6,
+ * denominatorBase=1.8, gapSensitivity=0, and maxWeight=4.
+ * On the tested holdout, it narrowly led the candidates on Brier score
+ * and log loss. This changes the evidence weight, not the Glicko-2 core.
  */
 function marginFactor(scoreA, scoreB, ratingA, ratingB) {
   if (scoreA === scoreB) return 1;
