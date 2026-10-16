@@ -66,3 +66,17 @@ The server validates names (1–30 characters), optional hex colours, optional H
 The existing `api-test.html` page tests the old `testWrite` action. After deploying this new API, that old test-write action is intentionally no longer accepted, so the old diagnostic write test will fail. That is expected. The production API should be verified with read-only health/settings requests first, then with the new validated update operation using the private token.
 
 Do not connect the dashboard's team-name editor until the production deployment is configured and the settings response has been checked. Team Editor PINs are verified by the Apps Script API and stored in the private spreadsheet. A six-digit PIN is convenient but should not be treated as a high-security password.
+
+
+## 5. Direct official score entry
+
+The Admin portal includes an **Official match result** form. It submits only the selected match ID and two scores; Apps Script locates the existing fixture and changes only the Home Score and Away Score cells.
+
+Before the form can write results, configure these additional **Script Properties** in the same Apps Script project:
+
+- `RESULTS_SPREADSHEET_ID`: the spreadsheet ID of the Google Sheet tab that publishes the dashboard's CSV. This is the ID from the private spreadsheet URL, not the public `/d/e/.../pub` CSV URL.
+- `RESULTS_SHEET_NAME`: the exact tab name that is published as the CSV.
+
+The source tab must have these columns in order: A = Game/Match ID, B = Home Team, C = Home Score, D = Away Team, E = Away Score. The script checks the first five headers before allowing writes and refuses unknown match IDs.
+
+After adding the properties, copy the updated `apps-script/Code.gs` into the Apps Script project and deploy a **new version** of the web app. The Admin form verifies the write by reading the saved result back from the API. The dashboard also overlays verified results from the API so it does not have to wait for the published CSV cache.
