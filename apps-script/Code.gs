@@ -271,8 +271,8 @@ function doPost(e) {
  * Home Score, Away Team, Away Score. */
 function getResultsSheet_() {
   const p = PropertiesService.getScriptProperties();
-  const id = p.getProperty("RESULTS_SPREADSHEET_ID"), name = p.getProperty("RESULTS_SHEET_NAME");
-  if (!id || !name) throw new Error("Missing RESULTS_SPREADSHEET_ID or RESULTS_SHEET_NAME");
+  const id = p.getProperty("RESULTS_SPREADSHEET_ID"), name = p.getProperty("RESULTS_SHEET_NAME") || "Team results";
+  if (!id) throw new Error("Missing RESULTS_SPREADSHEET_ID");
   const sheet = SpreadsheetApp.openById(id).getSheetByName(name);
   if (!sheet || sheet.getLastRow() < 1 || sheet.getLastColumn() < 5) throw new Error("Configured results sheet is missing or incomplete");
   const h = sheet.getRange(1,1,1,5).getDisplayValues()[0].map(v => String(v || "").trim().toLowerCase());
