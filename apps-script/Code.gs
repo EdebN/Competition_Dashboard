@@ -52,8 +52,10 @@ function doGet(e) {
           properties.getProperty("SPREADSHEET_ID") &&
           properties.getProperty("ADMIN_TOKEN")
         ),
-        actions: ["health", "getTeamSettings", "getCompetitionSettings", "updateCompetitionSettings", "getTeamEditorPinStatus", "verifyTeamEditorPin", "updateTeamEditorPin", "getTeamPageDesign", "saveTeamPageDesign", "getPublishedTeamPage", "publishTeamPage", "revertTeamPage", "submitFeatureRequest", "getMatchPolls", "submitMatchVote", "getSocialPosts", "getTeamSocialStatus", "getModerationSession", "getModerationQueue"],
+        actions: ["health", "getTeamSettings", "getCompetitionSettings", "getMatchResults", "submitMatchResult", "updateCompetitionSettings", "getTeamEditorPinStatus", "verifyTeamEditorPin", "updateTeamEditorPin", "getTeamPageDesign", "saveTeamPageDesign", "getPublishedTeamPage", "publishTeamPage", "revertTeamPage", "submitFeatureRequest", "getMatchPolls", "submitMatchVote", "getSocialPosts", "getTeamSocialStatus", "getModerationSession", "getModerationQueue"],
       };
+    } else if (action === "getMatchResults") {
+      result = { ok: true, service: SERVICE_NAME, apiVersion: API_VERSION, action: action, results: readMatchResults_() };
     } else if (action === "getMatchPolls") {
       result = { ok: true, service: SERVICE_NAME, apiVersion: API_VERSION, action: action, polls: readMatchPolls_() };
     } else if (action === "getCompetitionSettings") {
@@ -135,7 +137,7 @@ function doPost(e) {
     });
   }
 
-  if (!["updateTeamSettings", "updateCompetitionSettings", "updateTeamEditorPin", "saveTeamPageDesign", "publishTeamPage", "revertTeamPage", "submitFeatureRequest", "submitMatchVote", "submitSocialPost", "submitOfficialSocialPost", "createModerationSession", "moderateSocialPost", "markSocialPostViewed", "setSocialPostingBan"].includes(body.action)) {
+  if (!["updateTeamSettings", "updateCompetitionSettings", "updateTeamEditorPin", "submitMatchResult", "saveTeamPageDesign", "publishTeamPage", "revertTeamPage", "submitFeatureRequest", "submitMatchVote", "submitSocialPost", "submitOfficialSocialPost", "createModerationSession", "moderateSocialPost", "markSocialPostViewed", "setSocialPostingBan"].includes(body.action)) {
     return jsonResponse_({
       ok: false,
       service: SERVICE_NAME,
@@ -167,6 +169,7 @@ function doPost(e) {
   }
 
   if (body.action === "updateCompetitionSettings") return updateCompetitionSettings_(body);
+  if (body.action === "submitMatchResult") return submitMatchResult_(body);
 
   if (body.action === "updateTeamEditorPin") {
     const teamId = String(body.teamId || "").trim().toUpperCase();
@@ -263,6 +266,53 @@ function doPost(e) {
  * The shared competition length lives only in Competition Settings!B2.
  * Reads are public; writes require the configured admin token.
  */
+
+/** Official result tab configuration. Columns A-E: Match ID, Home Team,
+ * Home Score, Away Team, Away Score. */
+function getResultsSheet_() {
+  const p = PropertiesService.getScriptProperties();
+  const id = p.getProperty("RESULTS_SPREADSHEET_ID"), name = p.getProperty("RESULTS_SHEET_NAME");
+  if (!id || !name) throw new Error("Missing RESULTS_SPREADSHEET_ID or RESULTS_SHEET_NAME");
+  const sheet = SpreadsheetApp.openById(id).getSheetByName(name);
+  if (!sheet || sheet.getLastRow() < 1 || sheet.getLastColumn() < 5) throw new Error("Configured results sheet is missing or incomplete");
+  const h = sheet.getRange(1,1,1,5).getDisplayValues()[0].map(v => String(v || "").trim().toLowerCase());
+  const idHeader = h[0].startsWith("game") || h[0].startsWith("match");
+  if (!idHeader || !h[1].includes("home") || !h[2].includes("score") || !h[3].includes("away") || !h[4].includes("score")) {
+    throw new Error("Expected columns A-E: Match ID, Home Team, Home Score, Away Team, Away Score");
+  }
+  return sheet;
+}
+function readMatchResults_() {
+  const sh = getResultsSheet_(), last = sh.getLastRow();
+  if (last < 2) return [];
+  return sh.getRange(2,1,last-1,Math.min(7,sh.getLastColumn())).getValues().map(r => ({
+    matchId:Number(r[0]), home:String(r[1]||""), homeScore:r[2]===""||r[2]===null?null:Number(r[2]),
+    away:String(r[3]||""), awayScore:r[4]===""||r[4]===null?null:Number(r[4]),
+    stage:String(r[5]||"REGULAR"), referee:String(r[6]||"")
+  })).filter(r => Number.isInteger(r.matchId) && r.matchId > 0);
+}
+function submitMatchResult_(body) {
+  const id=Number(body.matchId), home=Number(body.homeScore), away=Number(body.awayScore);
+  if (!Number.isInteger(id)||id<1||body.homeScore===""||body.awayScore===""||
+      !Number.isInteger(home)||!Number.isInteger(away)||home<0||away<0||home>99||away>99) {
+    return jsonResponse_({ok:false,error:"Enter whole-number scores from 0 to 99."});
+  }
+  const lock=LockService.getScriptLock();
+  if (!lock.tryLock(10000)) return jsonResponse_({ok:false,error:"Results are busy. Try again."});
+  try {
+    const sh=getResultsSheet_(), last=sh.getLastRow();
+    const ids=last<2?[]:sh.getRange(2,1,last-1,1).getDisplayValues();
+    let row=0;
+    ids.forEach((r,i)=>{if(String(r[0]).trim()===String(id))row=i+2;});
+    if(!row)return jsonResponse_({ok:false,error:"Match ID not found in the official results sheet."});
+    sh.getRange(row,3).setValue(home); sh.getRange(row,5).setValue(away); SpreadsheetApp.flush();
+    if(Number(sh.getRange(row,3).getValue())!==home||Number(sh.getRange(row,5).getValue())!==away)throw new Error("Score verification failed");
+    return jsonResponse_({ok:true,saved:true,matchId:id,homeScore:home,awayScore:away});
+  } catch(e) {
+    console.error(e); return jsonResponse_({ok:false,error:"Could not save the result. Check Script Properties and execution logs."});
+  } finally { lock.releaseLock(); }
+}
+
 function readCompetitionSettings_() {
   const spreadsheetId = PropertiesService.getScriptProperties().getProperty("SPREADSHEET_ID");
   if (!spreadsheetId) throw new Error("Missing SPREADSHEET_ID script property");
