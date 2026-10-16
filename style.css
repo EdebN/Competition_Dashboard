@@ -3866,3 +3866,13 @@ select {
     transition: none;
   }
 }
+
+
+/* Admin match-result entry */
+.admin-results-setting { margin-top: 1rem; }
+.admin-result-form { display: grid; gap: .85rem; margin-top: .8rem; }
+.admin-result-form select.admin-input { width: 100%; max-width: 100%; }
+.admin-result-scores { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .85rem; }
+.admin-result-scores > div { min-width: 0; display: grid; gap: .4rem; }
+.admin-result-scores .admin-input { width: 100%; min-width: 0; box-sizing: border-box; }
+@media (max-width: 520px) { .admin-result-scores { gap: .6rem; } }
