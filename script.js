@@ -3306,8 +3306,6 @@ function renderAdminPage() {
   });
 
 }
-const ADMIN_TOKEN_SHA256 = "e6ef5b690136ed115a1f22323c86ba0316ffbf62118c83ae99cd192eff845d36";
-
 async function unlockAdmin() {
   const input = document.getElementById("adminTokenInput");
   const error = document.getElementById("adminError");
@@ -3318,47 +3316,48 @@ async function unlockAdmin() {
     return;
   }
 
-  if (error) error.textContent = "Checking token…";
+  if (error) error.textContent = "Checking token with the server…";
+
+  const token = input.value.trim();
+  const nonce = Array.from(crypto.getRandomValues(new Uint8Array(24)))
+    .map(byte => byte.toString(16).padStart(2, "0"))
+    .join("");
 
   try {
-    const token = input.value.trim();
-    const bytes = new TextEncoder().encode(token);
-    const digest = await crypto.subtle.digest("SHA-256", bytes);
-    const hash = Array.from(new Uint8Array(digest))
-      .map(byte => byte.toString(16).padStart(2, "0"))
-      .join("");
+    // The Apps Script deployment validates the token. No token hash is shipped
+    // in the public dashboard source, so every fork can use its own secret.
+    adminToken = token;
+    adminUnlocked = false;
+    socialAdminSessionToken = "";
 
-    if (hash !== ADMIN_TOKEN_SHA256) {
+    await postCommunityAction({ action: "createModerationSession", adminToken: token, nonce });
+
+    for (let attempt = 0; attempt < 8 && !socialAdminSessionToken; attempt++) {
+      await new Promise(resolve => setTimeout(resolve, 350));
+      try {
+        const session = await readCommunityApi("getModerationSession", { nonce });
+        if (session && session.ok && session.sessionToken) {
+          socialAdminSessionToken = session.sessionToken;
+        }
+      } catch {}
+    }
+
+    if (!socialAdminSessionToken) {
       adminToken = "";
       adminUnlocked = false;
-      if (error) error.textContent = "Invalid admin token.";
+      if (error) error.textContent = "Token rejected or server unavailable. Check the Apps Script deployment and try again.";
       input.focus();
       input.select();
       return;
     }
 
-    // Keep the original token in memory for authenticated backend writes.
-    adminToken = token;
-    socialAdminSessionToken = "";
-    try {
-      const nonce = Array.from(crypto.getRandomValues(new Uint8Array(24))).map(byte => byte.toString(16).padStart(2, "0")).join("");
-      await postCommunityAction({ action: "createModerationSession", adminToken: token, nonce });
-      for (let attempt = 0; attempt < 5 && !socialAdminSessionToken; attempt++) {
-        await new Promise(resolve => setTimeout(resolve, 350));
-        try {
-          const session = await readCommunityApi("getModerationSession", { nonce });
-          if (session && session.ok && session.sessionToken) socialAdminSessionToken = session.sessionToken;
-        } catch {}
-      }
-    } catch (sessionError) {
-      console.warn("Social moderation session could not be created:", sessionError);
-    }
     adminUnlocked = true;
     renderAdminPage();
   } catch (err) {
-    if (error) {
-      error.textContent = "Could not verify the token in this browser. Try reloading the page.";
-    }
+    adminToken = "";
+    adminUnlocked = false;
+    socialAdminSessionToken = "";
+    if (error) error.textContent = "Could not verify the token with Apps Script. Check the deployment and try again.";
   }
 }
 
