@@ -19,6 +19,10 @@ Adding `apps-script/Code.gs` to GitHub does not change the Apps Script project b
 
 The script creates a dedicated **Team Settings** tab when the public read endpoint is first used. It never accepts a sheet name, range, formula, fixture, or score from a request.
 
+### Forks and admin credentials
+
+Each fork must use its own random `ADMIN_TOKEN` in its own Apps Script Script Properties. Do not reuse or request the original owner's secret. Admin login is checked by Apps Script; the public dashboard source no longer contains a hardcoded admin-token hash, so fork owners do not need to edit `script.js` to set their own code.
+
 ## 2. Deploy a new version
 
 1. In Apps Script, choose **Deploy → Manage deployments**.
