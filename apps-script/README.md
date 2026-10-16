@@ -74,8 +74,8 @@ The Admin portal includes an **Official match result** form. It submits only the
 
 Before the form can write results, configure these additional **Script Properties** in the same Apps Script project:
 
-- `RESULTS_SPREADSHEET_ID`: the spreadsheet ID of the Google Sheet tab that publishes the dashboard's CSV. This is the ID from the private spreadsheet URL, not the public `/d/e/.../pub` CSV URL.
-- `RESULTS_SHEET_NAME`: the exact tab name that is published as the CSV.
+- `RESULTS_SPREADSHEET_ID`: the spreadsheet ID of the Google Sheet that publishes the dashboard's CSV. This is the ID from the private spreadsheet URL, not the public `/d/e/.../pub` CSV URL.
+- `RESULTS_SHEET_NAME`: optional override for the tab name. It defaults to the existing `Team results` tab.
 
 The source tab must have these columns in order: A = Game/Match ID, B = Home Team, C = Home Score, D = Away Team, E = Away Score. The script checks the first five headers before allowing writes and refuses unknown match IDs.
 
