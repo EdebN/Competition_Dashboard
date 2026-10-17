@@ -72,7 +72,15 @@ The existing `api-test.html` page tests the old `testWrite` action. After deploy
 Do not connect the dashboard's team-name editor until the production deployment is configured and the settings response has been checked. Team Editor PINs are verified by the Apps Script API and stored in the private spreadsheet. A six-digit PIN is convenient but should not be treated as a high-security password.
 
 
-## 5. Direct official score entry
+## 5. Separate score-entry portal
+
+Share the dashboard's `score-entry.html` page with peers who are allowed to record match results. It uses a separate `SCORE_EDITOR_CODE`; they do not need your main `ADMIN_TOKEN`, and that code grants no access to other admin settings.
+
+In the same Apps Script project's **Script Properties**, add `SCORE_EDITOR_CODE` with a long, random code (at least 16 characters; do not use a short PIN). Share it only with authorised scorekeepers. The portal exchanges it for a six-hour score-entry session. The server validates that session for each score write, and the API still only permits edits to the two score cells of an existing fixture.
+
+After updating `apps-script/Code.gs`, deploy a **new version** of the existing web app. The score-entry page URL is `https://<your-GitHub-Pages-host>/<repository-path>/score-entry.html` (use the actual published page URL). This portal reads fixtures from the public CSV and verifies each write against the official results API.
+
+## 6. Direct official score entry (backend configuration)
 
 The Admin portal includes an **Official match result** form. It submits only the selected match ID and two scores; Apps Script locates the existing fixture and changes only the Home Score and Away Score cells.
 
