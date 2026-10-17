@@ -713,7 +713,7 @@ function renderToolbar(){
  html+=layoutPositions.map(([value,label])=>{
   const start=value==="left"?1:value==="right"?(5-layoutSpan):value==="center"?(Math.floor((4-layoutSpan)/2)+1):1;
   const placement=value==="auto"?"grid-column:span "+layoutSpan+";justify-self:start;":"grid-column:"+start+" / span "+layoutSpan+";";
-  return '<button type="button" class="layout-position-choice" data-tb-position="'+value+'" aria-pressed="'+((b.position||"auto")===value)+'"><span>'+label+'</span><span class="layout-track" aria-hidden="true"><span class="layout-block" style="'+placement+'"></span>'+[1,2,3,4].map(()=>'<i></i>').join("")+'</span></button>';
+  return '<button type="button" class="layout-position-choice" data-tb-position="'+value+'" aria-pressed="'+((b.position||"auto")===value)+'"><span>'+label+'</span><span class="layout-track" aria-hidden="true">'+[1,2,3,4].map(()=>'<i></i>').join("")+'<span class="layout-block" style="'+placement+'"></span></span></button>';
  }).join("");
  html+='</div><p class="layout-position-note">Choose where this block sits across the page. The width setting controls how many columns it occupies.</p>';
  html+='<div class="toolbar-grid-two"><div class="field"><label for="tb-verticalAlign">Vertical alignment</label><select id="tb-verticalAlign">'+[['top','Top'],['middle','Middle'],['bottom','Bottom']].map(([v,l])=>'<option value="'+v+'" '+((b.verticalAlign||"top")===v?"selected":"")+'>'+l+'</option>').join("")+'</select></div>';
