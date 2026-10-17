@@ -127,7 +127,8 @@ async function loadData(){
  const final1=opening[0],final2=opening[1],final3=opening[2];
  const grand=finals.find(f=>f.stage==="GRAND FINAL");
  const resultFor=f=>f&&resultsById.get(f.id);
- const winner=f=>{const r=resultFor(f);if(!f||!r||r.homeScore==null||r.awayScore==null||r.homeScore===""||r.awayScore==="")return "";const h=Number(r.homeScore),a=Number(r.awayScore);if(h===a)return f.home;return h>a?f.home:f.away;};
+ const ratingByTeam=new Map(standings.map(team=>[team.team,team.elo]));
+ const winner=f=>{const r=resultFor(f);if(!f||!r||r.homeScore==null||r.awayScore==null||r.homeScore===""||r.awayScore==="")return "";const h=Number(r.homeScore),a=Number(r.awayScore);if(h===a)return (ratingByTeam.get(f.home)??0)>=(ratingByTeam.get(f.away)??0)?f.home:f.away;return h>a?f.home:f.away;};
  const loser=f=>{const w=winner(f);return !w?"":w===f.home?f.away:f.home;};
  const finalFixtures=[];
  if(final1&&standings.length>=4)finalFixtures.push({...final1,home:standings[0].team,away:standings[3].team});
