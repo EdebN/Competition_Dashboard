@@ -59,17 +59,46 @@ function parseCSV(text){
 }
 async function loadData(){
  status("saveStatus","Loading matches…");
- const [csvResponse,resultResponse]=await Promise.all([
+ const [csvResponse,resultResponse,settingsResponse]=await Promise.all([
   fetch(CSV_URL+"&cacheBust="+Date.now()).then(r=>{if(!r.ok)throw new Error("Fixture sheet could not be loaded.");return r.text();}),
-  get("getMatchResults")
+  get("getMatchResults"),
+  get("getCompetitionSettings").catch(()=>null)
  ]);
  const rows=parseCSV(csvResponse);if(rows.length<2)throw new Error("No fixtures were found in the published CSV.");
- fixtures=rows.slice(1).map(r=>({id:Number(String(r[0]||"").trim()),home:String(r[1]||"").trim(),homeScore:r[2],away:String(r[3]||"").trim(),awayScore:r[4],stage:String(r[5]||"REGULAR").trim()})).filter(f=>Number.isInteger(f.id)&&f.home&&f.away);
- if(!resultResponse?.ok)throw new Error("Could not load results.");
- if(!Array.isArray(resultResponse.results))throw new Error("Could not load results.");
+ const allRows=rows.slice(1).map(r=>({id:Number(String(r[0]||"").trim()),home:String(r[1]||"").trim(),homeScore:r[2],away:String(r[3]||"").trim(),awayScore:r[4],stage:String(r[5]||"REGULAR").trim().toUpperCase()})).filter(f=>Number.isInteger(f.id));
+ if(!resultResponse?.ok||!Array.isArray(resultResponse.results))throw new Error("Could not load results.");
  savedResults=resultResponse.results;
+ const perTeam=Number(settingsResponse?.gamesPerTeam);
+ const gamesPerTeam=Number.isInteger(perTeam)&&perTeam>=3&&perTeam<=32?perTeam:16;
+ const activeRegularCount=gamesPerTeam*5/2;
+ const regular=allRows.filter(f=>(f.stage||"REGULAR")==="REGULAR"&&f.home&&f.away).sort((a,b)=>a.id-b.id).slice(0,activeRegularCount);
+ const finals=allRows.filter(f=>f.stage==="FINAL"||f.stage==="GRAND FINAL").sort((a,b)=>a.id-b.id);
+ const resultsById=new Map(savedResults.map(r=>[Number(r.matchId),r]));
+ const standings=["Team A","Team B","Team C","Team D","Team E"].map(team=>({team,wins:0,diff:0,pf:0}));
+ regular.forEach(f=>{
+  const r=resultsById.get(f.id);if(!r||r.homeScore==null||r.awayScore==null||r.homeScore===""||r.awayScore==="")return;
+  const h=Number(r.homeScore),a=Number(r.awayScore),home=standings.find(t=>t.team===f.home),away=standings.find(t=>t.team===f.away);
+  if(!home||!away||!Number.isFinite(h)||!Number.isFinite(a))return;
+  home.diff+=h-a;away.diff+=a-h;home.pf+=h;away.pf+=a;
+  if(h>a)home.wins++;else if(a>h)away.wins++;
+ });
+ // Finals follow the dashboard bracket: #1 v #4 and #2 v #3, then winners/losers.
+ standings.sort((a,b)=>b.wins-a.wins||b.diff-a.diff||b.pf-a.pf);
+ const opening=finals.filter(f=>f.stage==="FINAL");
+ const final1=opening[0],final2=opening[1],final3=opening[2];
+ const grand=finals.find(f=>f.stage==="GRAND FINAL");
+ const resultFor=f=>f&&resultsById.get(f.id);
+ const winner=f=>{const r=resultFor(f);if(!f||!r||r.homeScore==null||r.awayScore==null||r.homeScore===""||r.awayScore==="")return "";const h=Number(r.homeScore),a=Number(r.awayScore);if(h===a)return f.home;return h>a?f.home:f.away;};
+ const loser=f=>{const w=winner(f);return !w?"":w===f.home?f.away:f.home;};
+ const finalFixtures=[];
+ if(final1&&standings.length>=4)finalFixtures.push({...final1,home:standings[0].team,away:standings[3].team});
+ if(final2&&standings.length>=4)finalFixtures.push({...final2,home:standings[1].team,away:standings[2].team});
+ const f1=finalFixtures.find(f=>f.id===final1?.id),f2=finalFixtures.find(f=>f.id===final2?.id);
+ if(grand&&f1&&f2&&winner(f1)&&winner(f2))finalFixtures.push({...grand,home:winner(f1),away:winner(f2)});
+ if(final3&&f1&&f2&&loser(f1)&&loser(f2))finalFixtures.push({...final3,home:loser(f1),away:loser(f2)});
+ fixtures=[...regular,...finalFixtures].filter(f=>f.home&&f.away);
  const select=$("fixture"),previous=select.value;select.innerHTML="";
- fixtures.sort((a,b)=>a.id-b.id).forEach(f=>{const o=document.createElement("option");o.value=String(f.id);o.textContent="Game "+f.id+" · "+f.home+" vs "+f.away+" · "+(f.stage||"REGULAR");select.appendChild(o);});
+ fixtures.forEach(f=>{const o=document.createElement("option");o.value=String(f.id);o.textContent=(f.stage==="REGULAR"?"Game "+f.id:f.stage+" · Game "+f.id)+" · "+f.home+" vs "+f.away;select.appendChild(o);});
  if(previous&&fixtures.some(f=>String(f.id)===previous))select.value=previous;
  fillScores();status("saveStatus","Matches loaded.","good");
 }
