@@ -198,7 +198,7 @@ function attachMatchMentionPicker(textarea,menu,maximumId=84){
  const render=()=>{
   const cursor=textarea.selectionStart,token=textarea.value.slice(0,cursor).match(/(^|\s)@(\d*)$/);
   if(!token){hide();return;}
-  const digits=token[2],ids=Array.from({length:maximumId},(_,i)=>i+1).filter(id=>!digits||String(id).startsWith(digits)).slice(0,8);
+  const digits=token[2],ids=Array.from({length:maximumId},(_,i)=>i+1).filter(id=>!digits||String(id).startsWith(digits)).slice(0,84);
   if(!ids.length){hide();return;}
   menu.innerHTML='<div class="match-mention-menu-label">INSERT MATCH</div>'+ids.map(id=>'<button type="button" class="match-mention-option" data-match-id="'+id+'"><span>@'+id+'</span><small>GAME '+id+'</small></button>').join("");
   menu.hidden=false;
