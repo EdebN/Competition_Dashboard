@@ -2283,12 +2283,12 @@ function renderFinalsPage() {
 
   function statusHTML(game) {
 
-    if (!game)
-      return "TBD";
+    if (!game || !game.home || !game.away)
+      return "AWAITING TEAMS";
 
     return isPlayed(game)
-      ? "PLAYED"
-      : "UPCOMING";
+      ? "COMPLETED"
+      : "READY TO PLAY";
 
   }
 
@@ -2547,12 +2547,21 @@ function renderFinalsPage() {
       <div class="third-place-section">
 
         <div class="section-title">
-          PLACEMENT
+          LOSERS' ROUTE
         </div>
 
         <h2>
-          Final 3
+          Third-place final
         </h2>
+
+        <p class="third-place-description">
+          The losing teams from both opening finals meet here for third place.
+        </p>
+
+        <div class="placement-paths" aria-label="Placement final progression">
+          <span>Loser of Final 1</span>
+          <span>Loser of Final 2</span>
+        </div>
 
 
         <div class="third-place-bracket">
@@ -2560,7 +2569,7 @@ function renderFinalsPage() {
           <div class="bracket-match" data-final-game="${final3 ? final3.id : 0}">
 
             <div class="bracket-match-title">
-              FINAL 3
+              THIRD-PLACE FINAL
             </div>
 
 
