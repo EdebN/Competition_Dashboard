@@ -57,6 +57,52 @@ function parseCSV(text){
  for(let i=0;i<text.length;i++){const c=text[i],n=text[i+1];if(c==='"'&&quoted&&n==='"'){value+='"';i++;continue;}if(c==='"'){quoted=!quoted;continue;}if((c==="\n"||c==="\r")&&!quoted){if(c==="\r"&&n==="\n")i++;row.push(value);if(row.some(v=>v.trim()))rows.push(row);row=[];value="";continue;}if(c===", "&&!quoted){row.push(value);value="";continue;}if(c===","&&!quoted){row.push(value);value="";continue;}value+=c;}
  if(value!==""||row.length){row.push(value);if(row.some(v=>v.trim()))rows.push(row);}return rows;
 }
+// Keep finals seeding aligned with script.js: the dashboard's Glicko-2
+// rating calculation, including its rating-period grouping and margin weights.
+const RATING={start:1000,initialRD:203.57,initialVolatility:0.0894,tau:0.5638,epsilon:0.000001,scale:173.7178};
+function ratingState(rating,rd,volatility){return{rating,rd,volatility,mu:(rating-RATING.start)/RATING.scale,phi:rd/RATING.scale};}
+function ratingFromState(state){return{rating:RATING.start+state.mu*RATING.scale,rd:state.phi*RATING.scale,volatility:state.volatility,mu:state.mu,phi:state.phi};}
+function ratingG(phi){return 1/Math.sqrt(1+3*phi*phi/(Math.PI*Math.PI));}
+function ratingExpected(mu,opponentMu,opponentPhi){const g=ratingG(opponentPhi);return 1/(1+Math.exp(-g*(mu-opponentMu)));}
+function ratingVolatility(phi,sigma,delta,variance){
+ const a=Math.log(sigma*sigma),tauSquared=RATING.tau*RATING.tau;
+ const f=x=>{const expX=Math.exp(x),numerator=expX*(delta*delta-phi*phi-variance-expX),denominator=2*Math.pow(phi*phi+variance+expX,2);return numerator/denominator-(x-a)/tauSquared;};
+ let A=a,B;
+ if(delta*delta>phi*phi+variance)B=Math.log(delta*delta-phi*phi-variance);
+ else{let k=1;B=a-k*RATING.tau;while(f(B)<0&&k<100){k++;B=a-k*RATING.tau;}}
+ let fA=f(A),fB=f(B),iterations=0;
+ while(Math.abs(B-A)>RATING.epsilon&&iterations<100){const C=A+((A-B)*fA)/(fB-fA),fC=f(C);if(fC*fB<0){A=B;fA=fB;}else fA/=2;B=C;fB=f(B);iterations++;}
+ return Math.exp(A/2);
+}
+function updateRatingPeriod(state,results){
+ const phi=state.phi,sigma=state.volatility;
+ if(!results.length)return ratingFromState({mu:state.mu,phi:Math.sqrt(phi*phi+sigma*sigma),volatility:sigma});
+ let sumVariance=0,sumResidual=0;
+ results.forEach(result=>{const g=ratingG(result.opponent.phi),expected=ratingExpected(state.mu,result.opponent.mu,result.opponent.phi),weight=result.weight??1;sumVariance+=weight*g*g*expected*(1-expected);sumResidual+=weight*g*(result.score-expected);});
+ if(sumVariance<=0)return ratingFromState({mu:state.mu,phi:Math.sqrt(phi*phi+sigma*sigma),volatility:sigma});
+ const variance=1/sumVariance,delta=variance*sumResidual,newVolatility=ratingVolatility(phi,sigma,delta,variance),phiStar=Math.sqrt(phi*phi+newVolatility*newVolatility),newPhi=1/Math.sqrt(1/(phiStar*phiStar)+1/variance),newMu=state.mu+newPhi*newPhi*sumResidual;
+ return ratingFromState({mu:newMu,phi:newPhi,volatility:newVolatility});
+}
+function dashboardRatings(activeGames,resultsById){
+ const states={},stats={};
+ ["Team A","Team B","Team C","Team D","Team E"].forEach(team=>{states[team]=ratingState(RATING.start,RATING.initialRD,RATING.initialVolatility);stats[team]={team,wins:0,draws:0,losses:0,pf:0,pa:0,diff:0};});
+ for(let start=0;start<activeGames.length;start+=2){
+  const round=activeGames.slice(start,start+2),pre={};Object.keys(states).forEach(team=>pre[team]={...states[team]});
+  const byTeam={};Object.keys(states).forEach(team=>byTeam[team]=[]);
+  round.forEach(game=>{
+   const result=resultsById.get(game.id);if(!result||result.homeScore==null||result.awayScore==null||result.homeScore===""||result.awayScore===""||!game.home||!game.away)return;
+   const homeScore=Number(result.homeScore),awayScore=Number(result.awayScore);if(!Number.isFinite(homeScore)||!Number.isFinite(awayScore))return;
+   const outcome=homeScore>awayScore?1:homeScore<awayScore?0:0.5,margin=homeScore===awayScore?1:Math.max(0,Math.min(4,Math.log(Math.abs(homeScore-awayScore)+1)*1.6/1.8));
+   byTeam[game.home].push({opponent:pre[game.away],score:outcome,weight:margin});
+   byTeam[game.away].push({opponent:pre[game.home],score:1-outcome,weight:margin});
+   const h=stats[game.home],a=stats[game.away];h.pf+=homeScore;h.pa+=awayScore;a.pf+=awayScore;a.pa+=homeScore;
+   if(homeScore>awayScore){h.wins++;a.losses++;}else if(homeScore<awayScore){a.wins++;h.losses++;}else{h.draws++;a.draws++;}
+  });
+  Object.keys(states).forEach(team=>states[team]=updateRatingPeriod(pre[team],byTeam[team]));
+ }
+ Object.keys(stats).forEach(team=>{stats[team].diff=stats[team].pf-stats[team].pa;stats[team].elo=states[team].rating;});
+ return Object.values(stats).sort((a,b)=>b.elo-a.elo||b.diff-a.diff||b.wins-a.wins||b.pf-a.pf);
+}
 async function loadData(){
  status("saveStatus","Loading matches…");
  const [csvResponse,resultResponse,settingsResponse]=await Promise.all([
@@ -74,16 +120,9 @@ async function loadData(){
  const regular=allRows.filter(f=>(f.stage||"REGULAR")==="REGULAR"&&f.home&&f.away).sort((a,b)=>a.id-b.id).slice(0,activeRegularCount);
  const finals=allRows.filter(f=>f.stage==="FINAL"||f.stage==="GRAND FINAL").sort((a,b)=>a.id-b.id);
  const resultsById=new Map(savedResults.map(r=>[Number(r.matchId),r]));
- const standings=["Team A","Team B","Team C","Team D","Team E"].map(team=>({team,wins:0,diff:0,pf:0}));
- regular.forEach(f=>{
-  const r=resultsById.get(f.id);if(!r||r.homeScore==null||r.awayScore==null||r.homeScore===""||r.awayScore==="")return;
-  const h=Number(r.homeScore),a=Number(r.awayScore),home=standings.find(t=>t.team===f.home),away=standings.find(t=>t.team===f.away);
-  if(!home||!away||!Number.isFinite(h)||!Number.isFinite(a))return;
-  home.diff+=h-a;away.diff+=a-h;home.pf+=h;away.pf+=a;
-  if(h>a)home.wins++;else if(a>h)away.wins++;
- });
+ // Use the same Glicko-2 engine and ladder tie-breaks as the live dashboard.
+ const standings=dashboardRatings(regular,resultsById);
  // Finals follow the dashboard bracket: #1 v #4 and #2 v #3, then winners/losers.
- standings.sort((a,b)=>b.wins-a.wins||b.diff-a.diff||b.pf-a.pf);
  const opening=finals.filter(f=>f.stage==="FINAL");
  const final1=opening[0],final2=opening[1],final3=opening[2];
  const grand=finals.find(f=>f.stage==="GRAND FINAL");
