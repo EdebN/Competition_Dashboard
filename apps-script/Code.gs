@@ -93,6 +93,8 @@ function doGet(e) {
       result = readTeamSocialStatus_(params.teamId, params.sessionToken);
     } else if (action === "getModerationSession") {
       result = consumeModerationSession_(params.nonce);
+    } else if (action === "getScoreEditorSession") {
+      result = consumeScoreEditorSession_(params.nonce);
     } else if (action === "getModerationQueue") {
       if (!getModerationSession_(params.sessionToken)) result = { ok: false, error: "Admin session expired." };
       else result = { ok: true, posts: readModerationPosts_(), bans: readSocialBans_(), audit: readSocialAudit_() };
@@ -137,7 +139,7 @@ function doPost(e) {
     });
   }
 
-  if (!["updateTeamSettings", "updateCompetitionSettings", "updateTeamEditorPin", "submitMatchResult", "saveTeamPageDesign", "publishTeamPage", "revertTeamPage", "submitFeatureRequest", "submitMatchVote", "submitSocialPost", "submitOfficialSocialPost", "createModerationSession", "moderateSocialPost", "markSocialPostViewed", "setSocialPostingBan"].includes(body.action)) {
+  if (!["updateTeamSettings", "updateCompetitionSettings", "updateTeamEditorPin", "submitMatchResult", "saveTeamPageDesign", "publishTeamPage", "revertTeamPage", "submitFeatureRequest", "submitMatchVote", "submitSocialPost", "submitOfficialSocialPost", "createModerationSession", "createScoreEditorSession", "moderateSocialPost", "markSocialPostViewed", "setSocialPostingBan"].includes(body.action)) {
     return jsonResponse_({
       ok: false,
       service: SERVICE_NAME,
@@ -149,6 +151,8 @@ function doPost(e) {
   if (body.action === "submitSocialPost") return submitSocialPost_(body);
   if (body.action === "submitOfficialSocialPost") return submitOfficialSocialPost_(body);
   if (body.action === "createModerationSession") return requestModerationSession_(body);
+  if (body.action === "createScoreEditorSession") return requestScoreEditorSession_(body);
+  if (body.action === "submitMatchResult" && isScoreEditorSession_(body.scoreSessionToken)) return submitMatchResult_(body);
   if (["moderateSocialPost", "markSocialPostViewed", "setSocialPostingBan"].includes(body.action)) return handleSocialModeration_(body);
   if (body.action === "submitMatchVote") return submitMatchVote_(body);
   if (body.action === "saveTeamPageDesign") return saveTeamPageDesign_(body);
@@ -832,6 +836,33 @@ function readModerationPosts_(){return allSocialPosts_().sort((a,b)=>String(b.su
 function readSocialBans_(){const sh=socialBansSheet_(),n=sh.getLastRow(),out={};if(n<2)return out;sh.getRange(2,1,n-1,4).getDisplayValues().forEach(r=>{const id=String(r[0]).toUpperCase();if(TEAM_IDS.includes(id))out[id]={banned:String(r[1]).toLowerCase()==="true",reason:String(r[2]||""),updatedAt:String(r[3]||"")};});return out;}
 function readSocialAudit_(){const sh=socialAuditSheet_(),n=sh.getLastRow();if(n<2)return [];return sh.getRange(Math.max(2,n-99),1,Math.min(100,n-1),6).getDisplayValues().reverse().map(r=>({timestamp:r[0],action:r[1],postId:r[2],teamId:r[3],actor:r[4],reason:r[5]}));}
 function logSocial_(action,id,team,actor,reason){socialAuditSheet_().appendRow([new Date(),action,id||"",team||"",actor||"Admin",String(reason||"").slice(0,500)]);}
+function requestScoreEditorSession_(b) {
+  const props = PropertiesService.getScriptProperties();
+  const expected = String(props.getProperty("SCORE_EDITOR_CODE") || "");
+  const supplied = String(b.scoreEditorCode || "");
+  const nonce = String(b.nonce || "");
+  if (!/^[a-f0-9]{32,64}$/.test(nonce)) return jsonResponse_({ok:false,error:"Invalid session challenge."});
+  if (!expected || supplied.length < 12 || supplied !== expected) {
+    return jsonResponse_({ok:false,error:"Score editor code rejected."});
+  }
+  const token = Utilities.getUuid().replace(/-/g,"") + Utilities.getUuid().replace(/-/g,"");
+  const cache = CacheService.getScriptCache();
+  cache.put("scoreEditorSession:" + token, "score-editor", 21600);
+  cache.put("scoreEditorExchange:" + nonce, token, 60);
+  return jsonResponse_({ok:true,queued:true});
+}
+function consumeScoreEditorSession_(nonce) {
+  const n = String(nonce || "");
+  if (!/^[a-f0-9]{32,64}$/.test(n)) return {ok:false,error:"Invalid session challenge."};
+  const cache = CacheService.getScriptCache(), key = "scoreEditorExchange:" + n, token = cache.get(key);
+  if (!token) return {ok:false,error:"Session exchange pending. Try again."};
+  cache.remove(key);
+  return {ok:true,sessionToken:token,expiresIn:21600};
+}
+function isScoreEditorSession_(token) {
+  const value = String(token || "");
+  return /^[a-f0-9]{64}$/.test(value) && CacheService.getScriptCache().get("scoreEditorSession:" + value) === "score-editor";
+}
 function requestModerationSession_(b){const expected=PropertiesService.getScriptProperties().getProperty("ADMIN_TOKEN"),nonce=String(b.nonce||"");if(!expected||String(b.adminToken||"")!==expected)return jsonResponse_({ok:false,error:"Admin token rejected."});if(!/^[a-f0-9]{32,64}$/.test(nonce))return jsonResponse_({ok:false,error:"Invalid session challenge."});const t=Utilities.getUuid().replace(/-/g,"")+Utilities.getUuid().replace(/-/g,"");const cache=CacheService.getScriptCache();cache.put("socialAdminSession:"+t,"admin",1800);cache.put("socialSessionExchange:"+nonce,t,60);return jsonResponse_({ok:true,queued:true});}
 function consumeModerationSession_(nonce){const n=String(nonce||"");if(!/^[a-f0-9]{32,64}$/.test(n))return {ok:false,error:"Invalid session challenge."};const cache=CacheService.getScriptCache(),key="socialSessionExchange:"+n,t=cache.get(key);if(!t)return {ok:false,error:"Session exchange pending. Try again."};cache.remove(key);return {ok:true,sessionToken:t,expiresIn:1800};}
 function getModerationSession_(token){return /^[a-f0-9]{64}$/.test(String(token||""))&&CacheService.getScriptCache().get("socialAdminSession:"+token)==="admin";}
