@@ -2680,7 +2680,7 @@ function renderAdminPage() {
           </div>
         </div>
       </section>
-      <div class="admin-portal-entry"><a class="admin-button page-access-studio" href="team-editor.html">OPEN TEAM EDITOR PORTAL ↗</a></div>
+      <div class="admin-portal-entry"><a class="admin-button page-access-studio" href="team-editor.html">OPEN TEAM EDITOR PORTAL ↗</a> <a class="admin-button" href="score-entry.html">OPEN SCORE ENTRY PORTAL ↗</a></div>
     `;
 
     document.getElementById("adminUnlock").addEventListener("click", unlockAdmin);
