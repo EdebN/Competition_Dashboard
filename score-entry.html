@@ -65,7 +65,8 @@ async function loadData(){
  ]);
  const rows=parseCSV(csvResponse);if(rows.length<2)throw new Error("No fixtures were found in the published CSV.");
  fixtures=rows.slice(1).map(r=>({id:Number(String(r[0]||"").trim()),home:String(r[1]||"").trim(),homeScore:r[2],away:String(r[3]||"").trim(),awayScore:r[4],stage:String(r[5]||"REGULAR").trim()})).filter(f=>Number.isInteger(f.id)&&f.home&&f.away);
- if(!resultResponse?.ok||!Array.isArray(resultResponse.results))throw new Error("Could not read official results from Apps Script.");
+ if(!resultResponse?.ok)throw new Error("Apps Script rejected the results request: "+String(resultResponse?.error||"no error details returned")+". Check the Apps Script deployment and its RESULTS_SPREADSHEET_ID / RESULTS_SHEET_NAME settings.");
+ if(!Array.isArray(resultResponse.results))throw new Error("Apps Script responded, but did not return a results array. The URL may point to an outdated or different script deployment.");
  savedResults=resultResponse.results;
  const select=$("fixture"),previous=select.value;select.innerHTML="";
  fixtures.sort((a,b)=>a.id-b.id).forEach(f=>{const o=document.createElement("option");o.value=String(f.id);o.textContent="Game "+f.id+" · "+f.home+" vs "+f.away+" · "+(f.stage||"REGULAR");select.appendChild(o);});
