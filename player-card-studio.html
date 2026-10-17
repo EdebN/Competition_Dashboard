@@ -237,30 +237,48 @@
 @media(max-width:700px){.layout{grid-template-columns:1fr}.left,.right{border:0;border-bottom:1px solid var(--line)}.left{order:0}.stage{order:1}.right{order:2}.templates{grid-template-columns:repeat(3,minmax(0,1fr))}.swatch{height:65px}.preview-wrap{width:min(86%,340px)}}
 
 
-/* Keep custom attribute names legible and isolated inside their own stat cells. */
+/* Keep each attribute on a single line so it cannot collide with the next grid row. */
 .player-card .stats{column-gap:2%;row-gap:3%;align-items:stretch}
-.player-card .stats .stat{min-width:0;min-height:0;overflow:hidden;padding:0 1px}
-.player-card .stats .stat b{flex:0 0 auto;max-width:100%;white-space:nowrap;font-variant-numeric:tabular-nums}
+.player-card .stats .stat{
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  gap:2px;
+  min-width:0;
+  min-height:0;
+  overflow:hidden;
+  padding:0 1px;
+  white-space:nowrap;
+}
+.player-card .stats .stat b{
+  display:block;
+  flex:0 0 auto;
+  max-width:100%;
+  white-space:nowrap;
+  line-height:1;
+  font-variant-numeric:tabular-nums;
+}
 .player-card .stats .stat span{
   display:block;
+  flex:0 0 auto;
   width:100%;
   min-width:0;
   max-width:100%;
   height:auto;
-  min-height:0;
-  max-height:2.5em;
-  margin-top:2px;
+  max-height:none;
+  margin:0;
   overflow:hidden;
   text-overflow:clip;
-  white-space:normal;
-  overflow-wrap:anywhere;
+  white-space:nowrap;
+  overflow-wrap:normal;
   word-break:normal;
-  line-height:1.15;
-  letter-spacing:.025em;
-  font-size:clamp(5px,.72vw,7px);
+  line-height:1.1;
+  letter-spacing:0;
+  font-size:clamp(5px,.62vw,6.5px);
 }
 @media(max-width:700px){
-  .player-card .stats .stat span{font-size:clamp(5px,1.65vw,7px);letter-spacing:0}
+  .player-card .stats .stat span{font-size:clamp(5px,1.5vw,6.5px);letter-spacing:0}
 }
 @media(max-width:390px){
   .player-card .stats .stat span{font-size:5px;letter-spacing:0}
