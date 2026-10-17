@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Score Entry Portal</title>
+<style>
+:root{color-scheme:dark;--bg:#0c0d10;--panel:#15171c;--line:#2b2e36;--text:#f4f0e7;--muted:#a4a7af;--gold:#d8b45a;--good:#69d2a1;--bad:#ff8888}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 15% 0%,#29251b 0,transparent 42%),var(--bg);color:var(--text);font:16px/1.5 system-ui,-apple-system,sans-serif;min-height:100vh}
+main{width:min(760px,calc(100% - 32px));margin:48px auto}header{margin-bottom:28px}.eyebrow{color:var(--gold);font-size:12px;font-weight:800;letter-spacing:.16em;text-transform:uppercase}h1{font-size:clamp(30px,6vw,48px);line-height:1.05;letter-spacing:-.04em;margin:10px 0}p{color:var(--muted)}.panel{background:rgba(21,23,28,.94);border:1px solid var(--line);border-radius:18px;padding:clamp(18px,4vw,28px);margin:18px 0;box-shadow:0 18px 60px #0003}.field{display:grid;gap:7px;margin:16px 0}label{font-size:12px;color:var(--muted);font-weight:800;letter-spacing:.08em;text-transform:uppercase}input,select{width:100%;background:#0e1014;border:1px solid #393d47;border-radius:10px;padding:13px 14px;color:var(--text);font:inherit;min-height:48px}input:focus,select:focus{outline:2px solid var(--gold);outline-offset:2px}.scores{display:grid;grid-template-columns:1fr 1fr;gap:14px}.score-input{font-size:28px;font-weight:750;text-align:center}.button{background:var(--gold);border:0;border-radius:10px;color:#19160e;font:800 13px system-ui,sans-serif;letter-spacing:.06em;padding:15px 18px;min-height:48px;cursor:pointer}.button:disabled{opacity:.55;cursor:wait}.button.secondary{background:transparent;color:var(--text);border:1px solid var(--line)}.status{min-height:24px;margin-top:14px;font-size:14px;color:var(--muted);overflow-wrap:anywhere}.status.good{color:var(--good)}.status.bad{color:var(--bad)}.hidden{display:none!important}.row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}.row .button{flex:1}.small{font-size:12px;color:var(--muted)}footer{margin-top:30px;font-size:12px;color:var(--muted)}@media(max-width:520px){main{margin:28px auto}.scores{gap:9px}.panel{border-radius:14px}}
+</style>
+</head>
+<body>
+<main>
+<header><div class="eyebrow">Competition · Operations</div><h1>Score entry</h1><p>Enter an official match result. This portal can edit scores only, not team settings or other admin controls.</p></header>
+<section class="panel" id="loginPanel">
+<h2>Score editor access</h2><p>Use the separate score editor code supplied by the competition administrator. Do not use or share the main admin token.</p>
+<div class="field"><label for="code">Score editor code</label><input id="code" type="password" autocomplete="current-password" placeholder="Enter score editor code"></div>
+<button class="button" id="unlock">UNLOCK SCORE ENTRY</button><div class="status" id="loginStatus" role="status" aria-live="polite"></div>
+</section>
+<section class="panel hidden" id="entryPanel">
+<div class="row"><h2 style="margin:0;flex:1">Official result</h2><button class="button secondary" id="lock" type="button">LOCK PORTAL</button></div>
+<div class="field"><label for="fixture">Fixture</label><select id="fixture"><option value="">Loading fixtures…</option></select></div>
+<div class="scores">
+<div class="field"><label id="homeLabel" for="homeScore">Home score</label><input class="score-input" id="homeScore" type="number" min="0" max="99" step="1" inputmode="numeric" placeholder="0"></div>
+<div class="field"><label id="awayLabel" for="awayScore">Away score</label><input class="score-input" id="awayScore" type="number" min="0" max="99" step="1" inputmode="numeric" placeholder="0"></div>
+</div>
+<div class="row"><button class="button" id="save">SAVE OFFICIAL RESULT</button><button class="button secondary" id="refresh" type="button">REFRESH DATA</button></div>
+<div class="status" id="saveStatus" role="status" aria-live="polite"></div>
+<p class="small">Scores are written to the official Google Sheet. Every save is verified by reading the result back. Double-check the fixture before saving.</p>
+</section>
+<footer>Access expires after six hours or when you lock the portal. Keep the score editor code private to the people authorised to enter results.</footer>
+</main>
+<script>
+"use strict";
+const API_URL = "https://script.google.com/macros/s/AKfycbyPmT_MGawjMgV_V_vb-4rOuEBVo9SxJdJbSP2lIifU29NuEkxkn929q5S-i0b_RSvC/exec";
+const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT2tLmAB4OB6uWLeBeCSWLMarzK9RjelvVTJRGqsm94yVijiT25leyXnPWhJybPtoyMKUgfBL6tTzFe/pub?output=csv";
+let scoreSessionToken = "";
+let fixtures = [];
+let savedResults = [];
+const $ = id => document.getElementById(id);
+function status(id, message, kind="") { const el=$(id); el.textContent=message; el.className="status"+(kind?" "+kind:""); }
+function post(payload) { return fetch(API_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=UTF-8"},body:JSON.stringify(payload)}); }
+function get(action, params={}) {
+ return new Promise((resolve,reject)=>{
+  const callback="scorePortalCb"+Math.random().toString(36).slice(2);
+  const url=new URL(API_URL);url.searchParams.set("action",action);url.searchParams.set("callback",callback);url.searchParams.set("_",String(Date.now()));
+  Object.entries(params).forEach(([k,v])=>url.searchParams.set(k,String(v)));
+  const script=document.createElement("script");let done=false;
+  const finish=(err,value)=>{if(done)return;done=true;delete window[callback];script.remove();err?reject(err):resolve(value);};
+  window[callback]=value=>finish(null,value);script.onerror=()=>finish(new Error("Could not reach Apps Script."));script.src=url.toString();document.head.appendChild(script);
+  setTimeout(()=>finish(new Error("Request timed out.")),10000);
+ });
+}
+function parseCSV(text){
+ const rows=[];let row=[],value="",quoted=false;
+ for(let i=0;i<text.length;i++){const c=text[i],n=text[i+1];if(c==='"'&&quoted&&n==='"'){value+='"';i++;continue;}if(c==='"'){quoted=!quoted;continue;}if((c==="\n"||c==="\r")&&!quoted){if(c==="\r"&&n==="\n")i++;row.push(value);if(row.some(v=>v.trim()))rows.push(row);row=[];value="";continue;}if(c===", "&&!quoted){row.push(value);value="";continue;}if(c===","&&!quoted){row.push(value);value="";continue;}value+=c;}
+ if(value!==""||row.length){row.push(value);if(row.some(v=>v.trim()))rows.push(row);}return rows;
+}
+async function loadData(){
+ status("saveStatus","Loading fixtures and saved results…");
+ const [csvResponse,resultResponse]=await Promise.all([
+  fetch(CSV_URL+"&cacheBust="+Date.now()).then(r=>{if(!r.ok)throw new Error("Fixture sheet could not be loaded.");return r.text();}),
+  get("getMatchResults")
+ ]);
+ const rows=parseCSV(csvResponse);if(rows.length<2)throw new Error("No fixtures were found in the published CSV.");
+ fixtures=rows.slice(1).map(r=>({id:Number(String(r[0]||"").trim()),home:String(r[1]||"").trim(),homeScore:r[2],away:String(r[3]||"").trim(),awayScore:r[4],stage:String(r[5]||"REGULAR").trim()})).filter(f=>Number.isInteger(f.id)&&f.home&&f.away);
+ if(!resultResponse?.ok||!Array.isArray(resultResponse.results))throw new Error("Could not read official results from Apps Script.");
+ savedResults=resultResponse.results;
+ const select=$("fixture"),previous=select.value;select.innerHTML="";
+ fixtures.sort((a,b)=>a.id-b.id).forEach(f=>{const o=document.createElement("option");o.value=String(f.id);o.textContent="Game "+f.id+" · "+f.home+" vs "+f.away+" · "+(f.stage||"REGULAR");select.appendChild(o);});
+ if(previous&&fixtures.some(f=>String(f.id)===previous))select.value=previous;
+ fillScores();status("saveStatus","Loaded "+fixtures.length+" fixtures. Official results are connected.","good");
+}
+function selectedFixture(){return fixtures.find(f=>f.id===Number($("fixture").value));}
+function savedFor(id){return savedResults.find(r=>Number(r.matchId)===id);}
+function fillScores(){
+ const f=selectedFixture();if(!f)return;
+ $("homeLabel").textContent=f.home+" score";$("awayLabel").textContent=f.away+" score";
+ const r=savedFor(f.id);
+ $("homeScore").value=r&&r.homeScore!==null&&r.homeScore!==""?r.homeScore:"";
+ $("awayScore").value=r&&r.awayScore!==null&&r.awayScore!==""?r.awayScore:"";
+ status("saveStatus",r&&r.homeScore!==null&&r.awayScore!==null?"Current official score: "+r.homeScore+"–"+r.awayScore+".":"No official result recorded for this fixture.");
+}
+async function unlock(){
+ const code=$("code").value;
+ if(!code){status("loginStatus","Enter the score editor code.","bad");return;}
+ $("unlock").disabled=true;status("loginStatus","Verifying with Apps Script…");
+ const nonce=Array.from(crypto.getRandomValues(new Uint8Array(24))).map(b=>b.toString(16).padStart(2,"0")).join("");
+ try{
+  await post({action:"createScoreEditorSession",scoreEditorCode:code,nonce});
+  let session=null;
+  for(let i=0;i<8;i++){await new Promise(r=>setTimeout(r,350));try{session=await get("getScoreEditorSession",{nonce});if(session?.ok&&session.sessionToken)break;}catch{}}
+  if(!session?.ok||!session.sessionToken)throw new Error("Code rejected or server unavailable. Check with the competition administrator.");
+  scoreSessionToken=session.sessionToken;$("loginPanel").classList.add("hidden");$("entryPanel").classList.remove("hidden");
+  await loadData();
+ }catch(e){scoreSessionToken="";status("loginStatus",e.message||"Could not verify code.","bad");}
+ finally{$("unlock").disabled=false;}
+}
+async function save(){
+ const f=selectedFixture(),h=$("homeScore").value,a=$("awayScore").value;
+ if(!scoreSessionToken){status("saveStatus","Session expired. Unlock the portal again.","bad");return;}
+ if(!f){status("saveStatus","Choose a fixture first.","bad");return;}
+ if(h===""||a===""||!Number.isInteger(Number(h))||!Number.isInteger(Number(a))||Number(h)<0||Number(a)<0||Number(h)>99||Number(a)>99){status("saveStatus","Enter whole-number scores from 0 to 99.","bad");return;}
+ if(!confirm("Save Game "+f.id+": "+f.home+" "+h+"–"+a+" "+f.away+"? This changes the official result."))return;
+ $("save").disabled=true;status("saveStatus","Saving and verifying the official score…");
+ try{
+  await post({action:"submitMatchResult",scoreSessionToken,matchId:f.id,homeScore:Number(h),awayScore:Number(a)});
+  let verified=null;
+  for(let i=0;i<8;i++){await new Promise(r=>setTimeout(r,500));try{const response=await get("getMatchResults");verified=response?.ok&&Array.isArray(response.results)?response.results.find(r=>Number(r.matchId)===f.id):null;if(verified&&Number(verified.homeScore)===Number(h)&&Number(verified.awayScore)===Number(a))break;}catch{}}
+  if(!verified||Number(verified.homeScore)!==Number(h)||Number(verified.awayScore)!==Number(a))throw new Error("Could not verify the saved score. Contact the administrator; do not repeatedly submit.");
+  savedResults=savedResults.filter(r=>Number(r.matchId)!==f.id);savedResults.push(verified);
+  status("saveStatus","Saved and verified: "+f.home+" "+h+"–"+a+" "+f.away+".","good");
+ }catch(e){status("saveStatus",e.message||"Save failed.","bad");}
+ finally{$("save").disabled=false;}
+}
+function lock(){scoreSessionToken="";$("code").value="";$("entryPanel").classList.add("hidden");$("loginPanel").classList.remove("hidden");status("loginStatus","Portal locked.");}
+$("unlock").addEventListener("click",unlock);$("code").addEventListener("keydown",e=>{if(e.key==="Enter")unlock();});$("fixture").addEventListener("change",fillScores);$("save").addEventListener("click",save);$("refresh").addEventListener("click",()=>loadData().catch(e=>status("saveStatus",e.message,"bad")));$("lock").addEventListener("click",lock);
+</script>
+</body>
+</html>
