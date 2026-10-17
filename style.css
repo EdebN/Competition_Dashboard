@@ -1845,8 +1845,11 @@ tr:last-child td {
 
 
 /* Team Editor portal at the bottom of all Admin controls */
-.admin-portal-entry { margin: 18px 0 26px; max-width: 650px; }
-.admin-portal-entry .page-access-studio { display:flex; width:100%; min-height:46px; box-sizing:border-box; align-items:center; justify-content:center; }
+.admin-portal-entry { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; margin:18px 0 26px; max-width:650px; }
+.admin-portal-entry .admin-button { display:flex; width:100%; min-height:48px; box-sizing:border-box; align-items:center; justify-content:center; padding:0 14px; border-color:#6d5b30; border-radius:11px; background:linear-gradient(135deg,#e8c76e,#c99d42); color:#17140d; font-size:10px; font-weight:900; letter-spacing:.055em; text-align:center; text-decoration:none; transition:transform .16s,filter .16s,box-shadow .16s; }
+.admin-portal-entry .admin-button:hover { transform:translateY(-2px); filter:brightness(1.08); box-shadow:0 8px 22px #d8b45a20; }
+.admin-portal-entry .admin-button:focus-visible { outline:2px solid #f4d57f; outline-offset:3px; }
+@media(max-width:520px){ .admin-portal-entry { grid-template-columns:1fr; } }
 
 /* MATCH CENTRE */
 .match-clickable{cursor:pointer;transition:border-color .15s,background .15s}.match-clickable:hover,.match-clickable:focus-visible{border-color:#526477;background:#101720;outline:none}
