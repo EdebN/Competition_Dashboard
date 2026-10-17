@@ -196,7 +196,7 @@ function attachMatchMentionPicker(textarea,menu,maximumId=84){
  if(!textarea||!menu)return;
  const hide=()=>{menu.hidden=true;menu.innerHTML="";};
  const render=()=>{
-  const cursor=textarea.selectionStart,token=textarea.value.slice(0,cursor).match(/(^|\\s)@(\\d*)$/);
+  const cursor=textarea.selectionStart,token=textarea.value.slice(0,cursor).match(/(^|\s)@(\d*)$/);
   if(!token){hide();return;}
   const digits=token[2],ids=Array.from({length:maximumId},(_,i)=>i+1).filter(id=>!digits||String(id).startsWith(digits)).slice(0,8);
   if(!ids.length){hide();return;}
