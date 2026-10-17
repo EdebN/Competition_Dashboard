@@ -20,7 +20,7 @@ main{width:100%;max-width:1120px;margin:auto;padding:clamp(28px,6vw,72px) clamp(
 .tool-card{position:relative;display:flex;flex-direction:column;min-height:310px;overflow:hidden;padding:clamp(20px,3vw,30px);border:1px solid #2a435f;border-radius:20px;background:linear-gradient(150deg,rgba(17,37,60,.98),rgba(10,22,37,.98));box-shadow:0 20px 55px #0002;transition:transform .18s,border-color .18s,box-shadow .18s}
 .tool-card:hover{transform:translateY(-3px);border-color:#55779a;box-shadow:0 25px 65px #0003}
 .card-icon{display:grid;place-items:center;width:54px;height:54px;border:1px solid #3c5a78;border-radius:16px;background:#142a43;color:var(--gold2);font-size:24px}
-.tool-card.posts .card-icon{color:#9bd3f2;background:#132d43;border-color:#315e7e}
+.tool-card.posts .card-icon{color:#9bd3f2;background:#132d43;border-color:#315e7e}\n.tool-card.cards .card-icon{color:var(--gold2);background:#302a1b;border-color:#76602f}
 .card-kicker{margin:24px 0 6px;color:#9cb1c8;font-size:10px;font-weight:900;letter-spacing:.14em;text-transform:uppercase}.tool-card h2{margin:0;font-size:clamp(20px,2.3vw,27px);letter-spacing:-.035em}.tool-card p{margin:10px 0 22px;max-width:430px;color:var(--muted);font-size:12px;line-height:1.8}
 .card-action{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-top:auto;padding-top:18px;border-top:1px solid #253d57;color:#e7eff9;font-size:11px;font-weight:900}.arrow{display:grid;place-items:center;width:32px;height:32px;border:1px solid #3a5470;border-radius:9px;background:#14283e;color:var(--gold2);font-size:18px}
 .note{max-width:700px;margin:22px auto 0;padding:14px 16px;border:1px solid #243d57;border-radius:12px;background:#0b1929;color:#91a6bf;font-size:11px;line-height:1.8;text-align:center}
@@ -48,6 +48,13 @@ footer{padding:18px;text-align:center;color:#6f859e;font-size:10px}
    <h2>Team page editor</h2>
    <p>Edit your public team page, arrange its content and publish your changes when you're ready.</p>
    <span class="card-action">OPEN PAGE DESIGNER <span class="arrow" aria-hidden="true">↗</span></span>
+  </a>
+  <a class="tool-card cards" href="player-card-studio.html">
+   <span class="card-icon" aria-hidden="true">▧</span>
+   <p class="card-kicker">Squad presentation</p>
+   <h2>Player Card Studio</h2>
+   <p>Create custom flag-football player cards, choose from multiple themes, save your player library and export high-resolution PNGs for team posts.</p>
+   <span class="card-action">DESIGN PLAYER CARDS <span class="arrow" aria-hidden="true">↗</span></span>
   </a>
   <a class="tool-card posts" href="team-posts.html">
    <span class="card-icon" aria-hidden="true">✎</span>
