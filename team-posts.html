@@ -148,7 +148,7 @@ footer{padding:18px;text-align:center;color:#6f859e;font-size:10px}
         <div class="field"><label for="postCategory">Category</label><select id="postCategory" name="category"><option>Team news</option><option>Announcements</option><option>Match reports</option></select></div>
         <div class="field">
           <label for="postBody">Post</label>
-          <textarea id="postBody" name="body" required minlength="10" maxlength="5000" placeholder="Add the main details of your update." ></textarea>
+          <textarea id="postBody" name="body" required minlength="10" maxlength="5000" placeholder="Add the main details of your update." ></textarea><div class="match-mention-hint">Type <strong>@</strong> then choose a match number from the dropdown.</div><div class="match-mention-menu" id="teamMatchMentionMenu" hidden></div>
           <div class="field-meta"><span>10–5,000 characters</span><output id="bodyCount">0 / 5,000</output></div>
         </div>
         <div class="form-actions">
@@ -192,6 +192,35 @@ function apiRead(action,params={}){
   script.async=true;script.src=url.toString();document.head.appendChild(script);
  });
 }
+function attachMatchMentionPicker(textarea,menu,maximumId=84){
+ if(!textarea||!menu)return;
+ const hide=()=>{menu.hidden=true;menu.innerHTML="";};
+ const render=()=>{
+  const cursor=textarea.selectionStart,token=textarea.value.slice(0,cursor).match(/(^|\\s)@(\\d*)$/);
+  if(!token){hide();return;}
+  const digits=token[2],ids=Array.from({length:maximumId},(_,i)=>i+1).filter(id=>!digits||String(id).startsWith(digits)).slice(0,8);
+  if(!ids.length){hide();return;}
+  menu.innerHTML='<div class="match-mention-menu-label">INSERT MATCH</div>'+ids.map(id=>'<button type="button" class="match-mention-option" data-match-id="'+id+'"><span>@'+id+'</span><small>GAME '+id+'</small></button>').join("");
+  menu.hidden=false;
+  menu.querySelectorAll("[data-match-id]").forEach(button=>{
+   button.addEventListener("mousedown",event=>event.preventDefault());
+   button.addEventListener("click",()=>{
+    textarea.setRangeText("@"+button.dataset.matchId+" ",Math.max(0,cursor-token[2].length-1),cursor,"end");
+    textarea.dispatchEvent(new Event("input",{bubbles:true}));hide();textarea.focus();
+   });
+  });
+ };
+ textarea.addEventListener("input",render);textarea.addEventListener("click",render);
+ textarea.addEventListener("keyup",event=>{if(!["ArrowUp","ArrowDown","Enter","Escape"].includes(event.key))render();});
+ textarea.addEventListener("keydown",event=>{
+  if(menu.hidden)return;
+  const options=[...menu.querySelectorAll("[data-match-id]")];
+  if(event.key==="Escape"){hide();return;}
+  if(event.key==="ArrowDown"&&options.length){event.preventDefault();options[0].focus();}
+  if(event.key==="Enter"&&options.length){event.preventDefault();options[0].click();}
+ });
+}
+attachMatchMentionPicker($("postBody"),$("teamMatchMentionMenu"));
 async function postAction(payload){
  await fetch(API_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=UTF-8"},body:JSON.stringify(payload)});
 }
