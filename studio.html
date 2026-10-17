@@ -218,6 +218,16 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
 .toolbar-more-panel .field input[type=color]{height:34px;padding:3px}
 .toolbar-more-panel .field input[type=range]{padding:0}
 .toolbar-grid-two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.layout-position-picker{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin:2px 0 12px}
+.layout-position-choice{display:grid;gap:7px;min-width:0;padding:9px;border:1px solid #dce2e9;border-radius:9px;background:#f8fafc;color:#42536a;text-align:left}
+.layout-position-choice:hover{background:#edf4fb;border-color:#a9c9e8}
+.layout-position-choice[aria-pressed="true"]{background:#e8f2fc;border-color:#4388c5;box-shadow:0 0 0 1px #4388c533;color:#174b7d}
+.layout-position-choice>span:first-child{font-size:11px;font-weight:800}
+.layout-track{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:3px;min-height:12px}
+.layout-track i{display:block;height:11px;border:1px solid #d7e0e9;border-radius:3px;background:#e7edf4}
+.layout-track .layout-block{display:block;grid-row:1;height:11px;border:1px solid #2d79b8;border-radius:3px;background:#7eb9e9;min-width:0}
+.layout-position-choice[aria-pressed="true"] .layout-track .layout-block{background:#2678c8;border-color:#155d9e}
+.layout-position-note{margin:-3px 0 11px;color:#78869a;font-size:10px;line-height:1.55}
 .toolbar-inline-note{margin-top:5px;color:#78869a;font-size:10px;line-height:1.55}
 .toolbar-check{display:flex;align-items:center;gap:7px;margin:3px 0 10px;color:#53647a;font-size:11px}
 .toolbar-check input{accent-color:#2368a8}
@@ -696,8 +706,17 @@ function renderToolbar(){
  }
  html+='<div class="toolbar-panel-heading">Layout</div><div class="toolbar-grid-two">';
  html+='<div class="field"><label for="tb-width">Width</label><select id="tb-width">'+[25,50,75,100].map(n=>'<option value="'+n+'" '+(Number(b.width)===n?"selected":"")+'>'+n+'%</option>').join("")+'</select></div>';
- html+='<div class="field"><label for="tb-position">Horizontal position</label><select id="tb-position">'+[['auto','Default'],['left','Left'],['center','Centre'],['right','Right']].map(([v,l])=>'<option value="'+v+'" '+((b.position||"auto")===v?"selected":"")+'>'+l+'</option>').join("")+'</select></div>';
- html+='</div><div class="toolbar-grid-two"><div class="field"><label for="tb-verticalAlign">Vertical alignment</label><select id="tb-verticalAlign">'+[['top','Top'],['middle','Middle'],['bottom','Bottom']].map(([v,l])=>'<option value="'+v+'" '+((b.verticalAlign||"top")===v?"selected":"")+'>'+l+'</option>').join("")+'</select></div>';
+ html+='<div class="field"><label for="tb-position">Horizontal position</label><select id="tb-position">'+[['auto','Auto placement'],['left','Left'],['center','Centre'],['right','Right']].map(([v,l])=>'<option value="'+v+'" '+((b.position||"auto")===v?"selected":"")+'>'+l+'</option>').join("")+'</select></div>';
+ html+='</div><div class="field"><label>Position preview · 4-column grid</label><div class="layout-position-picker" id="tb-position-picker">';
+ const layoutSpan=spanFor(b);
+ const layoutPositions=[["auto","Auto"],["left","Left"],["center","Centre"],["right","Right"]];
+ html+=layoutPositions.map(([value,label])=>{
+  const start=value==="left"?1:value==="right"?(5-layoutSpan):value==="center"?(Math.floor((4-layoutSpan)/2)+1):1;
+  const placement=value==="auto"?"grid-column:span "+layoutSpan+";justify-self:start;":"grid-column:"+start+" / span "+layoutSpan+";";
+  return '<button type="button" class="layout-position-choice" data-tb-position="'+value+'" aria-pressed="'+((b.position||"auto")===value)+'"><span>'+label+'</span><span class="layout-track" aria-hidden="true"><span class="layout-block" style="'+placement+'"></span>'+[1,2,3,4].map(()=>'<i></i>').join("")+'</span></button>';
+ }).join("");
+ html+='</div><p class="layout-position-note">Choose where this block sits across the page. The width setting controls how many columns it occupies.</p>';
+ html+='<div class="toolbar-grid-two"><div class="field"><label for="tb-verticalAlign">Vertical alignment</label><select id="tb-verticalAlign">'+[['top','Top'],['middle','Middle'],['bottom','Bottom']].map(([v,l])=>'<option value="'+v+'" '+((b.verticalAlign||"top")===v?"selected":"")+'>'+l+'</option>').join("")+'</select></div>';
  if(["button","card","stat","quote","badge","divider"].includes(b.type)){
   html+='<div class="field"><label for="tb-padding">'+(b.type==="divider"?"Vertical spacing":"Inner spacing")+' (px)</label><input id="tb-padding" type="number" min="0" max="100" value="'+esc(b.padding||0)+'"></div>';
  }
@@ -746,6 +765,25 @@ function renderToolbar(){
  bindValue("tb-radius","radius",v=>Math.max(0,Math.min(100,Number(v)||0)));
  bindValue("tb-width","width",v=>[25,50,75,100].includes(Number(v))?Number(v):100);
  bindValue("tb-position","position");
+ const refreshPositionPicker=()=>{
+  const current=blocks.find(x=>x.id===selected);if(!current)return;
+  const span=spanFor(current);
+  floatingToolbar.querySelectorAll("[data-tb-position]").forEach(button=>{
+   const value=button.dataset.tbPosition;
+   button.setAttribute("aria-pressed",String((current.position||"auto")===value));
+   const block=button.querySelector(".layout-block");if(!block)return;
+   const start=value==="left"?1:value==="right"?(5-span):value==="center"?(Math.floor((4-span)/2)+1):1;
+   block.style.gridColumn=value==="auto"?"span "+span:""+start+" / span "+span;
+   block.style.justifySelf=value==="auto"?"start":"stretch";
+  });
+  const positionSelect=$("tb-position");if(positionSelect)positionSelect.value=current.position||"auto";
+ };
+ floatingToolbar.querySelectorAll("[data-tb-position]").forEach(button=>button.addEventListener("click",()=>{
+  const current=blocks.find(x=>x.id===selected);if(!current)return;
+  current.position=button.dataset.tbPosition;
+  pushHistory();render(); 
+ }));
+ $("tb-width")?.addEventListener("change",refreshPositionPicker);
  bindValue("tb-verticalAlign","verticalAlign");
  bindValue("tb-align","align");
  $("tb-metric")?.addEventListener("change",e=>updateProp("metric",e.target.value));
@@ -963,6 +1001,26 @@ $("exportJsonBtn").onclick=()=>download("canvas-studio-design.json",snapshot(),"
 $("importBtn").onclick=()=>$("jsonFile").click();
 $("jsonFile").addEventListener("change",e=>{const file=e.target.files?.[0];if(!file)return;const r=new FileReader();r.onload=()=>{try{restore(r.result);pushHistory();toast("Design imported.");}catch(err){toast("That JSON file isn't a valid Studio design.");}};r.readAsText(file);e.target.value="";});
 let toastTimer;function toast(msg){const t=$("toast");t.textContent=msg;t.classList.add("show");clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove("show"),2200);}
+// Keyboard shortcuts stay out of the way while editing text or using form controls.
+document.addEventListener("keydown",event=>{
+ const target=event.target;
+ const typing=target instanceof HTMLElement&&(target.isContentEditable||target.closest("input,textarea,select,[contenteditable='true'],[contenteditable='plaintext-only']"));
+ if(typing||activeTextEdit)return;
+ const mod=event.metaKey||event.ctrlKey;
+ if(mod&&event.key.toLowerCase()==="z"){
+  event.preventDefault();if(event.shiftKey)redo();else undo();return;
+ }
+ if(mod&&event.key.toLowerCase()==="y"){event.preventDefault();redo();return;}
+ if(mod&&event.key.toLowerCase()==="d"){
+  const index=blocks.findIndex(block=>block.id===selected);if(index<0)return;
+  event.preventDefault();const copy={...structuredClone(blocks[index]),id:"b"+(++seq)};
+  blocks.splice(index+1,0,copy);selected=copy.id;pushHistory();render();return;
+ }
+ if((event.key==="Delete"||event.key==="Backspace")&&selected){
+  const index=blocks.findIndex(block=>block.id===selected);if(index<0)return;
+  event.preventDefault();blocks.splice(index,1);selected=null;pushHistory();render();
+ }
+});
 blocks=[makeBlock("badge",{text:"TEAM SPOTLIGHT"}),makeBlock("heading",{text:"Build something yours",fontSize:44}),makeBlock("text",{text:"This is a freeform canvas. Add blocks, move them around, drop in images, and style every element."}),makeBlock("image",{alt:"Upload your own team photo, logo or banner",src:""}),makeBlock("card",{text:"Your team. Your identity.\nCreate a page that feels like your team instead of another identical template."})];
 selected=blocks[1].id;render();pushHistory();setWorkspaceStatus("Ready to edit","saved");startStatsPreview();
 })();
