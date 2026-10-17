@@ -3038,7 +3038,7 @@ function renderAdminPage() {
   const moderationPanel = document.createElement("section");
   moderationPanel.className = "card admin-card social-moderation-panel";
   moderationPanel.id = "socialModerationPanel";
-  moderationPanel.innerHTML = '<div class="section-title">SOCIALS</div><div class="social-mod-heading"><div><h2>Post moderation</h2><p>Review new submissions, manage publication and control posting access.</p></div><button type="button" class="admin-button" id="socialModRefresh">REFRESH QUEUE</button></div><section class="official-post-composer"><div class="official-post-brand"><span class="social-official-crest" aria-hidden="true"><svg viewBox="0 0 240 250" fill="none"><path d="M120 18L204 48V112C204 165 171 207 120 232C69 207 36 165 36 112V48L120 18Z" fill="#0A1728" stroke="#E0B95A" stroke-width="9"/><path d="M66 145L96 85H112L82 145H66Z" fill="#F4D57F"/><path d="M96 145L126 85H142L112 145H96Z" fill="#6EBCE7"/><path d="M126 145L156 85H172L142 145H126Z" fill="#F4D57F"/><path d="M74 160H166" stroke="#E0B95A" stroke-width="4" stroke-linecap="round"/></svg></span><div><strong>Competition Official</strong><span>Official account · published under the competition crest</span></div></div><form id="officialPostForm" class="official-post-form"><label>Headline<input class="admin-input" id="officialPostTitle" maxlength="120" minlength="3" required placeholder="Official announcement"></label><label>Category<select class="admin-input" id="officialPostCategory"><option>Announcements</option><option>Match reports</option><option>Team news</option></select></label><label>Post text<textarea class="admin-input" id="officialPostBody" maxlength="5000" minlength="10" required rows="4" placeholder="Write an official competition update…"></textarea></label><div class="official-post-actions"><span id="officialPostStatus" role="status" aria-live="polite">Official posts publish immediately.</span><button type="submit" class="admin-button">PUBLISH AS OFFICIAL</button></div></form></section><div id="socialModStatus" class="admin-info" role="status" aria-live="polite">Loading moderation queue…</div><div class="social-mod-tabs" role="tablist"><button type="button" class="social-mod-tab is-active" data-mod-tab="Unviewed">Unviewed <span id="socialModUnviewedCount">0</span></button><button type="button" class="social-mod-tab" data-mod-tab="Viewed">Viewed</button><button type="button" class="social-mod-tab" data-mod-tab="Bans">Posting bans</button><button type="button" class="social-mod-tab" data-mod-tab="Audit">Audit history</button></div><div id="socialModContent" class="social-mod-content"></div>';
+  moderationPanel.innerHTML = '<div class="section-title">SOCIALS</div><div class="social-mod-heading"><div><h2>Post moderation</h2><p>Review new submissions, manage publication and control posting access.</p></div><button type="button" class="admin-button" id="socialModRefresh">REFRESH QUEUE</button></div><section class="official-post-composer"><div class="official-post-brand"><span class="social-official-crest" aria-hidden="true"><svg viewBox="0 0 240 250" fill="none"><path d="M120 18L204 48V112C204 165 171 207 120 232C69 207 36 165 36 112V48L120 18Z" fill="#0A1728" stroke="#E0B95A" stroke-width="9"/><path d="M66 145L96 85H112L82 145H66Z" fill="#F4D57F"/><path d="M96 145L126 85H142L112 145H96Z" fill="#6EBCE7"/><path d="M126 145L156 85H172L142 145H126Z" fill="#F4D57F"/><path d="M74 160H166" stroke="#E0B95A" stroke-width="4" stroke-linecap="round"/></svg></span><div><strong>Competition Official</strong><span>Official account · published under the competition crest</span></div></div><form id="officialPostForm" class="official-post-form"><label>Headline<input class="admin-input" id="officialPostTitle" maxlength="120" minlength="3" required placeholder="Official announcement"></label><label>Category<select class="admin-input" id="officialPostCategory"><option>Announcements</option><option>Match reports</option><option>Team news</option></select></label><label>Post text<textarea class="admin-input" id="officialPostBody" maxlength="5000" minlength="10" required rows="4" placeholder="Write an official competition update…"></textarea><div class="match-mention-hint">Type <strong>@</strong> then choose a match number from the dropdown.</div><div class="match-mention-menu" id="officialMatchMentionMenu" hidden></div></label><div class="official-post-actions"><span id="officialPostStatus" role="status" aria-live="polite">Official posts publish immediately.</span><button type="submit" class="admin-button">PUBLISH AS OFFICIAL</button></div></form></section><div id="socialModStatus" class="admin-info" role="status" aria-live="polite">Loading moderation queue…</div><div class="social-mod-tabs" role="tablist"><button type="button" class="social-mod-tab is-active" data-mod-tab="Unviewed">Unviewed <span id="socialModUnviewedCount">0</span></button><button type="button" class="social-mod-tab" data-mod-tab="Viewed">Viewed</button><button type="button" class="social-mod-tab" data-mod-tab="Bans">Posting bans</button><button type="button" class="social-mod-tab" data-mod-tab="Audit">Audit history</button></div><div id="socialModContent" class="social-mod-content"></div>';
   page.appendChild(moderationPanel);
   initSocialModerationPanel();
 
@@ -5205,6 +5205,15 @@ async function loadSocialFeed() {
     console.error("Could not load Socials:", error);
   }
 }
+function renderSocialBody(value) {
+  return escapeHTML(String(value ?? ""))
+    .replace(/(^|\s)@(\d+)\b/g, (match, prefix, id) => {
+      const exists = Array.isArray(games) && games.some(game => Number(game.id) === Number(id));
+      if (!exists) return prefix + "@" + id;
+      return prefix + '<a class="social-match-mention" href="#" onclick="event.preventDefault();openMatchDetail(' + Number(id) + ')" aria-label="Open match ' + Number(id) + '">@' + Number(id) + '</a>';
+    })
+    .replace(/\n/g, "<br>");
+}
 function renderSocialFeed() {
   const feed = document.getElementById("social-feed");
   const count = document.getElementById("social-feed-count");
@@ -5236,7 +5245,7 @@ function renderSocialFeed() {
         '<div class="social-post-byline">' + identity + '<span class="social-post-date">' + escapeHTML(formatSocialDate(post.publishedAt)) + '</span></div>' +
         '<div class="social-post-meta">' + (post.featured ? '<span class="social-featured-label"><span aria-hidden="true">◆</span> FEATURED</span>' : '') + '<span class="social-category">' + escapeHTML(post.category || "Team news") + '</span></div>' +
         '<h3>' + escapeHTML(post.title) + '</h3>' +
-        '<p>' + escapeHTML(post.body).replace(/\n/g, "<br>") + '</p>' +
+        '<p>' + renderSocialBody(post.body) + '</p>' +
       '</div></article>';
   }).join("");
 }
@@ -5311,7 +5320,43 @@ async function refreshSocialModeration() {
     if (status) status.textContent = "Could not load moderation queue: " + (error?.message || "Unknown error");
   }
 }
+function attachMatchMentionPicker(textarea, menu, maximumId = 84) {
+  if (!textarea || !menu) return;
+  const hide = () => { menu.hidden = true; menu.innerHTML = ""; };
+  const availableIds = () => {
+    const ids = Array.isArray(games) && games.length ? games.map(game => Number(game.id)).filter(id => Number.isInteger(id) && id > 0) : Array.from({ length: maximumId }, (_, index) => index + 1);
+    return [...new Set(ids)].sort((a, b) => a - b);
+  };
+  const render = () => {
+    const cursor = textarea.selectionStart;
+    const token = textarea.value.slice(0, cursor).match(/(^|\s)@(\d*)$/);
+    if (!token) { hide(); return; }
+    const digits = token[2];
+    const ids = availableIds().filter(id => !digits || String(id).startsWith(digits)).slice(0, 8);
+    if (!ids.length) { hide(); return; }
+    menu.innerHTML = '<div class="match-mention-menu-label">INSERT MATCH</div>' + ids.map(id => '<button type="button" class="match-mention-option" data-match-id="' + id + '"><span>@' + id + '</span><small>GAME ' + id + '</small></button>').join("");
+    menu.hidden = false;
+    menu.querySelectorAll("[data-match-id]").forEach(button => {
+      button.addEventListener("mousedown", event => event.preventDefault());
+      button.addEventListener("click", () => {
+        const start = cursor - token[2].length - 1;
+        textarea.setRangeText("@" + button.dataset.matchId + " ", Math.max(0, start), cursor, "end");
+        textarea.dispatchEvent(new Event("input", { bubbles: true })); hide(); textarea.focus();
+      });
+    });
+  };
+  textarea.addEventListener("input", render); textarea.addEventListener("click", render);
+  textarea.addEventListener("keyup", event => { if (!["ArrowUp", "ArrowDown", "Enter", "Escape"].includes(event.key)) render(); });
+  textarea.addEventListener("keydown", event => {
+    if (menu.hidden) return;
+    const options = [...menu.querySelectorAll("[data-match-id]")];
+    if (event.key === "Escape") { hide(); return; }
+    if (event.key === "ArrowDown" && options.length) { event.preventDefault(); options[0].focus(); }
+    if (event.key === "Enter" && options.length) { event.preventDefault(); options[0].click(); }
+  });
+}
 function initSocialModerationPanel() {
+  attachMatchMentionPicker(document.getElementById("officialPostBody"), document.getElementById("officialMatchMentionMenu"));
   document.getElementById("officialPostForm")?.addEventListener("submit", async event => {
     event.preventDefault();
     const form = event.currentTarget, button = form.querySelector('button[type="submit"]'), status = document.getElementById("officialPostStatus");
