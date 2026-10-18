@@ -4104,6 +4104,13 @@ function publishedStatValue(metric, team) {
   return values[metric] === undefined ? "—" : String(values[metric]);
 }
 
+
+function publishedFormationHTML(block){
+ const players=Array.isArray(block.players)?block.players.slice(0,6):[];
+ const card=(p,bench)=>{const c1=safePublishedColor(p.color1,"#c89a35"),c2=safePublishedColor(p.color2,"#f4d57f"),ink=safePublishedColor(p.ink,"#101827"),portrait=String(p.portraitUrl||""),img=portrait.startsWith("http")?"<img alt='' src='"+escapeHTML(portrait)+"' loading='lazy'>":"",x=publishedNumber(p.x,50,4,96),y=publishedNumber(p.y,50,5,95),style="--pc1:"+c1+";--pc2:"+c2+";--pi:"+ink+";"+(bench?"":"left:"+x+"%;top:"+y+"%;");return "<div class='published-formation-player"+(bench?" bench":"")+"' style='"+style+"'>"+img+"<span class='pf-top'><b>"+escapeHTML(publishedNumber(p.rating,0,0,99))+"</b><small>"+escapeHTML(String(p.position||"UT"))+"</small></span><strong>"+escapeHTML(String(p.playerName||"Player"))+"</strong><small>#"+escapeHTML(publishedNumber(p.jersey,0,0,999))+"</small></div>"};
+ const active=players.slice(0,5),bench=players.slice(5),yard=[20,35,65,80].map(x=>"<i class='published-formation-yard' style='left:"+x+"%'></i>").join("");
+ return "<div class='published-formation'><header><strong>"+escapeHTML(String(block.text||"Starting lineup"))+"</strong><small>5 ON FIELD</small></header><div class='published-formation-pitch'>"+yard+"<i class='published-formation-midline'></i><i class='published-formation-circle'></i>"+active.map(p=>card(p,false)).join("")+(!active.length?"<div class='published-formation-empty'>Lineup coming soon</div>":"")+"</div><div class='published-formation-bench'><span>BENCH</span>"+bench.map(p=>card(p,true)).join("")+"</div></div>";
+}
 function publishedBlockHTML(block, team) {
   const b = block || {};
   const type = String(b.type || "text");
@@ -4119,7 +4126,9 @@ function publishedBlockHTML(block, team) {
   const lines = text.split("\n");
   let inner = "";
 
-  if (type === "heading") {
+  if (type === "formation") {
+    inner = publishedFormationHTML(b);
+  } else if (type === "heading") {
     const tag = b.tag === "h2" ? "h2" : "h1";
     inner = "<" + tag + " style='font-size:" + fontSize + "px;color:" + color + ";text-align:" + align + ";margin:0;white-space:pre-wrap'>" + escaped + "</" + tag + ">";
   } else if (type === "text") {
@@ -4169,7 +4178,8 @@ function publishedBlockHTML(block, team) {
   else if (position === "right") column = (5 - span) + " / span " + span;
   else if (position === "center") column = (Math.floor((4 - span) / 2) + 1) + " / span " + span;
   const valign = b.verticalAlign === "middle" ? "center" : b.verticalAlign === "bottom" ? "end" : "start";
-  return "<section class='published-page-block' style='grid-column:" + column + ";align-self:" + valign + ";min-width:0'>" + inner + "</section>";
+  const moveX=publishedNumber(b.moveX,0,-300,300),moveY=publishedNumber(b.moveY,0,-300,300);
+  return "<section class='published-page-block' style='grid-column:" + column + ";align-self:" + valign + ";min-width:0;transform:translate(" + moveX + "% ," + moveY + "%)'>" + inner + "</section>";
 }
 
 function renderPublishedTeamPage(container, design, team) {
@@ -4180,7 +4190,7 @@ function renderPublishedTeamPage(container, design, team) {
   const titleHTML = pageTitle ? "<h1 class='published-page-title'>" + escapeHTML(pageTitle) + "</h1>" : "";
   const blocksHTML = design.blocks.map(block => publishedBlockHTML(block, team)).join("");
   container.innerHTML =
-    "<style>.published-team-page{box-sizing:border-box;width:100%;min-height:100%;background:var(--published-page-bg);padding:var(--published-page-padding);border-radius:16px}.published-page-title{margin:0 0 22px;font-size:clamp(24px,4vw,40px);line-height:1.15;color:#182033}.published-page-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}.published-page-block{min-width:0;overflow-wrap:anywhere}.published-page-block img{max-width:100%}.published-infographic{width:100%;min-width:0;overflow:hidden}.published-infographic .elo-trend-heading{display:flex;flex-wrap:wrap}.published-infographic .elo-team-picker{margin-top:10px}.published-infographic .elo-graph-wrap{padding:10px}.published-infographic .elo-graph{width:100%;height:auto;display:block}.published-infographic .elo-graph-label{fill:#8b98a8}.published-infographic .elo-graph-grid{stroke:#26303b}@media(max-width:720px){.published-page-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.published-page-block{grid-column:span 2!important}}@media(max-width:420px){.published-team-page{padding:16px}}</style>" +
+    "<style>.published-team-page{box-sizing:border-box;width:100%;min-height:100%;background:var(--published-page-bg);padding:var(--published-page-padding);border-radius:16px}.published-page-title{margin:0 0 22px;font-size:clamp(24px,4vw,40px);line-height:1.15;color:#182033}.published-page-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}.published-page-block{min-width:0;overflow-wrap:anywhere}.published-page-block img{max-width:100%}.published-formation{width:100%;padding:12px;border:1px solid #35516a;border-radius:14px;background:#0b1726;color:#edf4fb;overflow:hidden;box-sizing:border-box}.published-formation header{display:flex;justify-content:space-between;gap:8px;margin:0 0 10px;font-size:13px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}.published-formation header small{font-size:9px;color:#93a7c0}.published-formation-pitch{position:relative;width:100%;aspect-ratio:1.55;overflow:hidden;border:2px solid #e8f4e6;border-radius:7px;background:repeating-linear-gradient(90deg,#1b704b 0 10%,#176441 10% 20%)}.published-formation-pitch:before{content:'';position:absolute;inset:5% 3%;border:1px solid #dff5e2b0;pointer-events:none}.published-formation-yard{position:absolute;top:0;bottom:0;width:1px;background:#e5f5e53d}.published-formation-midline{position:absolute;left:50%;top:5%;bottom:5%;width:1px;background:#e9f8e6a6}.published-formation-circle{position:absolute;left:50%;top:50%;width:22%;aspect-ratio:1;border:1px solid #e9f8e66e;border-radius:50%;transform:translate(-50%,-50%)}.published-formation-player{position:absolute;z-index:3;width:clamp(62px,10.5vw,90px);min-height:45px;transform:translate(-50%,-50%);padding:5px;border:1px solid #ffffffa8;border-radius:7px;background:linear-gradient(145deg,var(--pc2,#f4d57f),var(--pc1,#c89a35));color:var(--pi,#101827);box-shadow:0 3px 7px #0005;text-align:center;box-sizing:border-box}.published-formation-player img{display:block;width:23px;height:23px;margin:0 auto 2px;border-radius:50%;object-fit:cover}.published-formation-player .pf-top{display:flex;justify-content:center;gap:4px;line-height:1.1}.published-formation-player .pf-top b{font-size:13px}.published-formation-player .pf-top small{font-size:8px}.published-formation-player strong{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:9px}.published-formation-player>small{font-size:7px}.published-formation-player.bench{position:relative;left:auto!important;top:auto!important;transform:none;width:100%;max-width:110px}.published-formation-bench{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:10px;padding:9px;border:1px dashed #52718d;border-radius:9px;background:#102339}.published-formation-bench>span{font-size:9px;font-weight:900;letter-spacing:.13em;color:#a9bfd4}.published-formation-empty{position:absolute;inset:0;display:grid;place-items:center;color:#e1f1e4;font-size:11px}.published-infographic{width:100%;min-width:0;overflow:hidden}.published-infographic .elo-trend-heading{display:flex;flex-wrap:wrap}.published-infographic .elo-team-picker{margin-top:10px}.published-infographic .elo-graph-wrap{padding:10px}.published-infographic .elo-graph{width:100%;height:auto;display:block}.published-infographic .elo-graph-label{fill:#8b98a8}.published-infographic .elo-graph-grid{stroke:#26303b}@media(max-width:720px){.published-page-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.published-page-block{grid-column:span 2!important}}@media(max-width:420px){.published-team-page{padding:16px}}</style>" +
     "<div class='published-team-page' style='--published-page-bg:" + pageBg + ";--published-page-padding:" + pagePadding + "px'>" +
     titleHTML + "<div class='published-page-grid'>" + blocksHTML + "</div></div>";
   // Keep the rating timeline available even when a custom Team Studio design
