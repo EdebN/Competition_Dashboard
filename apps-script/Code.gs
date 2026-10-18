@@ -52,7 +52,7 @@ function doGet(e) {
           properties.getProperty("SPREADSHEET_ID") &&
           properties.getProperty("ADMIN_TOKEN")
         ),
-        actions: ["health", "getTeamSettings", "getCompetitionSettings", "getMatchResults", "submitMatchResult", "updateCompetitionSettings", "getTeamEditorPinStatus", "verifyTeamEditorPin", "updateTeamEditorPin", "getTeamPageDesign", "saveTeamPageDesign", "getPublishedTeamPage", "publishTeamPage", "revertTeamPage", "submitFeatureRequest", "getMatchPolls", "submitMatchVote", "getSocialPosts", "getTeamSocialStatus", "getModerationSession", "getModerationQueue"],
+        actions: ["health", "getTeamSettings", "getCompetitionSettings", "getMatchResults", "submitMatchResult", "updateCompetitionSettings", "getTeamEditorPinStatus", "verifyTeamEditorPin", "updateTeamEditorPin", "getTeamPageDesign", "saveTeamPageDesign", "getTeamPlayerCards", "saveTeamPlayerCards", "getPublishedTeamPage", "publishTeamPage", "revertTeamPage", "submitFeatureRequest", "getMatchPolls", "submitMatchVote", "getSocialPosts", "getTeamSocialStatus", "getModerationSession", "getModerationQueue"],
       };
     } else if (action === "getMatchResults") {
       result = { ok: true, service: SERVICE_NAME, apiVersion: API_VERSION, action: action, results: readMatchResults_() };
@@ -73,6 +73,10 @@ function doGet(e) {
       const sessionTeam = getSessionTeam_(params.sessionToken);
       if (!sessionTeam || sessionTeam !== teamId) result = { ok: false, error: "Studio session expired. Sign in again." };
       else result = { ok: true, action: action, teamId: teamId, design: readTeamPageDesign_(teamId) };
+    } else if (action === "getTeamPlayerCards") {
+      const teamId = String(params.teamId || "").trim().toUpperCase();
+      if (!TEAM_IDS.includes(teamId) || getSessionTeam_(params.sessionToken) !== teamId) result = { ok: false, error: "Studio session expired. Sign in again." };
+      else result = { ok: true, action: action, teamId: teamId, cards: readTeamPlayerCards_(teamId) };
     } else if (action === "getPublishedTeamPage") {
       const teamId = String(params.teamId || "").trim().toUpperCase();
       if (!TEAM_IDS.includes(teamId)) result = { ok: false, error: "Invalid team ID." };
@@ -139,7 +143,7 @@ function doPost(e) {
     });
   }
 
-  if (!["updateTeamSettings", "updateCompetitionSettings", "updateTeamEditorPin", "submitMatchResult", "saveTeamPageDesign", "publishTeamPage", "revertTeamPage", "submitFeatureRequest", "submitMatchVote", "submitSocialPost", "submitOfficialSocialPost", "createModerationSession", "createScoreEditorSession", "moderateSocialPost", "markSocialPostViewed", "setSocialPostingBan"].includes(body.action)) {
+  if (!["updateTeamSettings", "updateCompetitionSettings", "updateTeamEditorPin", "submitMatchResult", "saveTeamPageDesign", "saveTeamPlayerCards", "publishTeamPage", "revertTeamPage", "submitFeatureRequest", "submitMatchVote", "submitSocialPost", "submitOfficialSocialPost", "createModerationSession", "createScoreEditorSession", "moderateSocialPost", "markSocialPostViewed", "setSocialPostingBan"].includes(body.action)) {
     return jsonResponse_({
       ok: false,
       service: SERVICE_NAME,
@@ -156,6 +160,7 @@ function doPost(e) {
   if (["moderateSocialPost", "markSocialPostViewed", "setSocialPostingBan"].includes(body.action)) return handleSocialModeration_(body);
   if (body.action === "submitMatchVote") return submitMatchVote_(body);
   if (body.action === "saveTeamPageDesign") return saveTeamPageDesign_(body);
+  if (body.action === "saveTeamPlayerCards") return saveTeamPlayerCards_(body);
   if (body.action === "publishTeamPage") return publishTeamPage_(body);
   if (body.action === "revertTeamPage") return revertTeamPage_(body);
 
@@ -509,6 +514,54 @@ function saveTeamPageDesign_(body) {
     console.error(e); return jsonResponse_({ ok: false, error: "Could not save the shared design." });
   } finally { lock.releaseLock(); }
 }
+
+const TEAM_PLAYER_CARDS_TAB = "Team Player Cards";
+function getTeamPlayerCardsSheet_() {
+  const id = PropertiesService.getScriptProperties().getProperty("SPREADSHEET_ID");
+  if (!id) throw new Error("Missing SPREADSHEET_ID");
+  const ss = SpreadsheetApp.openById(id);
+  let sheet = ss.getSheetByName(TEAM_PLAYER_CARDS_TAB);
+  const headers = ["Team ID", "Cards JSON", "Updated At"];
+  if (!sheet) sheet = ss.insertSheet(TEAM_PLAYER_CARDS_TAB);
+  if (sheet.getLastRow() === 0) { sheet.getRange(1, 1, 1, headers.length).setValues([headers]).setFontWeight("bold"); sheet.setFrozenRows(1); }
+  else { const actual = sheet.getRange(1, 1, 1, headers.length).getDisplayValues()[0]; if (!headers.every((v, i) => actual[i] === v)) throw new Error("Unexpected Team Player Cards headers."); }
+  return sheet;
+}
+function readTeamPlayerCards_(teamId) {
+  const sheet = getTeamPlayerCardsSheet_(), last = sheet.getLastRow();
+  if (last < 2) return [];
+  const rows = sheet.getRange(2, 1, last - 1, 3).getValues();
+  for (let i = rows.length - 1; i >= 0; i--) if (String(rows[i][0] || "").trim().toUpperCase() === teamId) {
+    try { const cards = JSON.parse(String(rows[i][1] || "[]")); return Array.isArray(cards) ? cards : []; } catch (e) { return []; }
+  }
+  return [];
+}
+function saveTeamPlayerCards_(body) {
+  const teamId = String(body.teamId || "").trim().toUpperCase();
+  if (!TEAM_IDS.includes(teamId) || getSessionTeam_(body.sessionToken) !== teamId) return jsonResponse_({ ok: false, error: "Studio session expired. Sign in again." });
+  let cards;
+  try { cards = typeof body.cards === "string" ? JSON.parse(body.cards) : body.cards; } catch (e) { return jsonResponse_({ ok: false, error: "Invalid player-card JSON." }); }
+  if (!Array.isArray(cards) || cards.length > 100) return jsonResponse_({ ok: false, error: "Player cards must be an array of at most 100 cards." });
+  const safeCards = cards.map(function(card) {
+    if (!card || typeof card !== "object" || Array.isArray(card)) throw new Error("Each player card must be a JSON object.");
+    const copy = Object.assign({}, card); copy.teamId = teamId;
+    if (String(copy.id || "").length > 120 || String(copy.playerName || "").length > 100) throw new Error("A player card contains a field that is too long.");
+    return copy;
+  });
+  const serialized = JSON.stringify(safeCards);
+  if (serialized.length > 45000) return jsonResponse_({ ok: false, error: "Player-card library is too large for one spreadsheet cell. Reduce portrait sizes and save again." });
+  const lock = LockService.getScriptLock();
+  if (!lock.tryLock(5000)) return jsonResponse_({ ok: false, error: "Service busy. Try again." });
+  try {
+    const sheet = getTeamPlayerCardsSheet_(), last = sheet.getLastRow(), rows = last >= 2 ? sheet.getRange(2, 1, last - 1, 3).getDisplayValues() : [];
+    let rowNumber = 0; rows.forEach(function(row, i) { if (String(row[0] || "").trim().toUpperCase() === teamId) rowNumber = i + 2; });
+    if (!rowNumber) rowNumber = Math.max(2, last + 1);
+    sheet.getRange(rowNumber, 1, 1, 3).setValues([[teamId, serialized, new Date()]]);
+    return jsonResponse_({ ok: true, action: "saveTeamPlayerCards", saved: true, teamId: teamId, count: safeCards.length });
+  } catch (e) { console.error(e); return jsonResponse_({ ok: false, error: e.message || "Could not save team player cards." }); }
+  finally { lock.releaseLock(); }
+}
+
 function getPublishedTeamPageSheet_() {
   const id = PropertiesService.getScriptProperties().getProperty("SPREADSHEET_ID");
   if (!id) throw new Error("Missing SPREADSHEET_ID");
