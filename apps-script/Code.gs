@@ -77,6 +77,20 @@ function doGet(e) {
       const teamId = String(params.teamId || "").trim().toUpperCase();
       if (!TEAM_IDS.includes(teamId) || getSessionTeam_(params.sessionToken) !== teamId) result = { ok: false, error: "Studio session expired. Sign in again." };
       else result = { ok: true, action: action, teamId: teamId, cards: readTeamPlayerCards_(teamId) };
+    } else if (action === "getTeamPlayerCardAssetUpload") {
+      const teamId = String(params.teamId || "").trim().toUpperCase();
+      const uploadKey = String(params.uploadKey || "").trim();
+      if (!TEAM_IDS.includes(teamId) || getSessionTeam_(params.sessionToken) !== teamId || !/^[a-z0-9-]{8,100}$/i.test(uploadKey)) {
+        result = { ok: false, error: "Studio session expired or asset upload key is invalid." };
+      } else {
+        const propertyKey = "PLAYER_CARD_ASSET_UPLOAD_" + teamId + "_" + uploadKey;
+        const fileId = PropertiesService.getScriptProperties().getProperty(propertyKey);
+        if (!fileId) result = { ok: false, error: "Uploaded image could not be verified. Please retry." };
+        else {
+          PropertiesService.getScriptProperties().deleteProperty(propertyKey);
+          result = { ok: true, action: action, teamId: teamId, url: "https://drive.google.com/uc?export=view&id=" + encodeURIComponent(fileId), fileId: fileId };
+        }
+      }
     } else if (action === "getPublishedTeamPage") {
       const teamId = String(params.teamId || "").trim().toUpperCase();
       if (!TEAM_IDS.includes(teamId)) result = { ok: false, error: "Invalid team ID." };
@@ -143,7 +157,7 @@ function doPost(e) {
     });
   }
 
-  if (!["updateTeamSettings", "updateCompetitionSettings", "updateTeamEditorPin", "submitMatchResult", "saveTeamPageDesign", "saveTeamPlayerCards", "publishTeamPage", "revertTeamPage", "submitFeatureRequest", "submitMatchVote", "submitSocialPost", "submitOfficialSocialPost", "createModerationSession", "createScoreEditorSession", "moderateSocialPost", "markSocialPostViewed", "setSocialPostingBan"].includes(body.action)) {
+  if (!["updateTeamSettings", "updateCompetitionSettings", "updateTeamEditorPin", "submitMatchResult", "saveTeamPageDesign", "saveTeamPlayerCards", "uploadTeamPlayerCardAsset", "publishTeamPage", "revertTeamPage", "submitFeatureRequest", "submitMatchVote", "submitSocialPost", "submitOfficialSocialPost", "createModerationSession", "createScoreEditorSession", "moderateSocialPost", "markSocialPostViewed", "setSocialPostingBan"].includes(body.action)) {
     return jsonResponse_({
       ok: false,
       service: SERVICE_NAME,
@@ -160,6 +174,7 @@ function doPost(e) {
   if (["moderateSocialPost", "markSocialPostViewed", "setSocialPostingBan"].includes(body.action)) return handleSocialModeration_(body);
   if (body.action === "submitMatchVote") return submitMatchVote_(body);
   if (body.action === "saveTeamPageDesign") return saveTeamPageDesign_(body);
+  if (body.action === "uploadTeamPlayerCardAsset") return uploadTeamPlayerCardAsset_(body);
   if (body.action === "saveTeamPlayerCards") return saveTeamPlayerCards_(body);
   if (body.action === "publishTeamPage") return publishTeamPage_(body);
   if (body.action === "revertTeamPage") return revertTeamPage_(body);
@@ -516,6 +531,52 @@ function saveTeamPageDesign_(body) {
 }
 
 const TEAM_PLAYER_CARDS_TAB = "Team Player Cards";
+/**
+ * Stores one image file in Drive. Uploads are deliberately one image per
+ * request so a whole library of photos never has to travel in one POST body.
+ * Files are shared as anyone-with-link viewer assets because public team pages
+ * must be able to display them without a Google sign-in.
+ */
+function uploadTeamPlayerCardAsset_(body) {
+  const teamId = String(body.teamId || "").trim().toUpperCase();
+  const uploadKey = String(body.uploadKey || "").trim();
+  if (!TEAM_IDS.includes(teamId) || getSessionTeam_(body.sessionToken) !== teamId) {
+    return jsonResponse_({ ok: false, error: "Studio session expired. Sign in again." });
+  }
+  if (!/^[a-z0-9-]{8,100}$/i.test(uploadKey)) return jsonResponse_({ ok: false, error: "Invalid asset upload key." });
+  const match = String(body.dataUrl || "").match(/^data:(image\/(?:jpeg|png|webp|gif));base64,([A-Za-z0-9+/=]+)$/i);
+  if (!match) return jsonResponse_({ ok: false, error: "Unsupported image format. Use JPG, PNG, WebP or GIF." });
+  let bytes;
+  try { bytes = Utilities.base64Decode(match[2]); } catch (e) { return jsonResponse_({ ok: false, error: "Could not decode the image." }); }
+  if (!bytes.length || bytes.length > 5 * 1024 * 1024) return jsonResponse_({ ok: false, error: "Each image must be 5 MB or smaller." });
+
+  try {
+    const props = PropertiesService.getScriptProperties();
+    const folderProperty = "PLAYER_CARD_ASSETS_FOLDER_ID";
+    let folderId = props.getProperty(folderProperty);
+    let folder;
+    if (folderId) {
+      try { folder = DriveApp.getFolderById(folderId); } catch (e) { folder = null; }
+    }
+    if (!folder) {
+      folder = DriveApp.createFolder("Competition Dashboard Player Card Assets");
+      props.setProperty(folderProperty, folder.getId());
+    }
+    const mime = match[1].toLowerCase();
+    const ext = mime === "image/jpeg" ? "jpg" : mime.split("/")[1];
+    const safeCardId = String(body.cardId || "card").replace(/[^a-z0-9_-]/gi, "").slice(0, 50) || "card";
+    const safeField = ["portrait", "teamLogo", "backgroundArt"].includes(String(body.field)) ? String(body.field) : "image";
+    const blob = Utilities.newBlob(bytes, mime, teamId + "-" + safeCardId + "-" + safeField + "-" + Date.now() + "." + ext);
+    const file = folder.createFile(blob);
+    file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+    props.setProperty("PLAYER_CARD_ASSET_UPLOAD_" + teamId + "_" + uploadKey, file.getId());
+    return jsonResponse_({ ok: true, action: "uploadTeamPlayerCardAsset", teamId: teamId });
+  } catch (error) {
+    console.error(error);
+    return jsonResponse_({ ok: false, error: "Drive could not store this image. Check Drive permissions and Apps Script authorisation." });
+  }
+}
+
 function getTeamPlayerCardsSheet_() {
   const id = PropertiesService.getScriptProperties().getProperty("SPREADSHEET_ID");
   if (!id) throw new Error("Missing SPREADSHEET_ID");
