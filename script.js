@@ -4180,7 +4180,7 @@ function publishedBlockHTML(block, team) {
   else if (position === "center") column = (Math.floor((4 - span) / 2) + 1) + " / span " + span;
   const valign = b.verticalAlign === "middle" ? "center" : b.verticalAlign === "bottom" ? "end" : "start";
   const moveX=publishedNumber(b.moveX,0,-300,300),moveY=publishedNumber(b.moveY,0,-300,300);
-  return "<section class='published-page-block' style='grid-column:" + column + ";align-self:" + valign + ";min-width:0;transform:translate(" + moveX + "% ," + moveY + "%)'>" + inner + "</section>";
+  return "<section class='published-page-block' style='grid-column:" + column + ";align-self:" + valign + ";min-width:0;transform:translate(" + moveX + "%," + moveY + "%)'>" + inner + "</section>";
 }
 
 function renderPublishedTeamPage(container, design, team) {
