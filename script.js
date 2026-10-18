@@ -4115,9 +4115,13 @@ function publishedFormationHTML(block){
 function publishedStandalonePlayerCardHTML(p){
   if(!p)return "<div style='padding:24px;border:1px dashed #52718d;border-radius:12px;text-align:center;color:#93a7c0'>Player card not selected</div>";
   const template=p.template==="nfl"||p.template==="pro"?"nfl":"fifa";
-  const portrait=String(p.portrait||p.portraitUrl||"");
+  const portrait=String(p.portrait||p.portraitUrl||""),logo=String(p.teamLogo||""),background=String(p.backgroundArt||"");
   const valid=/^https?:\/\//i.test(portrait)||(/^data:image\/(jpeg|png|webp);base64,/.test(portrait)&&portrait.length<60000);
+  const validLogo=/^https?:\/\//i.test(logo)||(/^data:image\/(jpeg|png|webp);base64,/.test(logo)&&logo.length<12000);
+  const validBackground=/^https?:\/\//i.test(background)||(/^data:image\/(jpeg|png|webp);base64,/.test(background)&&background.length<60000);
   const img=valid?"<img alt='' src='"+escapeHTML(portrait)+"' loading='lazy' style='width:100%;height:100%;object-fit:cover;object-position:center 25%;display:block'>":"";
+  const art=validBackground?"<div aria-hidden='true' style='position:absolute;inset:0;z-index:0;opacity:.18;overflow:hidden;pointer-events:none'><img alt='' src='"+escapeHTML(background)+"' style='width:100%;height:100%;object-fit:cover;display:block'></div>":"";
+  const crest=validLogo&&p.showTeamLogo!==false?"<img alt='' src='"+escapeHTML(logo)+"' style='position:absolute;z-index:3;top:15%;right:7%;width:13%;height:9%;object-fit:contain;filter:drop-shadow(0 2px 3px #0005);pointer-events:none'>":"";
   const c1=safePublishedColor(p.color1,template==="nfl"?"#163b66":"#c89a35");
   const c2=safePublishedColor(p.color2,template==="nfl"?"#dce7f1":"#f4d57f");
   const ink=safePublishedColor(p.ink,template==="nfl"?"#f8fbff":"#211a0b");
@@ -4135,13 +4139,13 @@ function publishedStandalonePlayerCardHTML(p){
   const statHTML=stats.map((st,i)=>"<div style='display:flex;align-items:center;justify-content:center;gap:4px;min-width:0;min-height:25px;padding:3px 1px;border-right:"+(i%3===2?"0":"1px solid #ffffff40")+";border-bottom:"+(i<3?"1px solid #ffffff30":"0")+"'><b style='font-size:13px;line-height:1;font-weight:1000;flex:none'>"+escapeHTML(st.value)+"</b><span style='font-size:7px;font-weight:850;line-height:1.05;overflow-wrap:anywhere;min-width:0'>"+escapeHTML(String(st.label))+"</span></div>").join("");
   const footer="<div style='position:relative;z-index:2;display:flex;justify-content:space-between;gap:5px;padding:7px 2px 0;border-top:1px solid #ffffff70;font-size:7px;line-height:1.2;font-weight:900;letter-spacing:.08em;text-transform:uppercase;overflow-wrap:anywhere'><span>"+escapeHTML(String((p.footerText||"Competition · Season 01").split("·")[0]).trim())+"</span><span style='text-align:right'>"+escapeHTML(String((p.footerText||"Competition · Season 01").split("·")[1]||"Season 01").trim())+"</span></div>";
   if(template==="nfl"){
-    return "<article style='"+base+"background:linear-gradient(145deg,#f4f7fa 0%,#8da4bc 18%,#163b66 48%,#07172b 100%);border:3px solid #f4f7fa;outline:2px solid #193858;'>" +
+    return "<article style='"+base+"background:linear-gradient(145deg,#f4f7fa 0%,#8da4bc 18%,#163b66 48%,#07172b 100%);border:3px solid #f4f7fa;outline:2px solid #193858;'>" + art + crest +
       "<div style='"+top+"background:#07182b;padding:5px 6px 8px;border-bottom:3px solid #bd2638;color:#fff'><div><div style='"+rating+"'>"+escapeHTML(publishedNumber(p.rating,0,0,99))+"</div><div style='"+pos+"background:#bd2638;color:#fff'>"+escapeHTML(String(p.position||"UT"))+"</div><div style='"+team+"color:#dce7f1'>"+escapeHTML(String(p.teamName||"Team"))+"</div></div><div style='"+badge+"background:#bd2638;color:#fff;border:1px solid #fff8'>"+escapeHTML(String(p.badge||"FLAG FOOTBALL"))+"</div></div>" +
       "<div style='"+portraitStyle+"margin:0;min-height:150px;clip-path:polygon(0 0,100% 0,100% 94%,85% 100%,0 94%)'>"+img+"<span style='position:absolute;right:7px;bottom:5px;padding:3px 7px;background:#f4f7fa;color:#102b4b;font-size:25px;font-weight:1000;font-style:italic;box-shadow:3px 3px 0 #bd2638'>#"+escapeHTML(publishedNumber(p.jersey,0,0,999))+"</span></div>" +
       "<div style='"+nameStyle+"background:#bd2638;color:#fff;border-left:5px solid #fff;font-style:italic'>"+escapeHTML(String(p.playerName||"Player"))+"</div><div style='"+subStyle+"color:#f0f5fb'>"+escapeHTML(String(p.tagline||p.position||"Flag Football"))+"</div>" +
       "<div style='"+statGrid+"background:#07182be8;border-top:2px solid #dce7f1;border-bottom:2px solid #bd2638;color:#fff'>"+statHTML+"</div>"+footer+"</article>";
   }
-  return "<article style='"+base+"background:linear-gradient(145deg,#fff0b5 0%,"+c2+" 22%,"+c1+" 64%,#78521b);border:3px solid #fff8;outline:2px solid #8d6727;color:"+ink+";'>" +
+  return "<article style='"+base+"background:linear-gradient(145deg,#fff0b5 0%,"+c2+" 22%,"+c1+" 64%,#78521b);border:3px solid #fff8;outline:2px solid #8d6727;color:"+ink+";'>" + art + crest +
     "<div style='"+top+"padding:3px 4px;color:#2b2110'><div><div style='"+rating+"'>"+escapeHTML(publishedNumber(p.rating,0,0,99))+"</div><div style='"+pos+"background:#2b2110;color:#f7d97e'>"+escapeHTML(String(p.position||"UT"))+"</div><div style='"+team+"'>"+escapeHTML(String(p.teamName||"Team"))+"</div></div><div style='"+badge+"background:#fff8;border:1px solid #6f531d66'>"+escapeHTML(String(p.badge||"FLAG FOOTBALL"))+"</div></div>" +
     "<div style='"+portraitStyle+"min-height:150px;clip-path:polygon(0 0,100% 0,100% 94%,88% 100%,12% 100%,0 94%)'>"+img+"<span style='position:absolute;right:7px;bottom:5px;padding:3px 7px;background:#2b2110;color:#f7d97e;font-size:24px;font-weight:1000'>#"+escapeHTML(publishedNumber(p.jersey,0,0,999))+"</span></div>" +
     "<div style='"+nameStyle+"background:#f7e7b7;color:#30230d;text-align:center;border:1px solid #7e5a1d'>"+escapeHTML(String(p.playerName||"Player"))+"</div><div style='"+subStyle+"color:#38290f;text-align:center'>"+escapeHTML(String(p.tagline||p.position||"Flag Football"))+"</div>" +
