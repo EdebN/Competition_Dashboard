@@ -237,6 +237,43 @@
 @media(max-width:700px){.layout{grid-template-columns:1fr}.left,.right{border:0;border-bottom:1px solid var(--line)}.left{order:0}.stage{order:1}.right{order:2}.templates{grid-template-columns:repeat(3,minmax(0,1fr))}.swatch{height:65px}.preview-wrap{width:min(86%,340px)}}
 
 
+
+/* FUT Icon uses the familiar two-column, value-plus-label stat block. Keep labels beside ratings
+   so longer attributes have room, rather than squeezing them into tiny lines underneath. */
+.player-card:not(.pro):not(.silver):not(.elite):not(.retro):not(.clean) .stats{
+  left:12%;
+  width:76%;
+  top:73.5%;
+  height:16.2%;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  grid-template-rows:repeat(3,minmax(0,1fr));
+  column-gap:5%;
+  row-gap:1%;
+  padding:1.5% 0 0;
+}
+.player-card:not(.pro):not(.silver):not(.elite):not(.retro):not(.clean) .stats .stat{
+  flex-direction:row;
+  justify-content:flex-start;
+  align-items:baseline;
+  gap:4px;
+  overflow:visible;
+  padding:0;
+  white-space:nowrap;
+}
+.player-card:not(.pro):not(.silver):not(.elite):not(.retro):not(.clean) .stats .stat b{
+  font-size:clamp(10px,1.25vw,14px);
+  flex:0 0 auto;
+}
+.player-card:not(.pro):not(.silver):not(.elite):not(.retro):not(.clean) .stats .stat span{
+  width:auto;
+  max-width:none;
+  flex:0 1 auto;
+  overflow:visible;
+  text-overflow:clip;
+  font-size:clamp(5px,.72vw,7px);
+  letter-spacing:0;
+}
+
 /* Keep each attribute on a single line so it cannot collide with the next grid row. */
 .player-card .stats{column-gap:2%;row-gap:3%;align-items:stretch}
 .player-card .stats .stat{
