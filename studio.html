@@ -705,6 +705,7 @@ function renderToolbar(){
  const label=b.type.charAt(0).toUpperCase()+b.type.slice(1);
  const mark={heading:"H",text:"T",image:"▧",button:"▰",card:"▣",stat:"↗",divider:"━",spacer:"↕",badge:"✳",quote:"❝"}[b.type]||"•";
  let html='<div class="toolbar-main"><span class="toolbar-type"><span class="toolbar-type-mark">'+mark+'</span>'+esc(label)+' · '+index+'/'+blocks.length+'</span>';
+ if(b.type!=="image")html+='<button type="button" class="toolbar-icon-button" id="tb-insert-image" title="Insert a new image block" aria-label="Insert image">＋ Image</button>';
  if(fontTypes.includes(b.type)){
   html+='<label class="toolbar-control-label" title="Font size">Size <input class="toolbar-number" id="tb-fontSize" aria-label="Font size" type="number" min="8" max="100" value="'+esc(b.fontSize||16)+'"></label>';
  }
@@ -848,6 +849,7 @@ function renderToolbar(){
   else current.bg=current.lastBg||"#ffffff";
   pushHistory();render();
  });
+ $("tb-insert-image")?.addEventListener("click",()=>{add("image");$("imageFile").click();});
  ["tb-upload","tb-upload-more"].forEach(id=>$(id)?.addEventListener("click",()=>$("imageFile").click()));
  $("tb-up")?.addEventListener("click",()=>move(-1));
  $("tb-down")?.addEventListener("click",()=>move(1));
