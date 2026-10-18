@@ -83,11 +83,21 @@ function doGet(e) {
       if (!TEAM_IDS.includes(teamId) || getSessionTeam_(params.sessionToken) !== teamId || !/^[a-z0-9-]{8,100}$/i.test(uploadKey)) {
         result = { ok: false, error: "Studio session expired or asset upload key is invalid." };
       } else {
+        const props = PropertiesService.getScriptProperties();
         const propertyKey = "PLAYER_CARD_ASSET_UPLOAD_" + teamId + "_" + uploadKey;
-        const fileId = PropertiesService.getScriptProperties().getProperty(propertyKey);
-        if (!fileId) result = { ok: false, error: "Uploaded image could not be verified. Please retry." };
-        else {
-          PropertiesService.getScriptProperties().deleteProperty(propertyKey);
+        const fileId = props.getProperty(propertyKey);
+        const uploadErrorKey = "PLAYER_CARD_ASSET_ERROR_" + teamId + "_" + uploadKey;
+        const uploadError = props.getProperty(uploadErrorKey);
+        if (!fileId) {
+          if (uploadError) {
+            props.deleteProperty(uploadErrorKey);
+            result = { ok: false, error: uploadError };
+          } else {
+            result = { ok: false, error: "Drive did not confirm the upload. The Apps Script deployment may not have the latest upload handler, or the upload request failed before it could save a result. Check Apps Script Executions for the uploadTeamPlayerCardAsset request." };
+          }
+        } else {
+          props.deleteProperty(propertyKey);
+          props.deleteProperty(uploadErrorKey);
           result = { ok: true, action: action, teamId: teamId, url: "https://drive.google.com/uc?export=view&id=" + encodeURIComponent(fileId), fileId: fileId };
         }
       }
@@ -573,7 +583,13 @@ function uploadTeamPlayerCardAsset_(body) {
     return jsonResponse_({ ok: true, action: "uploadTeamPlayerCardAsset", teamId: teamId });
   } catch (error) {
     console.error(error);
-    return jsonResponse_({ ok: false, error: "Drive could not store this image. Check Drive permissions and Apps Script authorisation." });
+    try {
+      PropertiesService.getScriptProperties().setProperty(
+        "PLAYER_CARD_ASSET_ERROR_" + teamId + "_" + uploadKey,
+        "Drive upload failed: " + String(error && error.message || error).slice(0, 350)
+      );
+    } catch (ignored) {}
+    return jsonResponse_({ ok: false, error: "Drive could not store this image. Check Apps Script authorisation and the Executions log." });
   }
 }
 
