@@ -726,7 +726,7 @@ function renderToolbar(){
   html+='<div class="field-note">Double-click the label directly on the canvas to edit it. The live value is supplied by competition data.</div>';
 
     }else if(b.type==="playerCard"){const library=readPlayerLibrary(),chosen=b.playerCard&&String(b.playerCard.id);html+='<div class="field-note">Add one saved player card as its own movable page element, separate from the lineup field.</div>';if(!library.length)html+='<p class="field-note">No saved cards for this team. Create cards in Player Card Studio first.</p>';else html+='<div class="formation-select-list">'+library.map(card=>'<label class="formation-select-option"><input type="radio" name="standalone-player-card" data-player-card-choice="'+esc(card.id)+'" '+(chosen===String(card.id)?"checked":"")+'><span><strong>'+esc(card.playerName||"Unnamed player")+'</strong><br><small>'+esc(card.position||"UT")+" · "+esc(card.rating||0)+" OVR · #"+esc(card.jersey||0)+'</small></span></label>').join("")+'</div>';
-  }else if(b.type==="formation"{
+  }else if(b.type==="formation"){
    const library=readPlayerLibrary(),picked=new Set((Array.isArray(b.players)?b.players:[]).map(p=>String(p.id)));
    html+='<div class="field-note">Choose up to six saved player cards. Five active players and one bench slot.</div>';
    if(!library.length)html+='<p class="field-note">No saved cards for this team. Create cards in Player Card Studio first.</p>';
