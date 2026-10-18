@@ -52,7 +52,7 @@ function doGet(e) {
           properties.getProperty("SPREADSHEET_ID") &&
           properties.getProperty("ADMIN_TOKEN")
         ),
-        actions: ["health", "getTeamSettings", "getCompetitionSettings", "getMatchResults", "submitMatchResult", "updateCompetitionSettings", "getTeamEditorPinStatus", "verifyTeamEditorPin", "updateTeamEditorPin", "getTeamPageDesign", "saveTeamPageDesign", "getTeamPlayerCards", "saveTeamPlayerCards", "getPublishedTeamPage", "publishTeamPage", "revertTeamPage", "submitFeatureRequest", "getMatchPolls", "submitMatchVote", "getSocialPosts", "getTeamSocialStatus", "getModerationSession", "getModerationQueue"],
+        actions: ["health", "getTeamSettings", "getCompetitionSettings", "getMatchResults", "submitMatchResult", "updateCompetitionSettings", "getTeamEditorPinStatus", "verifyTeamEditorPin", "updateTeamEditorPin", "getTeamPageDesign", "saveTeamPageDesign", "getTeamPlayerCards", "saveTeamPlayerCards", "uploadTeamPlayerCardAsset", "getTeamPlayerCardAssetUpload", "getPublishedTeamPage", "publishTeamPage", "revertTeamPage", "submitFeatureRequest", "getMatchPolls", "submitMatchVote", "getSocialPosts", "getTeamSocialStatus", "getModerationSession", "getModerationQueue"],
       };
     } else if (action === "getMatchResults") {
       result = { ok: true, service: SERVICE_NAME, apiVersion: API_VERSION, action: action, results: readMatchResults_() };
