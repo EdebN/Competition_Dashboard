@@ -491,6 +491,14 @@
 .floating-toolbar{position:fixed;z-index:100;left:12px;top:70px}
 .floating-toolbar[hidden]{display:none!important}
 @media(max-width:760px){.floating-toolbar{max-width:calc(100vw - 12px);padding:5px}.toolbar-main{gap:3px}.toolbar-type{padding-right:5px}.toolbar-number{width:50px}}
+
+/* Final toolbar-first overrides */
+.right{display:block;grid-column:auto;align-self:start;position:sticky;top:76px;max-height:calc(100vh - 88px);overflow:auto;border-left:1px solid var(--line);border-top:0}
+.inspector-content{display:block}
+.player-card [data-editable]:not(.is-selected):hover,.player-card [data-editable].is-hovered:not(.is-selected){outline:1.5px dashed #fff!important;outline-offset:2px}
+.player-card [data-editable].is-selected{outline:1.5px solid #fff!important;outline-offset:2px}
+@media(max-width:1050px){.right{position:static;max-height:none;overflow:visible;grid-column:1/-1;border-left:0;border-top:1px solid var(--line)}}
+@media(max-width:700px){.right{padding:12px;border:0;border-bottom:1px solid var(--line)}}
 </style>
 </head>
 <body>
