@@ -3325,7 +3325,7 @@ async function unlockAdmin() {
     return;
   }
 
-  if (error) error.textContent = "Checking token with the server…";
+  if (error) error.textContent = "Checking the Apps Script health endpoint…";
 
   const token = input.value.trim();
   const nonce = Array.from(crypto.getRandomValues(new Uint8Array(24)))
@@ -3333,28 +3333,47 @@ async function unlockAdmin() {
     .join("");
 
   try {
-    // The Apps Script deployment validates the token. No token hash is shipped
-    // in the public dashboard source, so every fork can use its own secret.
+    const health = await readCommunityApi("health");
+    if (!health || health.ok !== true) {
+      throw new Error(health?.error || "The health endpoint did not return ok:true.");
+    }
+    if (health.service !== "competition-community-api") {
+      throw new Error("The URL points to a different Apps Script service (" + String(health.service || "service name missing") + ").");
+    }
+    if (health.configured !== true) {
+      throw new Error("This deployment is missing SPREADSHEET_ID or ADMIN_TOKEN in Script Properties.");
+    }
+    if (!Array.isArray(health.actions) || !health.actions.includes("getModerationSession")) {
+      throw new Error("This Apps Script deployment is outdated. Redeploy the latest apps-script/Code.gs as a new version.");
+    }
+
+    if (error) error.textContent = "Health check passed. Verifying the admin token…";
     adminToken = token;
     adminUnlocked = false;
     socialAdminSessionToken = "";
 
     await postCommunityAction({ action: "createModerationSession", adminToken: token, nonce });
 
+    let lastSessionError = "";
     for (let attempt = 0; attempt < 8 && !socialAdminSessionToken; attempt++) {
       await new Promise(resolve => setTimeout(resolve, 350));
       try {
         const session = await readCommunityApi("getModerationSession", { nonce });
         if (session && session.ok && session.sessionToken) {
           socialAdminSessionToken = session.sessionToken;
+        } else if (session?.error && session.error !== "Session exchange pending. Try again.") {
+          lastSessionError = session.error;
+          break;
         }
-      } catch {}
+      } catch (sessionError) {
+        lastSessionError = sessionError?.message || "Could not read the session response.";
+      }
     }
 
     if (!socialAdminSessionToken) {
       adminToken = "";
       adminUnlocked = false;
-      if (error) error.textContent = "Token rejected or server unavailable. Check the Apps Script deployment and try again.";
+      if (error) error.textContent = lastSessionError || "The deployment did not create an admin session. Check Apps Script → Executions for createModerationSession.";
       input.focus();
       input.select();
       return;
@@ -3366,7 +3385,7 @@ async function unlockAdmin() {
     adminToken = "";
     adminUnlocked = false;
     socialAdminSessionToken = "";
-    if (error) error.textContent = "Could not verify the token with Apps Script. Check the deployment and try again.";
+    if (error) error.textContent = "Apps Script check failed: " + (err?.message || "Unknown error") + " Check the deployment URL, access setting, and latest deployment version.";
   }
 }
 
