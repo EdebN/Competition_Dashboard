@@ -1779,9 +1779,9 @@ function renderEloTable(
           <tr>
 
             <th>GAME</th>
-            <th>TEAM A</th>
+            <th>HOME TEAM</th>
             <th>SCORE</th>
-            <th>TEAM B</th>
+            <th>AWAY TEAM</th>
             <th>SCORE</th>
             <th>PRE A</th>
             <th>PRE B</th>
@@ -1883,11 +1883,11 @@ function renderEloTable(
           ${row.postB.toFixed(2)}
         </td>
 
-        <td title="Team A rating deviation after this rating period">
+        <td title="Home team rating deviation after this rating period">
           ${row.rdA.toFixed(1)}
         </td>
 
-        <td title="Team B rating deviation after this rating period">
+        <td title="Away team rating deviation after this rating period">
           ${row.rdB.toFixed(1)}
         </td>
 
@@ -2766,7 +2766,7 @@ function renderAdminPage() {
             <div class="team-name-row">
 
               <div class="team-name-label">
-                TEAM A
+                ${escapeHTML(teamNames["Team A"])}
               </div>
 
               <input
@@ -2783,7 +2783,7 @@ function renderAdminPage() {
             <div class="team-name-row">
 
               <div class="team-name-label">
-                TEAM B
+                ${escapeHTML(teamNames["Team B"])}
               </div>
 
               <input
@@ -2800,7 +2800,7 @@ function renderAdminPage() {
             <div class="team-name-row">
 
               <div class="team-name-label">
-                TEAM C
+                ${escapeHTML(teamNames["Team C"])}
               </div>
 
               <input
@@ -2817,7 +2817,7 @@ function renderAdminPage() {
             <div class="team-name-row">
 
               <div class="team-name-label">
-                TEAM D
+                ${escapeHTML(teamNames["Team D"])}
               </div>
 
               <input
@@ -2832,7 +2832,7 @@ function renderAdminPage() {
 
             <div class="team-name-row">
               <div class="team-name-label">
-                TEAM E
+                ${escapeHTML(teamNames["Team E"])}
               </div>
               <input
                 id="teamNameE"
