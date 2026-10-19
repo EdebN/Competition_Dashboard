@@ -1,5 +1,50 @@
 const SERVICE_NAME = "competition-community-api";
 const API_VERSION = 1;
+const BUILD_ID = "2026-10-19-api-consistency-fix";
+
+// Keep the public action inventory in one place. The health endpoint and
+// POST allowlist both use these constants so they cannot silently drift apart.
+const GET_ACTIONS = [
+  "health",
+  "getTeamSettings",
+  "getCompetitionSettings",
+  "getMatchResults",
+  "getMatchPolls",
+  "getTeamPageDesign",
+  "getTeamPlayerCards",
+  "getTeamPlayerCardAssetUpload",
+  "getPublishedTeamPage",
+  "getTeamEditorPinStatus",
+  "verifyTeamEditorPin",
+  "getSocialPosts",
+  "getTeamSocialStatus",
+  "getModerationSession",
+  "getScoreEditorSession",
+  "getModerationQueue"
+];
+
+const POST_ACTIONS = [
+  "updateTeamSettings",
+  "updateCompetitionSettings",
+  "updateTeamEditorPin",
+  "submitMatchResult",
+  "saveTeamPageDesign",
+  "saveTeamPlayerCards",
+  "uploadTeamPlayerCardAsset",
+  "publishTeamPage",
+  "revertTeamPage",
+  "submitFeatureRequest",
+  "submitMatchVote",
+  "submitSocialPost",
+  "submitOfficialSocialPost",
+  "createModerationSession",
+  "createScoreEditorSession",
+  "moderateSocialPost",
+  "markSocialPostViewed",
+  "setSocialPostingBan"
+];
+
+const API_ACTIONS = [...new Set([...GET_ACTIONS, ...POST_ACTIONS])];
 
 const TEAM_SETTINGS_TAB = "Team Settings";
 const TEAM_PAGE_DESIGNS_TAB = "Team Page Designs";
@@ -44,15 +89,32 @@ function doGet(e) {
   try {
     if (action === "health") {
       const properties = PropertiesService.getScriptProperties();
+      const hasSpreadsheetId = Boolean(properties.getProperty("SPREADSHEET_ID"));
+      const hasAdminToken = Boolean(properties.getProperty("ADMIN_TOKEN"));
+      const hasScoreEditorCode = Boolean(properties.getProperty("SCORE_EDITOR_CODE"));
+      const hasResultsSpreadsheetId = Boolean(properties.getProperty("RESULTS_SPREADSHEET_ID"));
       result = {
         ok: true,
         service: SERVICE_NAME,
         apiVersion: API_VERSION,
-        configured: Boolean(
-          properties.getProperty("SPREADSHEET_ID") &&
-          properties.getProperty("ADMIN_TOKEN")
-        ),
-        actions: ["health", "getTeamSettings", "getCompetitionSettings", "getMatchResults", "submitMatchResult", "updateCompetitionSettings", "getTeamEditorPinStatus", "verifyTeamEditorPin", "updateTeamEditorPin", "getTeamPageDesign", "saveTeamPageDesign", "getTeamPlayerCards", "saveTeamPlayerCards", "uploadTeamPlayerCardAsset", "getTeamPlayerCardAssetUpload", "getPublishedTeamPage", "publishTeamPage", "revertTeamPage", "submitFeatureRequest", "getMatchPolls", "submitMatchVote", "getSocialPosts", "getTeamSocialStatus", "getModerationSession", "getModerationQueue"],
+        buildId: BUILD_ID,
+        configured: hasSpreadsheetId && hasAdminToken,
+        configuration: {
+          spreadsheetId: hasSpreadsheetId,
+          adminToken: hasAdminToken,
+          scoreEditorCode: hasScoreEditorCode,
+          resultsSpreadsheetId: hasResultsSpreadsheetId
+        },
+        helpers: {
+          respond: typeof respond_ === "function",
+          jsonResponse: typeof jsonResponse_ === "function",
+          moderationSession: typeof requestModerationSession_ === "function" && typeof consumeModerationSession_ === "function",
+          scoreEditorSession: typeof requestScoreEditorSession_ === "function" && typeof consumeScoreEditorSession_ === "function",
+          playerCardAssetUpload: typeof uploadTeamPlayerCardAsset_ === "function"
+        },
+        actions: API_ACTIONS,
+        getActions: GET_ACTIONS,
+        postActions: POST_ACTIONS
       };
     } else if (action === "getMatchResults") {
       result = { ok: true, service: SERVICE_NAME, apiVersion: API_VERSION, action: action, results: readMatchResults_() };
@@ -167,7 +229,7 @@ function doPost(e) {
     });
   }
 
-  if (!["updateTeamSettings", "updateCompetitionSettings", "updateTeamEditorPin", "submitMatchResult", "saveTeamPageDesign", "saveTeamPlayerCards", "uploadTeamPlayerCardAsset", "publishTeamPage", "revertTeamPage", "submitFeatureRequest", "submitMatchVote", "submitSocialPost", "submitOfficialSocialPost", "createModerationSession", "createScoreEditorSession", "moderateSocialPost", "markSocialPostViewed", "setSocialPostingBan"].includes(body.action)) {
+  if (!POST_ACTIONS.includes(body.action)) {
     return jsonResponse_({
       ok: false,
       service: SERVICE_NAME,
