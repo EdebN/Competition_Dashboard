@@ -33,11 +33,13 @@ main{width:min(760px,calc(100% - 32px));margin:48px auto}header{margin-bottom:28
 </main>
 <script>
 "use strict";
-const API_URL = "https://script.google.com/macros/s/AKfycbygEn7TgKhjsIY86e9qHmuDL33aaZxSMqLW4ybzzHWpyCX7sRQiLZZKmXUj9LD7RRBp/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbzhyO1bjLf8FO-fy9lSMgd4cJqn-OaytD-XWKFn9HUxH-iQUQJpYhgGaliIUkTBHwWr/exec";
 const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT2tLmAB4OB6uWLeBeCSWLMarzK9RjelvVTJRGqsm94yVijiT25leyXnPWhJybPtoyMKUgfBL6tTzFe/pub?output=csv";
 let scoreSessionToken = "";
 let fixtures = [];
 let savedResults = [];
+ let displayNames = Object.fromEntries(["A","B","C","D","E"].map(id=>["Team "+id,"Team "+id]));
+ function displayTeam(team){return displayNames[team]||team;}
 const $ = id => document.getElementById(id);
 function status(id, message, kind="") { const el=$(id); el.textContent=message; el.className="status"+(kind?" "+kind:""); }
 function post(payload) { return fetch(API_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=UTF-8"},body:JSON.stringify(payload)}); }
@@ -105,7 +107,7 @@ function dashboardRatings(activeGames,resultsById){
 }
 async function loadData(){
  status("saveStatus","Loading matches…");
- const [csvResponse,resultResponse,settingsResponse]=await Promise.all([
+ const [csvResponse,resultResponse,settingsResponse,teamSettingsResponse]=await Promise.all([
   fetch(CSV_URL+"&cacheBust="+Date.now()).then(r=>{if(!r.ok)throw new Error("Fixture sheet could not be loaded.");return r.text();}),
   get("getMatchResults"),
   get("getCompetitionSettings").catch(()=>null)
@@ -113,7 +115,7 @@ async function loadData(){
  const rows=parseCSV(csvResponse);if(rows.length<2)throw new Error("No fixtures were found in the published CSV.");
  const allRows=rows.slice(1).map(r=>({id:Number(String(r[0]||"").trim()),home:String(r[1]||"").trim(),homeScore:r[2],away:String(r[3]||"").trim(),awayScore:r[4],stage:String(r[5]||"REGULAR").trim().toUpperCase()})).filter(f=>Number.isInteger(f.id));
  if(!resultResponse?.ok||!Array.isArray(resultResponse.results))throw new Error("Could not load results.");
- savedResults=resultResponse.results;
+ savedResults=resultResponse.results;\n  if(teamSettingsResponse?.ok&&Array.isArray(teamSettingsResponse.teams)){\n   teamSettingsResponse.teams.forEach(team=>{const id=String(team.teamId||"").toUpperCase();const name=String(team.displayName||"").trim();if(/^[A-E]$/.test(id)&&name)displayNames["Team "+id]=name;});\n  }
  const perTeam=Number(settingsResponse?.gamesPerTeam);
  const gamesPerTeam=Number.isInteger(perTeam)&&perTeam>=3&&perTeam<=32?perTeam:16;
  const activeRegularCount=gamesPerTeam*5/2;
@@ -138,7 +140,7 @@ async function loadData(){
  if(final3&&f1&&f2&&loser(f1)&&loser(f2))finalFixtures.push({...final3,home:loser(f1),away:loser(f2)});
  fixtures=[...regular,...finalFixtures].filter(f=>f.home&&f.away);
  const select=$("fixture"),previous=select.value;select.innerHTML="";
- fixtures.forEach(f=>{const o=document.createElement("option");o.value=String(f.id);o.textContent=(f.stage==="REGULAR"?"Game "+f.id:f.stage+" · Game "+f.id)+" · "+f.home+" vs "+f.away;select.appendChild(o);});
+ fixtures.forEach(f=>{const o=document.createElement("option");o.value=String(f.id);o.textContent=(f.stage==="REGULAR"?"Game "+f.id:f.stage+" · Game "+f.id)+" · "+displayTeam(f.home)+" vs "+displayTeam(f.away);select.appendChild(o);});
  if(previous&&fixtures.some(f=>String(f.id)===previous))select.value=previous;
  fillScores();status("saveStatus","Matches loaded.","good");
 }
@@ -146,7 +148,7 @@ function selectedFixture(){return fixtures.find(f=>f.id===Number($("fixture").va
 function savedFor(id){return savedResults.find(r=>Number(r.matchId)===id);}
 function fillScores(){
  const f=selectedFixture();if(!f)return;
- $("homeLabel").textContent=f.home+" score";$("awayLabel").textContent=f.away+" score";
+ $("homeLabel").textContent=displayTeam(f.home)+" score";$("awayLabel").textContent=displayTeam(f.away)+" score";
  const r=savedFor(f.id);
  $("homeScore").value=r&&r.homeScore!==null&&r.homeScore!==""?r.homeScore:"";
  $("awayScore").value=r&&r.awayScore!==null&&r.awayScore!==""?r.awayScore:"";
@@ -172,7 +174,7 @@ async function save(){
  if(!scoreSessionToken){status("saveStatus","Session expired. Unlock the portal again.","bad");return;}
  if(!f){status("saveStatus","Choose a fixture first.","bad");return;}
  if(h===""||a===""||!Number.isInteger(Number(h))||!Number.isInteger(Number(a))||Number(h)<0||Number(a)<0||Number(h)>99||Number(a)>99){status("saveStatus","Enter whole-number scores from 0 to 99.","bad");return;}
- if(!confirm("Save Game "+f.id+": "+f.home+" "+h+"–"+a+" "+f.away+"? This changes the official result."))return;
+ if(!confirm("Save Game "+f.id+": "+displayTeam(f.home)+" "+h+"–"+a+" "+displayTeam(f.away)+"? This changes the official result."))return;
  $("save").disabled=true;status("saveStatus","Saving score…");
  try{
   await post({action:"submitMatchResult",scoreSessionToken,matchId:f.id,homeScore:Number(h),awayScore:Number(a)});
