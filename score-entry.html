@@ -115,7 +115,10 @@ async function loadData(){
  const rows=parseCSV(csvResponse);if(rows.length<2)throw new Error("No fixtures were found in the published CSV.");
  const allRows=rows.slice(1).map(r=>({id:Number(String(r[0]||"").trim()),home:String(r[1]||"").trim(),homeScore:r[2],away:String(r[3]||"").trim(),awayScore:r[4],stage:String(r[5]||"REGULAR").trim().toUpperCase()})).filter(f=>Number.isInteger(f.id));
  if(!resultResponse?.ok||!Array.isArray(resultResponse.results))throw new Error("Could not load results.");
- savedResults=resultResponse.results;\n  if(teamSettingsResponse?.ok&&Array.isArray(teamSettingsResponse.teams)){\n   teamSettingsResponse.teams.forEach(team=>{const id=String(team.teamId||"").toUpperCase();const name=String(team.displayName||"").trim();if(/^[A-E]$/.test(id)&&name)displayNames["Team "+id]=name;});\n  }
+ savedResults=resultResponse.results;
+  if(teamSettingsResponse?.ok&&Array.isArray(teamSettingsResponse.teams)){
+   teamSettingsResponse.teams.forEach(team=>{const id=String(team.teamId||"").toUpperCase();const name=String(team.displayName||"").trim();if(/^[A-E]$/.test(id)&&name)displayNames["Team "+id]=name;});
+  }
  const perTeam=Number(settingsResponse?.gamesPerTeam);
  const gamesPerTeam=Number.isInteger(perTeam)&&perTeam>=3&&perTeam<=32?perTeam:16;
  const activeRegularCount=gamesPerTeam*5/2;
