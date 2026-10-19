@@ -670,5 +670,19 @@ document.addEventListener("cd:image-edited",event=>{
  else if(el.closest&&el.closest("#pvPortrait")){portraitData=data;render();markDirty();status("Edited player portrait. Save the card to keep it.");}
 });
 </script>
+
+<script src="team-names.js"></script>
+<script>
+window.addEventListener("competition:team-names-loaded", () => {
+  const id = sessionStorage.getItem("team-editor-authorized-team") || new URLSearchParams(location.search).get("team") || "A";
+  const field = document.getElementById("teamName");
+  if (!field || !/^[A-E]$/.test(id)) return;
+  const fallback = "Team " + id;
+  if (field.value.trim() === fallback) {
+    field.value = window.getCompetitionTeamDisplayName(id);
+    field.dispatchEvent(new Event("input", { bubbles: true }));
+  }
+});
+</script>
 </body>
 </html>
