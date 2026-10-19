@@ -1125,5 +1125,17 @@ blocks=[makeBlock("badge",{text:"TEAM SPOTLIGHT"}),makeBlock("heading",{text:"Bu
 selected=blocks[1].id;render();pushHistory();setWorkspaceStatus("Ready to edit","saved");startStatsPreview();
 })();
 </script>
+
+<script src="image-editor.js"></script>
+<script>
+document.addEventListener("cd:image-edited",event=>{
+ const image=event.target,blockEl=image&&image.closest&&image.closest("[data-id]");
+ if(!blockEl)return;
+ const block=blocks.find(item=>item.id===blockEl.dataset.id);
+ if(!block||block.type!=="image")return;
+ block.src=event.detail.dataUrl;
+ pushHistory();render();toast("Edited image applied to the page. Save/publish the design to keep it.");
+});
+</script>
 </body>
 </html>
