@@ -1123,19 +1123,10 @@ document.addEventListener("keydown",event=>{
 });
 blocks=[makeBlock("badge",{text:"TEAM SPOTLIGHT"}),makeBlock("heading",{text:"Build something yours",fontSize:44}),makeBlock("text",{text:"This is a freeform canvas. Add blocks, move them around, drop in images, and style every element."}),makeBlock("image",{alt:"Upload your own team photo, logo or banner",src:""}),makeBlock("card",{text:"Your team. Your identity.\nCreate a page that feels like your team instead of another identical template."})];
 selected=blocks[1].id;render();pushHistory();setWorkspaceStatus("Ready to edit","saved");startStatsPreview();
+window.addEventListener("cd:image-edited",event=>{const image=event.target,blockEl=image&&image.closest&&image.closest("[data-id]");if(!blockEl)return;const block=blocks.find(item=>item.id===blockEl.dataset.id);if(!block||block.type!=="image")return;block.src=event.detail.dataUrl;pushHistory();render();toast("Edited image applied. Save or publish the design to keep it.");});
 })();
 </script>
 
 <script src="image-editor.js"></script>
-<script>
-document.addEventListener("cd:image-edited",event=>{
- const image=event.target,blockEl=image&&image.closest&&image.closest("[data-id]");
- if(!blockEl)return;
- const block=blocks.find(item=>item.id===blockEl.dataset.id);
- if(!block||block.type!=="image")return;
- block.src=event.detail.dataUrl;
- pushHistory();render();toast("Edited image applied to the page. Save/publish the design to keep it.");
-});
-</script>
 </body>
 </html>
