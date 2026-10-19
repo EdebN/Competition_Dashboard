@@ -78,5 +78,14 @@ if(!["A","B","C","D","E"].includes(teamId)||!token){
 }
 </script>
 <script src="image-editor.js"></script>
+
+<script src="team-names.js"></script>
+<script>
+window.addEventListener("competition:team-names-loaded", () => {
+  const id = sessionStorage.getItem("team-editor-authorized-team") || "";
+  const label = document.getElementById("teamLabel");
+  if (label && /^[A-E]$/.test(id)) label.textContent = window.getCompetitionTeamDisplayName(id) + " WORKSPACE";
+});
+</script>
 </body>
 </html>
