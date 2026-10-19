@@ -187,5 +187,6 @@ async function save(){
 function lock(){scoreSessionToken="";$("code").value="";$("entryPanel").classList.add("hidden");$("loginPanel").classList.remove("hidden");status("loginStatus","Portal locked.");}
 $("unlock").addEventListener("click",unlock);$("code").addEventListener("keydown",e=>{if(e.key==="Enter")unlock();});$("fixture").addEventListener("change",fillScores);$("save").addEventListener("click",save);$("refresh").addEventListener("click",()=>loadData().catch(()=>status("saveStatus","Could not load matches. Refresh and try again.","bad")));$("lock").addEventListener("click",lock);
 </script>
+<script src="image-editor.js"></script>
 </body>
 </html>
