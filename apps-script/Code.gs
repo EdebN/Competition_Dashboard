@@ -993,8 +993,45 @@ function isScoreEditorSession_(token) {
   const value = String(token || "");
   return /^[a-f0-9]{64}$/.test(value) && CacheService.getScriptCache().get("scoreEditorSession:" + value) === "score-editor";
 }
-function requestModerationSession_(b){const expected=PropertiesService.getScriptProperties().getProperty("ADMIN_TOKEN"),nonce=String(b.nonce||"");if(!expected||String(b.adminToken||"")!==expected)return jsonResponse_({ok:false,error:"Admin token rejected."});if(!/^[a-f0-9]{32,64}$/.test(nonce))return jsonResponse_({ok:false,error:"Invalid session challenge."});const t=Utilities.getUuid().replace(/-/g,"")+Utilities.getUuid().replace(/-/g,"");const cache=CacheService.getScriptCache();cache.put("socialAdminSession:"+t,"admin",1800);cache.put("socialSessionExchange:"+nonce,t,60);return jsonResponse_({ok:true,queued:true});}
-function consumeModerationSession_(nonce){const n=String(nonce||"");if(!/^[a-f0-9]{32,64}$/.test(n))return {ok:false,error:"Invalid session challenge."};const cache=CacheService.getScriptCache(),key="socialSessionExchange:"+n,t=cache.get(key);if(!t)return {ok:false,error:"Session exchange pending. Try again."};cache.remove(key);return {ok:true,sessionToken:t,expiresIn:1800};}
+function requestModerationSession_(b) {
+  const props = PropertiesService.getScriptProperties();
+  const expected = String(props.getProperty("ADMIN_TOKEN") || "");
+  const supplied = String(b.adminToken || "");
+  const nonce = String(b.nonce || "");
+  if (!/^[a-f0-9]{32,64}$/.test(nonce)) return jsonResponse_({ok:false,error:"Invalid session challenge."});
+  const cache = CacheService.getScriptCache();
+  if (!expected) {
+    cache.put("socialSessionError:" + nonce, "ADMIN_TOKEN is missing from this deployment’s Script Properties.", 60);
+    return jsonResponse_({ok:false,error:"ADMIN_TOKEN is not configured."});
+  }
+  if (supplied !== expected) {
+    cache.put("socialSessionError:" + nonce, "Admin token rejected by this deployment.", 60);
+    return jsonResponse_({ok:false,error:"Admin token rejected."});
+  }
+  const token = Utilities.getUuid().replace(/-/g,"") + Utilities.getUuid().replace(/-/g,"");
+  cache.put("socialAdminSession:" + token, "admin", 1800);
+  cache.put("socialSessionExchange:" + nonce, token, 60);
+  return jsonResponse_({ok:true,queued:true});
+}
+function consumeModerationSession_(nonce) {
+  const n = String(nonce || "");
+  if (!/^[a-f0-9]{32,64}$/.test(n)) return {ok:false,error:"Invalid session challenge."};
+  const cache = CacheService.getScriptCache();
+  const key = "socialSessionExchange:" + n;
+  const token = cache.get(key);
+  if (token) {
+    cache.remove(key);
+    cache.remove("socialSessionError:" + n);
+    return {ok:true,sessionToken:token,expiresIn:1800};
+  }
+  const errorKey = "socialSessionError:" + n;
+  const error = cache.get(errorKey);
+  if (error) {
+    cache.remove(errorKey);
+    return {ok:false,error:error};
+  }
+  return {ok:false,error:"Session exchange pending. Try again."};
+}
 function getModerationSession_(token){return /^[a-f0-9]{64}$/.test(String(token||""))&&CacheService.getScriptCache().get("socialAdminSession:"+token)==="admin";}
 function findSocialPost_(id){const sh=socialPostsSheet_(),n=sh.getLastRow();if(n<2)return {sheet:sh,row:0};const ids=sh.getRange(2,1,n-1,1).getDisplayValues();for(let i=0;i<ids.length;i++)if(ids[i][0]===String(id))return {sheet:sh,row:i+2};return {sheet:sh,row:0};}
 function submitSocialPost_(b) {
