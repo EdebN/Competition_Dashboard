@@ -8,6 +8,69 @@
     const letter = String(id || "").replace(/^Team\s*/i, "").toUpperCase();
     return window.CompetitionTeamNames[letter] || (fallback[letter] || String(id || ""));
   };
+  // Replace visible fallback labels across standalone tools as well as labels
+  // generated later by the app. Stable IDs in JavaScript/data remain untouched.
+  const originalText = new WeakMap();
+  const originalAttributes = new WeakMap();
+  function replaceLabel(value) {
+    return String(value).replace(/\\bTeam ([A-E])\\b/gi, (match, letter) => {
+      const name = window.CompetitionTeamNames[String(letter).toUpperCase()];
+      return name || match;
+    });
+  }
+  function refreshVisibleLabels(root = document.body) {
+    if (!root) return;
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+      acceptNode(node) {
+        const parent = node.parentElement;
+        if (!parent || parent.closest("script,style,noscript,textarea,select,option")) return NodeFilter.FILTER_REJECT;
+        return NodeFilter.FILTER_ACCEPT;
+      }
+    });
+    let node;
+    while ((node = walker.nextNode())) {
+      const current = node.nodeValue || "";
+      let record = originalText.get(node);
+      if (!record || current !== record.applied) record = { original: current, applied: current };
+      const next = replaceLabel(record.original);
+      record.applied = next;
+      originalText.set(node, record);
+      if (current !== next) node.nodeValue = next;
+    }
+    const elements = root.nodeType === 1 ? [root, ...root.querySelectorAll("*")] : [...root.querySelectorAll("*")];
+    elements.forEach(element => {
+      if (/^(INPUT|TEXTAREA|SELECT|OPTION|SCRIPT|STYLE)$/.test(element.tagName)) return;
+      ["title", "aria-label", "placeholder"].forEach(attribute => {
+        if (!element.hasAttribute(attribute)) return;
+        let record = originalAttributes.get(element);
+        if (!record) { record = {}; originalAttributes.set(element, record); }
+        const current = element.getAttribute(attribute);
+        if (!record[attribute] || current !== record[attribute].applied) record[attribute] = { original: current, applied: current };
+        const next = replaceLabel(record[attribute].original);
+        record[attribute].applied = next;
+        if (current !== next) element.setAttribute(attribute, next);
+      });
+      if (element instanceof HTMLInputElement && element.type !== "password" && element.value && /^Team [A-E]$/i.test(element.value)) {
+        const letter = element.value.slice(-1).toUpperCase();
+        element.value = window.CompetitionTeamNames[letter] || element.value;
+      }
+    });
+  }
+  let labelObserver = null;
+  function startLabelRefresh() {
+    refreshVisibleLabels();
+    if (labelObserver || !document.body) return;
+    labelObserver = new MutationObserver(records => {
+      records.forEach(record => {
+        if (record.type === "characterData") refreshVisibleLabels(record.target.parentElement || document.body);
+        else record.addedNodes.forEach(node => {
+          if (node.nodeType === 1) refreshVisibleLabels(node);
+          else if (node.nodeType === 3) refreshVisibleLabels(node.parentElement || document.body);
+        });
+      });
+    });
+    labelObserver.observe(document.body, { childList: true, subtree: true, characterData: true });
+  }
   function load() {
     return new Promise((resolve, reject) => {
       const callback = "__competitionTeamNames_" + Date.now() + "_" + Math.random().toString(36).slice(2);
@@ -40,6 +103,7 @@
       const name = String(team.displayName || "").trim();
       if (/^[A-E]$/.test(id) && name) window.CompetitionTeamNames[id] = name;
     });
+    startLabelRefresh();
     window.dispatchEvent(new CustomEvent("competition:team-names-loaded", { detail: { ...window.CompetitionTeamNames } }));
   }).catch(error => console.warn("Using default team names:", error.message));
 })();
