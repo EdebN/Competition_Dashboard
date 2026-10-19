@@ -1034,11 +1034,16 @@ function requestScoreEditorSession_(b) {
   const supplied = String(b.scoreEditorCode || "");
   const nonce = String(b.nonce || "");
   if (!/^[a-f0-9]{32,64}$/.test(nonce)) return jsonResponse_({ok:false,error:"Invalid session challenge."});
-  if (!expected || supplied.length < 12 || supplied !== expected) {
+  const cache = CacheService.getScriptCache();
+  if (!expected) {
+    cache.put("scoreEditorSessionError:" + nonce, "SCORE_EDITOR_CODE is missing from this deployment's Script Properties.", 60);
+    return jsonResponse_({ok:false,error:"SCORE_EDITOR_CODE is not configured."});
+  }
+  if (supplied.length < 12 || supplied !== expected) {
+    cache.put("scoreEditorSessionError:" + nonce, "Score editor code rejected by this deployment.", 60);
     return jsonResponse_({ok:false,error:"Score editor code rejected."});
   }
   const token = Utilities.getUuid().replace(/-/g,"") + Utilities.getUuid().replace(/-/g,"");
-  const cache = CacheService.getScriptCache();
   cache.put("scoreEditorSession:" + token, "score-editor", 21600);
   cache.put("scoreEditorExchange:" + nonce, token, 60);
   return jsonResponse_({ok:true,queued:true});
@@ -1046,10 +1051,21 @@ function requestScoreEditorSession_(b) {
 function consumeScoreEditorSession_(nonce) {
   const n = String(nonce || "");
   if (!/^[a-f0-9]{32,64}$/.test(n)) return {ok:false,error:"Invalid session challenge."};
-  const cache = CacheService.getScriptCache(), key = "scoreEditorExchange:" + n, token = cache.get(key);
-  if (!token) return {ok:false,error:"Session exchange pending. Try again."};
-  cache.remove(key);
-  return {ok:true,sessionToken:token,expiresIn:21600};
+  const cache = CacheService.getScriptCache();
+  const key = "scoreEditorExchange:" + n;
+  const token = cache.get(key);
+  if (token) {
+    cache.remove(key);
+    cache.remove("scoreEditorSessionError:" + n);
+    return {ok:true,sessionToken:token,expiresIn:21600};
+  }
+  const errorKey = "scoreEditorSessionError:" + n;
+  const error = cache.get(errorKey);
+  if (error) {
+    cache.remove(errorKey);
+    return {ok:false,error:error};
+  }
+  return {ok:false,error:"Session exchange pending. Try again."};
 }
 function isScoreEditorSession_(token) {
   const value = String(token || "");
