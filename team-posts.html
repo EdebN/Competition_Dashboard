@@ -472,5 +472,14 @@ $("postForm").addEventListener("submit",async event=>{
 loadStatus();
 </script>
 <script src="image-editor.js"></script>
+
+<script src="team-names.js"></script>
+<script>
+window.addEventListener("competition:team-names-loaded", () => {
+  const id = sessionStorage.getItem("team-editor-authorized-team") || "";
+  const label = document.getElementById("teamLabel");
+  if (label && /^[A-E]$/.test(id)) label.textContent = window.getCompetitionTeamDisplayName(id);
+});
+</script>
 </body>
 </html>
