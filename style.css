@@ -161,6 +161,10 @@ tr:last-child td {
 .team-name {
   color: #ffffff;
   font-weight: 750;
+  min-width: 0;
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 .ladder-elo {
@@ -1882,7 +1886,7 @@ tr:last-child td {
 .ccm-11__machine { position:relative; display:grid; place-items:center; width:min(440px,88vw); aspect-ratio:1; }
 .ccm-11__wheel { position:absolute; inset:0; margin:0; padding:0; list-style:none; border:1px solid rgba(224,185,90,.24); border-radius:50%; rotate:var(--rot,0deg); transition:rotate .7s cubic-bezier(.3,1,.35,1); }
 .ccm-11__wheel li { --orbit:min(220px,44vw); --a:calc((360deg / var(--n)) * var(--i) - 90deg); position:absolute; inset:0; display:grid; place-items:center; pointer-events:none; translate:calc(cos(var(--a)) * var(--orbit)) calc(sin(var(--a)) * var(--orbit)); }
-.ccm-11__stop { pointer-events:auto; max-width:145px; padding:11px 17px; border:1px solid #31445b; border-radius:999px; background:rgba(10,25,44,.96); color:#d4deeb; font:700 12px/1.2 inherit; font-family:inherit; letter-spacing:.015em; cursor:pointer; white-space:nowrap; rotate:calc(var(--rot,0deg) * -1); transition:rotate .7s cubic-bezier(.3,1,.35,1),background .2s,color .2s,border-color .2s,scale .2s; }
+.ccm-11__stop { pointer-events:auto; width:min(170px,36vw); max-width:170px; min-width:0; padding:10px 13px; border:1px solid #31445b; border-radius:18px; background:rgba(10,25,44,.96); color:#d4deeb; font:700 clamp(10px,2.4vw,12px)/1.2 inherit; font-family:inherit; letter-spacing:.005em; text-align:center; white-space:normal; overflow-wrap:anywhere; hyphens:auto; cursor:pointer; rotate:calc(var(--rot,0deg) * -1); transition:rotate .7s cubic-bezier(.3,1,.35,1),background .2s,color .2s,border-color .2s,scale .2s; }
 .ccm-11__stop:hover,.ccm-11__stop:focus-visible { border-color:var(--brand); color:#fff; outline-offset:3px; }
 .ccm-11__stop.is-active { background:var(--brand); border-color:var(--brand); color:#091426; scale:1.08; box-shadow:0 0 28px rgba(224,185,90,.23); }
 .ccm-11__pointer { position:absolute; z-index:3; top:calc(50% - min(220px, 44vw) + 1px); left:50%; translate:-50% 0; width:0; height:0; border:9px solid transparent; border-top:13px solid var(--dashboard-gold); filter:drop-shadow(0 2px 6px rgba(224,185,90,.5)); pointer-events:none; }
@@ -4052,3 +4056,25 @@ select {
 .social-match-mention{display:inline-flex;align-items:center;padding:0 5px;border:1px solid rgba(224,185,90,.28);border-radius:5px;background:rgba(224,185,90,.09);color:#f4d57f;font-weight:800;text-decoration:none;white-space:nowrap}.social-match-mention:hover{background:rgba(224,185,90,.18);border-color:rgba(224,185,90,.65)}
 .match-mention-hint{margin-top:6px;color:var(--dashboard-muted);font-size:10px;line-height:1.5}.match-mention-hint strong{color:var(--dashboard-gold)}
 .match-mention-menu{display:grid;gap:3px;max-height:230px;overflow-y:auto;margin-top:8px;padding:6px;border:1px solid #344b65;border-radius:10px;background:#091523;box-shadow:0 12px 28px #0005}.match-mention-menu[hidden]{display:none!important}.match-mention-menu-label{padding:5px 7px 6px;color:#8fa3bc;font-size:9px;font-weight:900;letter-spacing:.13em}.match-mention-option{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;padding:8px 9px;border:1px solid transparent;border-radius:7px;background:transparent;color:#e7eef8;text-align:left;cursor:pointer}.match-mention-option:hover,.match-mention-option:focus-visible{border-color:rgba(224,185,90,.35);background:rgba(224,185,90,.09);outline:none}.match-mention-option span{color:#f4d57f;font-weight:850}.match-mention-option small{color:#8fa3bc;font-size:9px;letter-spacing:.08em}
+
+/* TEAM NAME FIT: accommodate the confirmed 20-character maximum without
+   clipping names in compact cards, tables, or the team selector. */
+.ccm-11__current {
+  width: min(85%, 260px);
+  line-height: 1.08;
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+}
+.team-name,
+.team-page h1,
+.team-page h2,
+.match-team-name,
+.home-match-teams > span {
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+@media (max-width: 560px) {
+  .ccm-11__stop { width:min(132px,35vw); padding:8px 9px; border-radius:14px; }
+}
