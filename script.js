@@ -197,11 +197,21 @@ function postCommunityGamesPerTeam(token, gamesPerTeam) {
 }
 
 function updateDashboardTeamNames() {
+  // Refresh every display that derives labels from the shared team settings.
   updateTeamNavNames();
+  if (typeof syncTeamWheelNames === "function") syncTeamWheelNames();
+  if (typeof renderTeamWheelSelection === "function") renderTeamWheelSelection(selectedTeamIndex, false);
   calculate();
   renderGames();
   renderFinalsPage();
   if (typeof renderMatchCentre === "function") renderMatchCentre();
+  if (typeof renderSocialFeed === "function") renderSocialFeed();
+
+  // Rebuild each profile so its heading, opponents, and match summaries use
+  // the latest display names without changing the stable Team A–E IDs.
+  TEAMS.forEach(team => {
+    if (typeof renderTeamPage === "function") renderTeamPage(team);
+  });
 
   const status = document.getElementById("teamNamesStatus");
   if (status && communitySettingsLoaded) {
