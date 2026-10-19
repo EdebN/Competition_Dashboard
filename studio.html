@@ -484,7 +484,7 @@ function startStatsPreview(){
     if(typeof win.calculateElo==="function"&&typeof win.calculateLadder==="function"&&win.document.getElementById("ladder")?.querySelector("table")){
      const elo=win.calculateElo();
      const ladder=win.calculateLadder(elo.finalRatings);
-     const teamName=window.getCompetitionTeamDisplayName?window.getCompetitionTeamDisplayName(validStudioTeam||"A"):"Team "+(validStudioTeam||"A");
+     const teamName="Team "+(validStudioTeam||"A");
      liveTeamStats=ladder.find(team=>team.team===teamName)||null;
      refreshStatPreviews();
      refreshInfographicPreviews();
@@ -1128,5 +1128,7 @@ window.addEventListener("cd:image-edited",event=>{const image=event.target,block
 </script>
 
 <script src="image-editor.js"></script>
+<script src="team-names.js"></script>
+<script>window.addEventListener("competition:team-names-loaded",()=>{if(typeof render==="function")render();});</script>
 </body>
 </html>
