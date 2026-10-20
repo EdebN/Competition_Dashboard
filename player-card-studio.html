@@ -555,8 +555,8 @@ const templates={
 function driveAssetId(value){
   try{
     const url=new URL(value,location.href);
-    if(!/(^|\\.)drive\\.google\\.com$/.test(url.hostname)&&url.hostname!=='drive.usercontent.google.com')return '';
-    return url.searchParams.get('id')||url.pathname.match(/\\/file\\/d\\/([^/]+)/)?.[1]||'';
+    if(!/(^|\.)drive\.google\.com$/.test(url.hostname)&&url.hostname!=='drive.usercontent.google.com')return '';
+    return url.searchParams.get('id')||url.pathname.match(/\/file\/d\/([^/]+)/)?.[1]||'';
   }catch{return ''}
 }
 function driveAssetCandidates(value){
