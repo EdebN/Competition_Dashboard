@@ -552,7 +552,7 @@ const templates={
  fifa:{name:'FIFA Ultimate Team',c1:'#c89a35',c2:'#f4d57f',ink:'#1b1a18'},
  nfl:{name:'NFL Trading Card',c1:'#163b66',c2:'#dce7f1',ink:'#f8fbff'}
 };
-function displayAssetUrl(value){try{const url=new URL(value);if(url.hostname==='drive.google.com'){const id=url.searchParams.get('id');if(id)return 'https://drive.google.com/thumbnail?id='+encodeURIComponent(id)+'&sz=w1600'}}catch{}return value||''}
+function displayAssetUrl(value){try{const url=new URL(value);if(url.hostname==='drive.google.com'||url.hostname==='drive.usercontent.google.com'){const id=url.searchParams.get('id')||url.pathname.match(/\/file\/d\/([^/]+)/)?.[1];if(id)return 'https://drive.google.com/uc?export=download&id='+encodeURIComponent(id)}}catch{}return value||''}
 function canonicalTemplate(key){if(key==='gold'||key==='silver'||key==='elite'||key==='retro'||key==='clean')return 'fifa';if(key==='pro')return 'nfl';return templates[key]?key:'fifa'}
 let currentId=null, portraitData='', teamLogoData='', backgroundData='', savedCards=loadLibrary(), dirty=true, layoutOverrides={}, selectedElement=null, dragState=null;
 const fields=['playerName','rating','position','jersey','teamName','tagline','stat1Label','stat1','stat2Label','stat2','stat3Label','stat3','stat4Label','stat4','stat5Label','stat5','stat6Label','stat6','color1','color2','ink','badge','footerText','showFoil','showOrbit','showTeamLogo','foilOpacity','backgroundOpacity'];
