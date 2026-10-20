@@ -568,23 +568,76 @@
 @media(max-width:1120px){.layout{grid-template-columns:220px minmax(280px,1fr)}.right{grid-column:1/-1;position:static;max-height:none;border-left:0;border-top:1px solid var(--line)}.inspector-content{display:block}.left{height:auto;position:static;overflow:visible}.stage{min-height:680px}}
 @media(max-width:700px){.top{align-items:flex-start}.brand small{font-size:8px}.actions button{padding:7px 8px;font-size:11px}.layout{display:flex;flex-direction:column}.left{order:2;border-right:0;border-top:1px solid var(--line)}.stage{order:1;padding:20px 12px 24px;min-height:600px}.right{order:3}.templates{grid-template-columns:repeat(4,minmax(0,1fr))}.template{padding:4px}.swatch{height:66px}.template-name{font-size:9px}.preview-wrap{width:min(82vw,340px)}.benchline{margin-top:18px}}
 
+
+/* Compact creator workspace: templates left, live collectible centre, editor always visible right. */
+:root{--bg:#0b0d12;--panel:#12151d;--panel2:#191e29;--line:#2c3341;--text:#f3f5f8;--muted:#a2aab8;--gold:#e6c16c;--gold2:#f8dfa0;--blue:#79c9f2}
+body{background:#0c0e13;color:#f1f3f6}
+.top{background:#0c0e13f2;border-bottom-color:#2b303b;padding:10px 18px}
+.brand .mark{background:#e6c16c;color:#171717;border-radius:8px}
+.layout{grid-template-columns:230px minmax(340px,1fr) 340px;gap:0}
+.left,.right{background:#12151c;padding:15px 12px}
+.left{border-right:1px solid #292e38}.right{border-left:1px solid #292e38}
+.stage{background:#e7e9ee;background-image:radial-gradient(#cbd0da .7px,transparent .7px);background-size:14px 14px;padding:22px clamp(16px,3vw,38px)}
+.stagehead{max-width:560px;margin-bottom:14px;font-size:10px;font-weight:850;letter-spacing:.08em}
+.preview-wrap{width:min(100%,340px);filter:drop-shadow(0 20px 24px #10152148)}
+.templates{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+.template{padding:5px;border-radius:7px;background:#191e28;border-color:#303746}
+.template[aria-pressed=true]{border-color:#e6c16c;box-shadow:inset 0 0 0 1px #e6c16c}
+.swatch{height:77px;border-radius:4px;box-shadow:inset 0 0 0 1px #ffffff70}
+.swatch:before{inset:5px;border:1px solid #ffffff8c;clip-path:polygon(0 0,100% 0,100% 84%,50% 100%,0 84%)}
+.swatch strong{font-size:24px}.swatch span{font-size:8px;letter-spacing:.14em}
+.fifa-swatch{background:linear-gradient(150deg,#fff1b2 0%,#d8a83e 48%,#76501d)}
+.silver-swatch{background:linear-gradient(150deg,#fff 0%,#bfcbd8 48%,#6b7a8c)}
+.bronze-swatch{color:#fff0dc;background:linear-gradient(150deg,#f1c08e 0%,#a8663f 50%,#4d2a20)}
+.totw-swatch{background:linear-gradient(145deg,#d6a6ff 0%,#6c3c9b 50%,#27113b)}
+.icon-swatch{background:linear-gradient(150deg,#fff5cf 0%,#d5b86a 52%,#8b6a2d)}
+.hero-swatch{background:linear-gradient(150deg,#f6d5a2 0%,#237d78 42%,#133a47)}
+.elite-swatch{background:linear-gradient(150deg,#4c4651 0%,#14141b 52%,#a17b38)}
+.future-swatch{background:linear-gradient(150deg,#b1fff5 0%,#16889a 48%,#0c2946)}
+.retro-swatch{background:linear-gradient(150deg,#ffe6b8 0%,#d88b51 52%,#8d3928)}
+.template-name{font-size:10px;line-height:1.25;min-height:24px;margin-top:6px}
+.inspector-drawer{border:0;border-radius:0;background:transparent;overflow:visible}
+.inspector-drawer>summary{display:none}.inspector-content{padding:0}
+.inspector-content h2{font-size:17px;margin-bottom:4px}.inspector-content>.muted{margin-bottom:16px}
+.inspector-content .eyebrow{margin-bottom:5px}.inspector-content .divider{margin:14px 0}
+.inspector-content input:not([type=checkbox]):not([type=color]):not([type=range]),.inspector-content select{border-radius:6px;background:#0c0f15;border-color:#343b49;padding:8px 9px;font-size:12px}
+.inspector-content .field label{font-size:9px;color:#b8bfca}
+.inspector-content .upload{border-radius:6px;background:#0c0f15;border-color:#414a5b}
+.inspector-content button{border-radius:6px;font-size:11px}
+.inspector-content .form-grid{gap:7px}.inspector-content .field{gap:4px;margin-bottom:8px}
+.inspector-content .layer-toggles{display:none}
+.inspector-content .field.full:has(#backgroundFile),.inspector-content .field.full:has(#teamLogoFile),.inspector-content .field.full:has(#foilOpacity),.inspector-content .field.full:has(#backgroundOpacity){display:none}
+.left h3{margin-top:18px}#saveBtn{margin-top:10px}.library-item{background:#191e28;border-color:#303746}.notice{display:none}
+.player-card{box-shadow:inset 0 0 0 1px #ffffffd9,inset 0 0 0 4px #11182755,0 1px 0 #fff}
+.player-card.bronze{--c1:#965a37;--c2:#e9b17d;--ink:#321e14;background:linear-gradient(145deg,#f1c08e 0%,#a8663f 52%,#4d2a20)}
+.player-card.bronze:before{border:2px solid #f4d3a8}
+.player-card.bronze .card-foil{opacity:.32;background:repeating-linear-gradient(45deg,transparent 0 8px,#ffe6c222 9px 10px,transparent 11px 19px)}
+.player-card.bronze .card-orbit{border-color:#ffe0bd6b}
+.player-card.hero{--c1:#1b716c;--c2:#e3a66b;--ink:#fff6df;background:linear-gradient(145deg,#f6d5a2 0%,#237d78 42%,#133a47)}
+.player-card.hero:before{border:2px solid #f3cf91;clip-path:polygon(0 0,100% 0,100% 90%,50% 100%,0 90%)}
+.player-card.hero .card-orbit{border-radius:12%;transform:rotate(25deg);border-color:#f6d5a288}
+@media(max-width:1100px){.layout{grid-template-columns:205px minmax(280px,1fr)}.right{grid-column:1/-1;border-left:0;border-top:1px solid #292e38;padding:18px}.inspector-content .form-grid{grid-template-columns:repeat(4,minmax(0,1fr))}.inspector-content .field.full{grid-column:span 2}}
+@media(max-width:700px){.layout{display:flex;flex-direction:column}.left{order:1;border-right:0;border-bottom:1px solid #292e38}.stage{order:2;min-height:590px}.right{order:3}.templates{grid-template-columns:repeat(5,minmax(0,1fr))}.swatch{height:64px}.template-name{font-size:9px;min-height:22px}.inspector-content .form-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.inspector-content .field.full{grid-column:1/-1}.top{align-items:center}.brand small{font-size:8px}.actions button{padding:7px 8px;font-size:10px}}
+
 </style>
 </head>
 <body>
 <header class="top"><a class="brand" href="team-workspace.html" style="color:inherit;text-decoration:none"><span class="mark">✦</span><span>PLAYER CARD STUDIO<small>COMPETITION DASHBOARD · FLAG FOOTBALL</small></span></a><div class="actions"><button id="newBtn">＋ New card</button><button id="exportBtn" class="primary">Download PNG ↗</button><button id="workspaceBtn">Workspace</button></div></header>
 <div class="layout">
 <aside class="left"><p class="eyebrow">01 / Templates</p><h2>Choose a design</h2><p class="muted">Pick a starting point, then customise the details and styling.</p><div class="templates" id="templates">
-<button class="template" data-template="fifa" aria-pressed="true"><div class="swatch fifa-swatch"><strong>92</strong><span>QB · BASE</span></div><span class="template-name">Classic Gold</span></button>
-<button class="template" data-template="silver" aria-pressed="false"><div class="swatch silver-swatch"><strong>88</strong><span>WR · SILVER</span></div><span class="template-name">Silver</span></button>
-<button class="template" data-template="totw" aria-pressed="false"><div class="swatch totw-swatch"><strong>94</strong><span>DB · ELITE</span></div><span class="template-name">Spotlight</span></button>
-<button class="template" data-template="icon" aria-pressed="false"><div class="swatch icon-swatch"><strong>96</strong><span>LEGEND</span></div><span class="template-name">Legend</span></button>
-<button class="template" data-template="elite" aria-pressed="false"><div class="swatch elite-swatch"><strong>91</strong><span>CAPTAIN</span></div><span class="template-name">Black Label</span></button>
-<button class="template" data-template="future" aria-pressed="false"><div class="swatch future-swatch"><strong>89</strong><span>FUTURE</span></div><span class="template-name">Next Wave</span></button>
+<button class="template" data-template="fifa" aria-pressed="true"><div class="swatch fifa-swatch"><strong>92</strong><span>BASE</span></div><span class="template-name">Gold</span></button>
+<button class="template" data-template="silver" aria-pressed="false"><div class="swatch silver-swatch"><strong>78</strong><span>BASE</span></div><span class="template-name">Silver</span></button>
+<button class="template" data-template="bronze" aria-pressed="false"><div class="swatch bronze-swatch"><strong>64</strong><span>BASE</span></div><span class="template-name">Bronze</span></button>
+<button class="template" data-template="totw" aria-pressed="false"><div class="swatch totw-swatch"><strong>94</strong><span>SPECIAL</span></div><span class="template-name">Team of the Week</span></button>
+<button class="template" data-template="icon" aria-pressed="false"><div class="swatch icon-swatch"><strong>96</strong><span>LEGEND</span></div><span class="template-name">Icon</span></button>
+<button class="template" data-template="hero" aria-pressed="false"><div class="swatch hero-swatch"><strong>93</strong><span>HERO</span></div><span class="template-name">Hero</span></button>
+<button class="template" data-template="elite" aria-pressed="false"><div class="swatch elite-swatch"><strong>91</strong><span>ELITE</span></div><span class="template-name">Blackout</span></button>
+<button class="template" data-template="future" aria-pressed="false"><div class="swatch future-swatch"><strong>89</strong><span>FUTURE</span></div><span class="template-name">Future Stars</span></button>
 <button class="template" data-template="retro" aria-pressed="false"><div class="swatch retro-swatch"><strong>87</strong><span>CLASSIC</span></div><span class="template-name">Retro</span></button>
 <button class="template" data-template="pro" aria-pressed="false"><div class="swatch nfl-swatch"><strong>90</strong><span>PRO ISSUE</span></div><span class="template-name">Pro Issue</span></button>
 </div><h3>Saved player cards</h3><div class="library" id="library"></div><div class="divider"></div><button id="saveBtn" class="primary" style="width:100%">Save to player library</button><button id="newFromLibrary" style="width:100%;margin-top:8px">New blank card</button><label class="upload" style="margin-top:8px;text-align:center">Import card library (.json)<input type="file" id="importFile" accept=".json,application/json"></label><button id="exportLibrary" style="width:100%;margin-top:8px">Export library (.json)</button><div id="status" class="status" role="status" aria-live="polite"></div><p class="notice">Cards save to the shared team library when you are signed in. Browser backup and JSON export remain available.</p></aside>
 <main class="stage"><div class="stagehead"><span>LIVE PREVIEW · CARD FRONT</span><span id="previewStatus">Unsaved design</span></div><div class="preview-wrap"><article class="player-card" id="playerCard"><div class="card-background-art" id="pvBackgroundArt" data-image-editable="true" data-editable="Background" aria-label="Card background"></div><div class="card-foil"></div><div class="card-orbit"></div><img class="team-crest" id="pvTeamLogo" alt="Team crest" hidden><div class="card-edition">COMPETITION · PLAYER ISSUE</div><div class="card-inner"><div class="card-top"><div><div class="rating" id="pvRating" data-editable="Rating">92</div><div class="position" id="pvPosition" data-editable="Position">QB</div><div class="team-short" id="pvTeam" data-editable="Team">TEAM A</div></div><div id="pvBadge" data-editable="Badge" style="font-size:9px;font-weight:1000;letter-spacing:.12em;text-align:right">FLAG<br>FOOTBALL</div></div><div class="portrait" id="pvPortrait" data-editable="Portrait"><div class="portrait-placeholder"><svg viewBox="0 0 140 180" aria-hidden="true"><path d="M48 46Q42 12 70 10Q98 12 92 46L87 57Q106 66 115 91L130 158H10L25 91Q34 66 53 57Z" fill="currentColor" opacity=".18"/><circle cx="70" cy="40" r="25" fill="currentColor" opacity=".75"/><path d="M30 155Q34 83 70 83Q106 83 110 155Z" fill="currentColor" opacity=".85"/><path d="M53 36Q70 20 88 37" fill="none" stroke="#fff" stroke-width="4" opacity=".45"/></svg><span>PLAYER PORTRAIT</span></div><div class="jersey" id="pvNumber">#12</div></div><div class="nameplate" id="pvName" data-editable="Nameplate">PLAYER NAME</div><div class="subtitle" id="pvSubtitle" data-editable="Subtitle">CAPTAIN · QUARTERBACK</div><div class="stats" data-editable="Attributes"><div class="stat"><b id="pvStat1" data-editable="Stat1">91</b><span id="pvLabel1" data-editable="Stat1Label">SPEED</span></div><div class="stat"><b id="pvStat2" data-editable="Stat2">88</b><span id="pvLabel2" data-editable="Stat2Label">CATCH</span></div><div class="stat"><b id="pvStat3" data-editable="Stat3">94</b><span id="pvLabel3" data-editable="Stat3Label">AGILITY</span></div><div class="stat"><b id="pvStat4" data-editable="Stat4">87</b><span id="pvLabel4" data-editable="Stat4Label">CATCH</span></div><div class="stat"><b id="pvStat5" data-editable="Stat5">83</b><span id="pvLabel5" data-editable="Stat5Label">PULL</span></div><div class="stat"><b id="pvStat6" data-editable="Stat6">90</b><span id="pvLabel6" data-editable="Stat6Label">IQ</span></div></div><div class="card-footer" data-editable="Footer"><span id="pvFooterLeft">COMPETITION</span><span id="pvFooterRight">SEASON 01</span></div></div></article></div><div id="cardFloatingToolbar" class="floating-toolbar" role="toolbar" aria-label="Selected card element controls" hidden></div><div class="benchline">LINEUP PREVIEW READY · <strong>5 STARTERS</strong> + optional substitute card on the team page</div></main>
-<aside class="right"><details class="inspector-drawer"><summary><span><strong>Card settings</strong><small>Player data, attributes, colours and graphics</small></span><span class="drawer-chevron" aria-hidden="true">⌄</span></summary><div class="inspector-content"><p class="eyebrow">02 / Player details</p><h2>Make it theirs</h2><p class="muted">Player information is separate from the template, so you can restyle a card without re-entering everything.</p><div class="form-grid">
+<aside class="right"><details class="inspector-drawer" open><summary><span><strong>Card settings</strong><small>Player data, attributes, colours and graphics</small></span><span class="drawer-chevron" aria-hidden="true">⌄</span></summary><div class="inspector-content"><p class="eyebrow">02 / Player details</p><h2>Make it theirs</h2><p class="muted">Player information is separate from the template, so you can restyle a card without re-entering everything.</p><div class="form-grid">
 <div class="field full"><label for="playerName">Player name</label><input id="playerName" maxlength="40" value="Player Name" placeholder="e.g. Alex Morgan"></div>
 <div class="field"><label for="rating">Overall rating</label><input id="rating" type="number" min="0" max="99" value="92"></div><div class="field"><label for="position">Position</label><select id="position"><option>QB</option><option>WR</option><option>RB</option><option>Center</option><option>DB</option><option>Rusher</option><option>Utility</option></select></div>
 <div class="field"><label for="jersey">Jersey number</label><input id="jersey" type="number" min="0" max="99" value="12"></div><div class="field"><label for="teamName">Team name</label><input id="teamName" maxlength="24" value="Team A"></div>
@@ -606,12 +659,14 @@ const sessionToken=()=>sessionStorage.getItem('team-editor-session-token')||'';
 let sharedLibraryReady=Promise.resolve();
 const teamId=sessionStorage.getItem('team-editor-authorized-team')||new URLSearchParams(location.search).get('team')||'A';
 const templates={
- fifa:{name:'Classic Gold',c1:'#c89a35',c2:'#f4d57f',ink:'#1b1a18'},
+ fifa:{name:'Gold',c1:'#c89a35',c2:'#f4d57f',ink:'#1b1a18'},
  silver:{name:'Silver',c1:'#7d8a9b',c2:'#f0f4f8',ink:'#17202c'},
- totw:{name:'Spotlight',c1:'#4b2678',c2:'#e4a5ff',ink:'#fff7ff'},
- icon:{name:'Legend',c1:'#d8b86c',c2:'#fff0bd',ink:'#392b16'},
- elite:{name:'Black Label',c1:'#15151c',c2:'#e8c46d',ink:'#f9edcf'},
- future:{name:'Next Wave',c1:'#125a70',c2:'#72f4e5',ink:'#f2ffff'},
+ bronze:{name:'Bronze',c1:'#965a37',c2:'#e9b17d',ink:'#321e14'},
+ totw:{name:'Team of the Week',c1:'#4b2678',c2:'#e4a5ff',ink:'#fff7ff'},
+ icon:{name:'Icon',c1:'#d8b86c',c2:'#fff0bd',ink:'#392b16'},
+ hero:{name:'Hero',c1:'#1b716c',c2:'#e3a66b',ink:'#fff6df'},
+ elite:{name:'Blackout',c1:'#15151c',c2:'#e8c46d',ink:'#f9edcf'},
+ future:{name:'Future Stars',c1:'#125a70',c2:'#72f4e5',ink:'#f2ffff'},
  retro:{name:'Retro',c1:'#b85c35',c2:'#f1d6a0',ink:'#44271b'},
  pro:{name:'Pro Issue',c1:'#183c66',c2:'#69b9e9',ink:'#f8fbff'},
  nfl:{name:'Pro Issue',c1:'#183c66',c2:'#69b9e9',ink:'#f8fbff'},
