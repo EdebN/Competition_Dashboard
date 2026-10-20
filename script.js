@@ -4144,11 +4144,13 @@ function publishedFormationHTML(block){
 function publishedStandalonePlayerCardHTML(p){
   if(!p)return "<div style='padding:24px;border:1px dashed #52718d;border-radius:12px;text-align:center;color:#93a7c0'>Player card not selected</div>";
   const template=p.template==="nfl"||p.template==="pro"?"nfl":"fifa";
-  const portrait=String(p.portrait||p.portraitUrl||""),logo=String(p.teamLogo||""),background=String(p.backgroundArt||"");
+  const originalPortrait=String(p.portrait||p.portraitUrl||""),originalLogo=String(p.teamLogo||""),originalBackground=String(p.backgroundArt||"");
+  const driveOriginalUrl=value=>{try{const u=new URL(value);if(u.hostname==="drive.google.com"||u.hostname==="drive.usercontent.google.com"){const id=u.searchParams.get("id")||u.pathname.match(/\/file\/d\/([^/]+)/)?.[1];if(id)return "https://drive.google.com/uc?export=download&id="+encodeURIComponent(id);}}catch{}return value;};
+  const portrait=driveOriginalUrl(originalPortrait),logo=driveOriginalUrl(originalLogo),background=driveOriginalUrl(originalBackground);
   const valid=/^https?:\/\//i.test(portrait)||(/^data:image\/(jpeg|png|webp);base64,/.test(portrait)&&portrait.length<60000);
   const validLogo=/^https?:\/\//i.test(logo)||(/^data:image\/(jpeg|png|webp);base64,/.test(logo)&&logo.length<12000);
   const validBackground=/^https?:\/\//i.test(background)||(/^data:image\/(jpeg|png|webp);base64,/.test(background)&&background.length<60000);
-  const img=valid?"<img alt='' src='"+escapeHTML(portrait)+"' loading='lazy' style='width:100%;height:100%;object-fit:cover;object-position:center 25%;display:block'>":"";
+  const img=valid?"<img alt='' src='"+escapeHTML(portrait)+"' loading='lazy' decoding='async' style='position:absolute;inset:0;width:100%;height:100%;object-fit:contain;object-position:center bottom;display:block;background:transparent'>":"";
   const art=validBackground?"<div aria-hidden='true' style='position:absolute;inset:0;z-index:0;opacity:.18;overflow:hidden;pointer-events:none'><img alt='' src='"+escapeHTML(background)+"' style='width:100%;height:100%;object-fit:cover;display:block'></div>":"";
   const crest=validLogo&&p.showTeamLogo!==false?"<img alt='' src='"+escapeHTML(logo)+"' style='position:absolute;z-index:3;top:15%;right:7%;width:13%;height:9%;object-fit:contain;filter:drop-shadow(0 2px 3px #0005);pointer-events:none'>":"";
   const c1=safePublishedColor(p.color1,template==="nfl"?"#163b66":"#c89a35");
@@ -4159,13 +4161,13 @@ function publishedStandalonePlayerCardHTML(p){
   const top="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;position:relative;z-index:2;min-height:54px;";
   const rating="font-size:32px;line-height:.9;font-weight:1000;letter-spacing:-.06em;";
   const pos="display:inline-block;margin-top:5px;padding:3px 7px;font-size:10px;font-weight:950;letter-spacing:.12em;text-transform:uppercase;";
-  const team="font-size:8px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;overflow-wrap:anywhere;margin-top:4px;";
-  const badge="max-width:42%;font-size:8px;line-height:1.2;font-weight:1000;letter-spacing:.1em;text-align:right;text-transform:uppercase;overflow-wrap:anywhere;padding:5px;";
+  const team="font-size:8px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;overflow-wrap:break-word;word-break:normal;margin-top:4px;";
+  const badge="max-width:42%;font-size:8px;line-height:1.2;font-weight:1000;letter-spacing:.1em;text-align:right;text-transform:uppercase;overflow-wrap:break-word;word-break:normal;padding:5px;";
   const portraitStyle="position:relative;z-index:1;overflow:hidden;flex:1;min-height:100px;margin:5px 0 0;background:linear-gradient(145deg,#ffffff30,#07142640);";
-  const nameStyle="position:relative;z-index:2;font-size:clamp(15px,2.2vw,22px);line-height:1.05;font-weight:1000;text-transform:uppercase;overflow-wrap:anywhere;padding:9px 8px 6px;";
-  const subStyle="position:relative;z-index:2;font-size:8px;line-height:1.2;font-weight:850;letter-spacing:.12em;text-transform:uppercase;overflow-wrap:anywhere;padding:2px 8px 8px;";
+  const nameStyle="position:relative;z-index:2;font-size:clamp(15px,2.2vw,22px);line-height:1.05;font-weight:1000;text-transform:uppercase;overflow-wrap:break-word;word-break:normal;padding:9px 8px 6px;";
+  const subStyle="position:relative;z-index:2;font-size:8px;line-height:1.2;font-weight:850;letter-spacing:.12em;text-transform:uppercase;overflow-wrap:break-word;word-break:normal;padding:2px 8px 8px;";
   const statGrid="position:relative;z-index:2;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:repeat(2,minmax(0,1fr));gap:0;padding:6px 2px;";
-  const statHTML=stats.map((st,i)=>"<div style='display:flex;align-items:center;justify-content:center;gap:4px;min-width:0;min-height:25px;padding:3px 1px;border-right:"+(i%3===2?"0":"1px solid #ffffff40")+";border-bottom:"+(i<3?"1px solid #ffffff30":"0")+"'><b style='font-size:13px;line-height:1;font-weight:1000;flex:none'>"+escapeHTML(st.value)+"</b><span style='font-size:7px;font-weight:850;line-height:1.05;overflow-wrap:anywhere;min-width:0'>"+escapeHTML(String(st.label))+"</span></div>").join("");
+  const statHTML=stats.map((st,i)=>"<div style='display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-width:0;min-height:34px;padding:5px 2px;border-right:"+(i%3===2?"0":"1px solid #ffffff40")+";border-bottom:"+(i<3?"1px solid #ffffff30":"0")+";text-align:center'><b style='font-size:13px;line-height:1;font-weight:1000;flex:none'>"+escapeHTML(st.value)+"</b><span style='display:block;font-size:7px;font-weight:850;line-height:1.15;overflow-wrap:break-word;word-break:normal;white-space:normal;min-width:0;max-width:100%;text-align:center'>"+escapeHTML(String(st.label))+"</span></div>").join("");
   const footer="<div style='position:relative;z-index:2;display:flex;justify-content:space-between;gap:5px;padding:7px 2px 0;border-top:1px solid #ffffff70;font-size:7px;line-height:1.2;font-weight:900;letter-spacing:.08em;text-transform:uppercase;overflow-wrap:anywhere'><span>"+escapeHTML(String((p.footerText||"Competition · Season 01").split("·")[0]).trim())+"</span><span style='text-align:right'>"+escapeHTML(String((p.footerText||"Competition · Season 01").split("·")[1]||"Season 01").trim())+"</span></div>";
   if(template==="nfl"){
     return "<article style='"+base+"background:linear-gradient(145deg,#f4f7fa 0%,#8da4bc 18%,#163b66 48%,#07172b 100%);border:3px solid #f4f7fa;outline:2px solid #193858;'>" + art + crest +
