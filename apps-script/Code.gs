@@ -664,7 +664,7 @@ function uploadCompetitionAsset_(body) {
     const blob = Utilities.newBlob(bytes, mime, safeName + "." + ext);
     const file = folder.createFile(blob);
     file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
-    file.setDescription("Competition Dashboard Asset\\nCategory: " + category + "\\nAsset name: " + safeName);
+    file.setDescription("Competition Dashboard Asset\nCategory: " + category + "\nAsset name: " + safeName);
     const saved = {
       ok: true,
       pending: false,
@@ -701,11 +701,11 @@ function readCompetitionAssets_() {
       const file = files.next();
       if (file.isTrashed() || !/^image\//i.test(file.getMimeType())) continue;
       const description = String(file.getDescription() || "");
-      const categoryMatch = description.match(/(?:^|\\n)Category:\\s*([^\\n]+)/i);
-      const nameMatch = description.match(/(?:^|\\n)Asset name:\\s*([^\\n]+)/i);
+      const categoryMatch = description.match(/(?:^|\n)Category:\s*([^\n]+)/i);
+      const nameMatch = description.match(/(?:^|\n)Asset name:\s*([^\n]+)/i);
       assets.push({
         id: file.getId(),
-        name: nameMatch ? nameMatch[1].trim() : file.getName().replace(/\\.[^.]+$/, ""),
+        name: nameMatch ? nameMatch[1].trim() : file.getName().replace(/\.[^.]+$/, ""),
         category: categoryMatch ? categoryMatch[1].trim() : "Uncategorised",
         url: "https://drive.google.com/uc?export=view&id=" + encodeURIComponent(file.getId()),
         thumbnailUrl: "https://drive.google.com/thumbnail?id=" + encodeURIComponent(file.getId()) + "&sz=w400",
