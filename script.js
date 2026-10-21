@@ -3039,8 +3039,13 @@ function renderAdminPage() {
       <div id="pageAccessStatus" class="admin-info" role="status" aria-live="polite">Loading saved PIN status from the shared Google Sheet…</div>
     </section>
 
-
-    
+    <section class="card admin-card card-assets-admin">
+      <div class="section-title">PLAYER CARD ASSETS</div>
+      <div class="page-access-heading"><div><h2>Import blank card backgrounds</h2><p class="page-access-intro">Upload the blank card PNG, remove the outside backdrop, preview the transparent result, assign it to a rarity, and export the mapped asset pack. Processing happens in your browser.</p></div></div>
+      <div class="admin-info">In the builder below, select the matching rarity, upload your blank card image, choose <strong>Remove outside background</strong>, inspect the checkerboard preview, then assign it. Export the ZIP when you have finished importing backgrounds.</div>
+      <div class="card-assets-frame-wrap"><iframe class="card-assets-frame" src="card-asset-generator.html" title="Player card background asset builder" loading="lazy"></iframe></div>
+      <p class="admin-info"><a href="card-asset-generator.html" target="_blank" rel="noopener">Open the asset builder in its own tab ↗</a></p>
+    </section>
 
   `;
 
