@@ -1,6 +1,6 @@
 const SERVICE_NAME = "competition-community-api";
 const API_VERSION = 1;
-const BUILD_ID = "2026-10-19-api-consistency-fix";
+const BUILD_ID = "2026-10-21-drive-asset-studio";
 
 // Keep the public action inventory in one place. The health endpoint and
 // POST allowlist both use these constants so they cannot silently drift apart.
@@ -269,7 +269,6 @@ function doPost(e) {
   if (body.action === "submitMatchVote") return submitMatchVote_(body);
   if (body.action === "saveTeamPageDesign") return saveTeamPageDesign_(body);
   if (body.action === "uploadTeamPlayerCardAsset") return uploadTeamPlayerCardAsset_(body);
-  if (body.action === "uploadCompetitionAsset") return uploadCompetitionAsset_(body);
   if (body.action === "saveTeamPlayerCards") return saveTeamPlayerCards_(body);
   if (body.action === "publishTeamPage") return publishTeamPage_(body);
   if (body.action === "revertTeamPage") return revertTeamPage_(body);
