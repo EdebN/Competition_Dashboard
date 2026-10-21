@@ -3041,7 +3041,7 @@ function renderAdminPage() {
 
     <section class="card admin-card card-assets-admin">
       <div class="section-title">PLAYER CARD ASSETS</div>
-      <div class="page-access-heading"><div><h2>Import blank card backgrounds</h2><p class="page-access-intro">Upload the blank card PNG, remove the outside backdrop, preview the transparent result, assign it to a rarity, and export the mapped asset pack. Processing happens in your browser.</p></div></div>
+      <div class="page-access-heading"><div><h2>Asset Studio</h2><p class="page-access-intro">Import an image, remove its outside background, and save the transparent result directly to Google Drive.</p></div></div>
       <div class="admin-info">Import an image, remove its outside background, then save the finished PNG directly to the shared Google Drive asset library.</div>
       <div class="card-assets-frame-wrap"><iframe class="card-assets-frame" src="asset-studio.html?v=drive-asset-studio-20261021" title="Google Drive asset studio" loading="lazy"></iframe></div>
       <p class="admin-info"><a href="asset-studio.html?v=drive-asset-studio-20261021" target="_blank" rel="noopener">Open Asset Studio in its own tab ↗</a></p>
