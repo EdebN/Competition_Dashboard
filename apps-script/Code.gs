@@ -13,6 +13,7 @@ const GET_ACTIONS = [
   "getTeamPageDesign",
   "getTeamPlayerCards",
   "getTeamPlayerCardAssetUpload",
+  "getCompetitionAssetUpload",
   "getPublishedTeamPage",
   "getTeamEditorPinStatus",
   "verifyTeamEditorPin",
@@ -31,6 +32,7 @@ const POST_ACTIONS = [
   "saveTeamPageDesign",
   "saveTeamPlayerCards",
   "uploadTeamPlayerCardAsset",
+  "uploadCompetitionAsset",
   "publishTeamPage",
   "revertTeamPage",
   "submitFeatureRequest",
@@ -163,6 +165,26 @@ function doGet(e) {
           result = { ok: true, action: action, teamId: teamId, url: "https://drive.google.com/uc?export=view&id=" + encodeURIComponent(fileId), fileId: fileId };
         }
       }
+    } else if (action === "getCompetitionAssetUpload") {
+      const uploadKey = String(params.uploadKey || "").trim();
+      if (!/^[a-f0-9]{32,64}$/i.test(uploadKey)) {
+        result = { ok: false, pending: false, error: "Invalid asset upload key." };
+      } else {
+        const props = PropertiesService.getScriptProperties();
+        const savedKey = "COMPETITION_ASSET_UPLOAD_" + uploadKey;
+        const errorKey = "COMPETITION_ASSET_UPLOAD_ERROR_" + uploadKey;
+        const saved = props.getProperty(savedKey);
+        const uploadError = props.getProperty(errorKey);
+        if (saved) {
+          props.deleteProperty(savedKey);
+          result = JSON.parse(saved);
+        } else if (uploadError) {
+          props.deleteProperty(errorKey);
+          result = { ok: false, pending: false, error: uploadError };
+        } else {
+          result = { ok: true, pending: true, action: action };
+        }
+      }
     } else if (action === "getPublishedTeamPage") {
       const teamId = String(params.teamId || "").trim().toUpperCase();
       if (!TEAM_IDS.includes(teamId)) result = { ok: false, error: "Invalid team ID." };
@@ -247,6 +269,7 @@ function doPost(e) {
   if (body.action === "submitMatchVote") return submitMatchVote_(body);
   if (body.action === "saveTeamPageDesign") return saveTeamPageDesign_(body);
   if (body.action === "uploadTeamPlayerCardAsset") return uploadTeamPlayerCardAsset_(body);
+  if (body.action === "uploadCompetitionAsset") return uploadCompetitionAsset_(body);
   if (body.action === "saveTeamPlayerCards") return saveTeamPlayerCards_(body);
   if (body.action === "publishTeamPage") return publishTeamPage_(body);
   if (body.action === "revertTeamPage") return revertTeamPage_(body);
@@ -264,6 +287,7 @@ function doPost(e) {
     });
   }
 
+  if (body.action === "uploadCompetitionAsset") return uploadCompetitionAsset_(body);
   if (body.action === "updateCompetitionSettings") return updateCompetitionSettings_(body);
   if (body.action === "submitMatchResult") return submitMatchResult_(body);
 
@@ -600,6 +624,61 @@ function saveTeamPageDesign_(body) {
   } catch (e) {
     console.error(e); return jsonResponse_({ ok: false, error: "Could not save the shared design." });
   } finally { lock.releaseLock(); }
+}
+
+/**
+ * Saves a cleaned shared asset to Drive. This action is reached only after
+ * doPost has validated the admin token. The browser polls a one-time upload
+ * key because GitHub Pages cannot read the response to a no-cors POST.
+ */
+function uploadCompetitionAsset_(body) {
+  const uploadKey = String(body.uploadKey || "").trim();
+  if (!/^[a-f0-9]{32,64}$/i.test(uploadKey)) return jsonResponse_({ ok: false, error: "Invalid asset upload key." });
+  const dataUrl = String(body.dataUrl || "");
+  const match = dataUrl.match(/^data:(image\/(?:jpeg|png|webp|gif));base64,([A-Za-z0-9+/=]+)$/i);
+  if (!match) return jsonResponse_({ ok: false, error: "Unsupported image format. Save the cleaned asset as PNG, JPG, WebP or GIF." });
+  let bytes;
+  try { bytes = Utilities.base64Decode(match[2]); } catch (e) { return jsonResponse_({ ok: false, error: "Could not decode the image." }); }
+  if (!bytes.length || bytes.length > 5 * 1024 * 1024) return jsonResponse_({ ok: false, error: "Each asset must be 5 MB or smaller." });
+
+  const props = PropertiesService.getScriptProperties();
+  const resultKey = "COMPETITION_ASSET_UPLOAD_" + uploadKey;
+  const errorKey = "COMPETITION_ASSET_UPLOAD_ERROR_" + uploadKey;
+  try {
+    let folder = null;
+    const folderId = props.getProperty("COMPETITION_ASSETS_FOLDER_ID");
+    if (folderId) {
+      try { folder = DriveApp.getFolderById(folderId); } catch (e) { folder = null; }
+    }
+    if (!folder) {
+      folder = DriveApp.createFolder("Competition Dashboard Assets");
+      props.setProperty("COMPETITION_ASSETS_FOLDER_ID", folder.getId());
+    }
+    const mime = match[1].toLowerCase();
+    const ext = mime === "image/jpeg" ? "jpg" : mime.split("/")[1];
+    const rawName = String(body.assetName || "competition-asset").trim().slice(0, 90);
+    const safeName = rawName.replace(/[^a-z0-9 _.-]/gi, "").replace(/\s+/g, " ").trim() || "competition-asset";
+    const category = ["Card background", "Card frame", "Player portrait", "Team crest", "Other"].includes(String(body.category)) ? String(body.category) : "Other";
+    const blob = Utilities.newBlob(bytes, mime, safeName + "." + ext);
+    const file = folder.createFile(blob);
+    file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+    const saved = {
+      ok: true,
+      pending: false,
+      action: "uploadCompetitionAsset",
+      name: safeName,
+      category: category,
+      fileId: file.getId(),
+      url: "https://drive.google.com/uc?export=view&id=" + encodeURIComponent(file.getId())
+    };
+    props.setProperty(resultKey, JSON.stringify(saved));
+    props.deleteProperty(errorKey);
+    return jsonResponse_({ ok: true, action: "uploadCompetitionAsset", saved: true });
+  } catch (error) {
+    console.error(error);
+    try { props.setProperty(errorKey, "Drive upload failed: " + String(error && error.message || error).slice(0, 350)); } catch (ignored) {}
+    return jsonResponse_({ ok: false, error: "Drive could not save the asset. Check Apps Script Drive authorisation and Executions." });
+  }
 }
 
 const TEAM_PLAYER_CARDS_TAB = "Team Player Cards";
