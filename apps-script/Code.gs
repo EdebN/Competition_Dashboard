@@ -13,6 +13,8 @@ const GET_ACTIONS = [
   "getTeamPageDesign",
   "getTeamPlayerCards",
   "getTeamPlayerCardAssetUpload",
+  "getTeamAssets",
+  "getTeamAssetUpload",
   "getCompetitionAssetUpload",
   "getCompetitionAssets",
   "getPublishedTeamPage",
@@ -33,6 +35,7 @@ const POST_ACTIONS = [
   "saveTeamPageDesign",
   "saveTeamPlayerCards",
   "uploadTeamPlayerCardAsset",
+  "uploadTeamAsset",
   "uploadCompetitionAsset",
   "publishTeamPage",
   "revertTeamPage",
@@ -166,6 +169,34 @@ function doGet(e) {
           result = { ok: true, action: action, teamId: teamId, url: "https://drive.google.com/uc?export=view&id=" + encodeURIComponent(fileId), fileId: fileId };
         }
       }
+    } else if (action === "getTeamAssets") {
+      const teamId = String(params.teamId || "").trim().toUpperCase();
+      if (!TEAM_IDS.includes(teamId) || getSessionTeam_(params.sessionToken) !== teamId) {
+        result = { ok: false, error: "Team session expired. Sign in again." };
+      } else {
+        result = { ok: true, action: action, teamId: teamId, assets: readTeamAssets_(teamId) };
+      }
+    } else if (action === "getTeamAssetUpload") {
+      const teamId = String(params.teamId || "").trim().toUpperCase();
+      const uploadKey = String(params.uploadKey || "").trim();
+      if (!TEAM_IDS.includes(teamId) || getSessionTeam_(params.sessionToken) !== teamId || !/^[a-f0-9]{32,64}$/i.test(uploadKey)) {
+        result = { ok: false, pending: false, error: "Team session expired or asset upload key is invalid." };
+      } else {
+        const props = PropertiesService.getScriptProperties();
+        const resultKey = "TEAM_ASSET_UPLOAD_" + teamId + "_" + uploadKey;
+        const errorKey = "TEAM_ASSET_UPLOAD_ERROR_" + teamId + "_" + uploadKey;
+        const saved = props.getProperty(resultKey);
+        const uploadError = props.getProperty(errorKey);
+        if (saved) {
+          props.deleteProperty(resultKey);
+          result = JSON.parse(saved);
+        } else if (uploadError) {
+          props.deleteProperty(errorKey);
+          result = { ok: false, pending: false, error: uploadError };
+        } else {
+          result = { ok: true, pending: true, action: action, teamId: teamId };
+        }
+      }
     } else if (action === "getCompetitionAssetUpload") {
       const uploadKey = String(params.uploadKey || "").trim();
       if (!/^[a-f0-9]{32,64}$/i.test(uploadKey)) {
@@ -272,6 +303,7 @@ function doPost(e) {
   if (body.action === "submitMatchVote") return submitMatchVote_(body);
   if (body.action === "saveTeamPageDesign") return saveTeamPageDesign_(body);
   if (body.action === "uploadTeamPlayerCardAsset") return uploadTeamPlayerCardAsset_(body);
+  if (body.action === "uploadTeamAsset") return uploadTeamAsset_(body);
   if (body.action === "saveTeamPlayerCards") return saveTeamPlayerCards_(body);
   if (body.action === "publishTeamPage") return publishTeamPage_(body);
   if (body.action === "revertTeamPage") return revertTeamPage_(body);
@@ -717,6 +749,98 @@ function readCompetitionAssets_() {
   } catch (error) {
     console.error(error);
     throw new Error("Could not list Competition Dashboard assets. Check Drive authorisation.");
+  }
+}
+
+/**
+ * Team Asset Studio: each team has a separate Drive folder and authenticated
+ * list/upload/poll endpoints. Public card images are link-viewable so the
+ * published GitHub Pages team pages can display them, but libraries are scoped.
+ */
+function getTeamAssetsFolder_(teamId) {
+  const props = PropertiesService.getScriptProperties();
+  const propertyKey = "TEAM_ASSETS_FOLDER_ID_" + teamId;
+  const savedId = props.getProperty(propertyKey);
+  if (savedId) {
+    try { return DriveApp.getFolderById(savedId); } catch (e) {}
+  }
+  const folder = DriveApp.createFolder("Competition Dashboard Team " + teamId + " Assets");
+  props.setProperty(propertyKey, folder.getId());
+  return folder;
+}
+
+function uploadTeamAsset_(body) {
+  const teamId = String(body.teamId || "").trim().toUpperCase();
+  const uploadKey = String(body.uploadKey || "").trim();
+  if (!TEAM_IDS.includes(teamId) || getSessionTeam_(body.sessionToken) !== teamId)
+    return jsonResponse_({ ok: false, error: "Team session expired. Sign in again." });
+  if (!/^[a-f0-9]{32,64}$/i.test(uploadKey)) return jsonResponse_({ ok: false, error: "Invalid asset upload key." });
+  const match = String(body.dataUrl || "").match(/^data:(image\/(?:jpeg|png|webp|gif));base64,([A-Za-z0-9+/=]+)$/i);
+  if (!match) return jsonResponse_({ ok: false, error: "Unsupported image format. Use JPG, PNG, WebP or GIF." });
+  let bytes;
+  try { bytes = Utilities.base64Decode(match[2]); } catch (e) { return jsonResponse_({ ok: false, error: "Could not decode the image." }); }
+  if (!bytes.length || bytes.length > 5 * 1024 * 1024) return jsonResponse_({ ok: false, error: "Each image must be 5 MB or smaller." });
+  const props = PropertiesService.getScriptProperties();
+  const resultKey = "TEAM_ASSET_UPLOAD_" + teamId + "_" + uploadKey;
+  const errorKey = "TEAM_ASSET_UPLOAD_ERROR_" + teamId + "_" + uploadKey;
+  try {
+    const mime = match[1].toLowerCase();
+    const ext = mime === "image/jpeg" ? "jpg" : mime.split("/")[1];
+    const rawName = String(body.assetName || "team-asset").trim().slice(0, 90);
+    const safeName = rawName.replace(/[^a-z0-9 _.-]/gi, "").replace(/\s+/g, " ").trim() || "team-asset";
+    const category = ["Card background", "Card frame", "Player portrait", "Team crest", "Other"].includes(String(body.category)) ? String(body.category) : "Other";
+    const blob = Utilities.newBlob(bytes, mime, "Team-" + teamId + "-" + safeName + "." + ext);
+    const folder = getTeamAssetsFolder_(teamId);
+    const file = folder.createFile(blob);
+    file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+    file.setDescription("Competition Dashboard Team Asset\nTeam ID: " + teamId + "\nCategory: " + category + "\nAsset name: " + safeName);
+    const saved = {
+      ok: true, pending: false, action: "uploadTeamAsset", teamId: teamId,
+      name: safeName, category: category, fileId: file.getId(),
+      url: "https://drive.google.com/uc?export=view&id=" + encodeURIComponent(file.getId()),
+      thumbnailUrl: "https://drive.google.com/thumbnail?id=" + encodeURIComponent(file.getId()) + "&sz=w400",
+      updatedAt: file.getLastUpdated().getTime()
+    };
+    props.setProperty(resultKey, JSON.stringify(saved));
+    props.deleteProperty(errorKey);
+    return jsonResponse_({ ok: true, action: "uploadTeamAsset", saved: true, teamId: teamId });
+  } catch (error) {
+    console.error(error);
+    try { props.setProperty(errorKey, "Drive upload failed: " + String(error && error.message || error).slice(0, 350)); } catch (ignored) {}
+    return jsonResponse_({ ok: false, error: "Drive could not store this asset. Check Apps Script Drive authorisation and Executions." });
+  }
+}
+
+function readTeamAssets_(teamId) {
+  const props = PropertiesService.getScriptProperties();
+  const folderId = props.getProperty("TEAM_ASSETS_FOLDER_ID_" + teamId);
+  if (!folderId) return [];
+  try {
+    const folder = DriveApp.getFolderById(folderId);
+    const files = folder.getFiles(), assets = [];
+    while (files.hasNext() && assets.length < 200) {
+      const file = files.next();
+      if (file.isTrashed() || !/^image\//i.test(file.getMimeType())) continue;
+      const description = String(file.getDescription() || "");
+      const teamMatch = description.match(/(?:^|\\n)Team ID:\\s*([^\\n]+)/i);
+      if (!teamMatch || teamMatch[1].trim().toUpperCase() !== teamId) continue;
+      const categoryMatch = description.match(/(?:^|\\n)Category:\\s*([^\\n]+)/i);
+      const nameMatch = description.match(/(?:^|\\n)Asset name:\\s*([^\\n]+)/i);
+      assets.push({
+        id: file.getId(),
+        teamId: teamId,
+        name: nameMatch ? nameMatch[1].trim() : file.getName().replace(/\\.[^.]+$/, ""),
+        category: categoryMatch ? categoryMatch[1].trim() : "Other",
+        url: "https://drive.google.com/uc?export=view&id=" + encodeURIComponent(file.getId()),
+        thumbnailUrl: "https://drive.google.com/thumbnail?id=" + encodeURIComponent(file.getId()) + "&sz=w400",
+        updatedAt: file.getLastUpdated().getTime()
+      });
+    }
+    assets.sort(function(a, b) { return b.updatedAt - a.updatedAt; });
+    return assets;
+  } catch (error) {
+    console.error(error);
+    throw new Error("Could not list Team " + teamId + " assets. Check Drive authorisation.");
   }
 }
 
