@@ -33,7 +33,7 @@
 <div class="topline" style="margin-top:18px"><h2 id="libraryHeading">Recently saved</h2><button type="button" id="refreshAssets" class="secondary">Refresh</button></div><div class="saved" id="savedAssets"></div>
 </aside>
 </main>
-<div class="footer">Uploads are limited to 5 MB per image. Drive access must be authorised in the Apps Script deployment. The saved file link is returned after the server confirms the upload.</div>
+<div class="footer" id="assetFooter">Uploads are limited to 5 MB per image. Drive access must be authorised in the Apps Script deployment. The saved file link is returned after the server confirms the upload.</div>
 <script>
 "use strict";
 const API_URL="https://script.google.com/macros/s/AKfycbxMf_p_rayTFNdiyW0SfOswYlml-49F2J2bdp0yQs40bSazHRCxEGEHFz4Chpl8a6ww/exec";
@@ -43,7 +43,7 @@ const teamSessionId=sessionStorage.getItem("team-editor-authorized-team")||"";
 const teamSessionToken=sessionStorage.getItem("team-editor-session-token")||"";
 const teamMode=!!requestedTeamId;
 if(teamMode&&(!["A","B","C","D","E"].includes(requestedTeamId)||requestedTeamId!==teamSessionId||!teamSessionToken)){location.replace("team-editor.html");}
-if(teamMode){$("studioEyebrow").textContent="TEAM "+requestedTeamId+" / TEAM ASSET LIBRARY";$("studioTitle").textContent="Team "+requestedTeamId+" Asset Studio";$("studioDescription").textContent="Upload card images, player portraits, team crests and backgrounds to this team's own asset library. Images are stored in a team-specific Drive folder."; $("adminTokenField").hidden=true;$("saveHeading").textContent="Save to Team "+requestedTeamId;$("storageScope").textContent="Team-scoped Drive";$("libraryHeading").textContent="Team "+requestedTeamId+" saved assets";}
+if(teamMode){$("studioEyebrow").textContent="TEAM "+requestedTeamId+" / TEAM ASSET LIBRARY";$("studioTitle").textContent="Team "+requestedTeamId+" Asset Studio";$("studioDescription").textContent="Upload card images, player portraits, team crests and backgrounds to this team's own asset library. Images are stored in a team-specific Drive folder."; $("adminTokenField").hidden=true;$("saveHeading").textContent="Save to Team "+requestedTeamId;$("storageScope").textContent="Team-scoped Drive";$("libraryHeading").textContent="Team "+requestedTeamId+" saved assets";$("assetFooter").textContent="Uploads are limited to 5 MB per image. The server checks your team session for every upload and library request. Files are organised in separate team folders. Images are link-viewable so published team pages can display them, so treat the image URL as public if shared."; }
 const state={file:null,originalUrl:"",cleanBlob:null,cleaned:false,busy:false};
 function status(id,message,kind=""){const el=$(id);el.textContent=message;el.className="status"+(kind?" "+kind:"")}
 function revokePreview(){if(state.originalUrl){URL.revokeObjectURL(state.originalUrl);state.originalUrl=""}}
