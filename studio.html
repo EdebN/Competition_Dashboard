@@ -341,7 +341,6 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
     <button class="tool" data-add="ratingGraph" title="Add rating history graph"><span>⌁</span><small>Rating graph</small></button>
     <button class="tool" data-add="recentForm" title="Add recent results infographic"><span>▥</span><small>Recent form</small></button>
     <button class="tool" data-add="formation" title="Add player field and lineup"><span>⚑</span><small>Player field</small></button>
-    <button class="tool" data-add="playerCard" title="Add a standalone player card"><span>▣</span><small>Player card</small></button>
     <button class="tool" data-add="divider title="Add divider"><span>━</span><small>Line</small></button>
     <button class="tool" data-add="spacer" title="Add spacing"><span>↕</span><small>Space</small></button>
   </div>
@@ -358,7 +357,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
     <div class="field"><label for="pageBg">Canvas background</label><input id="pageBg" type="color" value="#0b1726"></div>
     <div class="field"><label for="pagePadding">Page padding</label><input id="pagePadding" type="range" min="8" max="64" value="30"></div>
     <div class="field"><label for="pageWidth">Preview device</label><select id="pageWidth"><option value="desktop">Desktop · 900 px</option><option value="tablet">Tablet · 720 px</option><option value="mobile">Mobile · 390 px</option></select></div>
-    <div class="hint">Select an element to open its floating editing toolbar directly above it.</div>
+    <div class="hint"><strong>Player card images</strong><br>The built-in Player Card Studio has been discontinued. Create a card image with <a href="https://www.futbin.com/26/fut-card-creator" target="_blank" rel="noopener noreferrer">FUTBIN FC 26 Card Creator</a>, save the image, then choose <strong>Image</strong> in the left panel and upload it. To use card images on the lineup field, add a <strong>Player field</strong> and choose images under <strong>Image player cards</strong>; upload them to Asset Studio first.</div>
   </section>
 </aside>
 </div>
@@ -800,7 +799,7 @@ function renderToolbar(){
  }else if(b.type==="stat"){
   html+='<div class="field-note">Double-click the label directly on the canvas to edit it. The live value is supplied by competition data.</div>';
 
-    }else if(b.type==="playerCard"){const library=readPlayerLibrary(),chosen=b.playerCard&&String(b.playerCard.id);html+='<div class="field-note">Add one saved player card as its own movable page element, separate from the lineup field.</div>';if(!library.length)html+='<p class="field-note">No saved cards for this team. Create cards in Player Card Studio first.</p>';else html+='<div class="formation-select-list">'+library.map(card=>'<label class="formation-select-option"><input type="radio" name="standalone-player-card" data-player-card-choice="'+esc(card.id)+'" '+(chosen===String(card.id)?"checked":"")+'><span><strong>'+esc(card.playerName||"Unnamed player")+'</strong><br><small>'+esc(card.position||"UT")+" · "+esc(card.rating||0)+" OVR · #"+esc(card.jersey||0)+'</small></span></label>').join("")+'</div>';
+    }else if(b.type==="playerCard"){const library=readPlayerLibrary(),chosen=b.playerCard&&String(b.playerCard.id);html+='<div class="field-note">This older saved card block is no longer editable with the discontinued card creator. Replace it with an Image block containing a finished card image from FUTBIN.</div>';if(!library.length)html+='<p class="field-note">Use the Image element to upload a finished player-card image.</p>';else html+='<div class="formation-select-list">'+library.map(card=>'<label class="formation-select-option"><input type="radio" name="standalone-player-card" data-player-card-choice="'+esc(card.id)+'" '+(chosen===String(card.id)?"checked":"")+'><span><strong>'+esc(card.playerName||"Unnamed player")+'</strong><br><small>'+esc(card.position||"UT")+" · "+esc(card.rating||0)+" OVR · #"+esc(card.jersey||0)+'</small></span></label>').join("")+'</div>';
   }else if(b.type==="formation"){
    const library=readPlayerLibrary(),currentPlayers=Array.isArray(b.players)?b.players:[],picked=new Set(currentPlayers.map(p=>String(p.id))),pickedAssets=new Set(currentPlayers.filter(p=>p.imageCard&&p.assetId).map(p=>String(p.assetId)));
    html+='<div class="field-note">Choose up to six players total: five on the field and one on the bench. Select saved player cards or use any saved Drive image as an image-only card.</div>';
