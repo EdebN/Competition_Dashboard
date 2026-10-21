@@ -619,7 +619,7 @@ function readPlayerLibrary(){try{const teamId=validStudioTeam||sessionStorage.ge
 async function loadStudioImageAssets(force=false){
  if(studioImageAssetsLoading||(!force&&studioImageAssetsLoaded))return;
  studioImageAssetsLoading=true;studioImageAssetsError="";
- try{const result=await sharedDesignRequest("getCompetitionAssets");if(!result||result.ok===false)throw new Error(result&&result.error||"Could not load saved images.");studioImageAssets=Array.isArray(result.assets)?result.assets:[];studioImageAssetsLoaded=true}
+ try{const result=await sharedDesignRequest(validStudioTeam?"getTeamAssets":"getCompetitionAssets");if(!result||result.ok===false)throw new Error(result&&result.error||"Could not load saved images.");studioImageAssets=Array.isArray(result.assets)?result.assets:[];studioImageAssetsLoaded=true}
  catch(error){studioImageAssetsError=error.message||"Could not load saved images."}
  finally{studioImageAssetsLoading=false;const current=blocks.find(x=>x.id===selected);if(current&&current.type==="formation")renderToolbar()}
 }
