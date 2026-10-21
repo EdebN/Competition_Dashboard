@@ -14,6 +14,7 @@ const GET_ACTIONS = [
   "getTeamPlayerCards",
   "getTeamPlayerCardAssetUpload",
   "getCompetitionAssetUpload",
+  "getCompetitionAssets",
   "getPublishedTeamPage",
   "getTeamEditorPinStatus",
   "verifyTeamEditorPin",
@@ -185,6 +186,8 @@ function doGet(e) {
           result = { ok: true, pending: true, action: action };
         }
       }
+    } else if (action === "getCompetitionAssets") {
+      result = { ok: true, action: action, assets: readCompetitionAssets_() };
     } else if (action === "getPublishedTeamPage") {
       const teamId = String(params.teamId || "").trim().toUpperCase();
       if (!TEAM_IDS.includes(teamId)) result = { ok: false, error: "Invalid team ID." };
@@ -661,6 +664,7 @@ function uploadCompetitionAsset_(body) {
     const blob = Utilities.newBlob(bytes, mime, safeName + "." + ext);
     const file = folder.createFile(blob);
     file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+    file.setDescription("Competition Dashboard Asset\\nCategory: " + category + "\\nAsset name: " + safeName);
     const saved = {
       ok: true,
       pending: false,
@@ -677,6 +681,42 @@ function uploadCompetitionAsset_(body) {
     console.error(error);
     try { props.setProperty(errorKey, "Drive upload failed: " + String(error && error.message || error).slice(0, 350)); } catch (ignored) {}
     return jsonResponse_({ ok: false, error: "Drive could not save the asset. Check Apps Script Drive authorisation and Executions." });
+  }
+}
+
+
+/**
+ * Lists the public assets saved through Asset Studio so the Player Card Studio
+ * can use Drive backgrounds without making the user paste a file URL.
+ */
+function readCompetitionAssets_() {
+  const props = PropertiesService.getScriptProperties();
+  const folderId = props.getProperty("COMPETITION_ASSETS_FOLDER_ID");
+  if (!folderId) return [];
+  try {
+    const folder = DriveApp.getFolderById(folderId);
+    const files = folder.getFiles();
+    const assets = [];
+    while (files.hasNext() && assets.length < 150) {
+      const file = files.next();
+      if (file.isTrashed() || !/^image\//i.test(file.getMimeType())) continue;
+      const description = String(file.getDescription() || "");
+      const categoryMatch = description.match(/(?:^|\\n)Category:\\s*([^\\n]+)/i);
+      const nameMatch = description.match(/(?:^|\\n)Asset name:\\s*([^\\n]+)/i);
+      assets.push({
+        id: file.getId(),
+        name: nameMatch ? nameMatch[1].trim() : file.getName().replace(/\\.[^.]+$/, ""),
+        category: categoryMatch ? categoryMatch[1].trim() : "Uncategorised",
+        url: "https://drive.google.com/uc?export=view&id=" + encodeURIComponent(file.getId()),
+        thumbnailUrl: "https://drive.google.com/thumbnail?id=" + encodeURIComponent(file.getId()) + "&sz=w400",
+        updatedAt: file.getLastUpdated().getTime()
+      });
+    }
+    assets.sort(function(a, b) { return b.updatedAt - a.updatedAt; });
+    return assets;
+  } catch (error) {
+    console.error(error);
+    throw new Error("Could not list Competition Dashboard assets. Check Drive authorisation.");
   }
 }
 
