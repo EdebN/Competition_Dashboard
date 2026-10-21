@@ -797,7 +797,7 @@ function renderBackgroundAssets(){
  if(!assets.length){$('backgroundAssetStatus').textContent='No saved Drive assets found. Add images in Asset Studio, then refresh.';return}
  $('backgroundAssetStatus').textContent=assets.length+' saved Drive image'+(assets.length===1?'':'s')+'. Click a thumbnail to apply it.';
  assets.forEach((asset,index)=>{
-  const button=document.createElement('button');button.type='button';button.className='background-asset';button.dataset.assetIndex=String(index);button.setAttribute('aria-pressed',backgroundData===asset.url?'true':'false');button.title='Use '+(asset.name||'Untitled image')+' as the card background';
+  const button=document.createElement('button');button.type='button';button.className='background-asset';button.dataset.assetIndex=String(savedDriveAssets.indexOf(asset));button.setAttribute('aria-pressed',backgroundData===asset.url?'true':'false');button.title='Use '+(asset.name||'Untitled image')+' as the card background';
   const img=document.createElement('img');img.alt='';img.loading='lazy';img.src=displayAssetUrl(asset.url);img.onerror=()=>{img.style.opacity='.35';};
   const name=document.createElement('b');name.textContent=asset.name||'Untitled asset';
   const category=document.createElement('small');category.textContent=asset.category||'Drive image';
