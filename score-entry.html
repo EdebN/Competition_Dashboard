@@ -7,7 +7,7 @@
 <style>
 :root{color-scheme:dark;--bg:#0c0d10;--panel:#15171c;--line:#2b2e36;--text:#f4f0e7;--muted:#a4a7af;--gold:#d8b45a;--good:#69d2a1;--bad:#ff8888}
 *{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 15% 0%,#29251b 0,transparent 42%),var(--bg);color:var(--text);font:16px/1.5 system-ui,-apple-system,sans-serif;min-height:100vh}
-main{width:min(760px,calc(100% - 32px));margin:48px auto}header{margin-bottom:28px}.back-dashboard{display:inline-flex;align-items:center;gap:8px;min-height:40px;margin-bottom:25px;padding:10px 13px;border:1px solid #393d47;border-radius:10px;background:#15171c;color:var(--text);font-size:10px;font-weight:900;letter-spacing:.07em;text-decoration:none;transition:background .16s,border-color .16s,transform .16s}.back-dashboard:hover{background:#20242b;border-color:#6d5b30;transform:translateX(-2px)}.back-dashboard:focus-visible{outline:2px solid var(--gold);outline-offset:3px}.eyebrow{color:var(--gold);font-size:12px;font-weight:800;letter-spacing:.16em;text-transform:uppercase}h1{font-size:clamp(30px,6vw,48px);line-height:1.05;letter-spacing:-.04em;margin:10px 0}p{color:var(--muted)}.panel{background:rgba(21,23,28,.94);border:1px solid var(--line);border-radius:18px;padding:clamp(18px,4vw,28px);margin:18px 0;box-shadow:0 18px 60px #0003}.field{display:grid;gap:7px;margin:16px 0}label{font-size:12px;color:var(--muted);font-weight:800;letter-spacing:.08em;text-transform:uppercase}input,select{width:100%;background:#0e1014;border:1px solid #393d47;border-radius:10px;padding:13px 14px;color:var(--text);font:inherit;min-height:48px}input:focus,select:focus{outline:2px solid var(--gold);outline-offset:2px}.scores{display:grid;grid-template-columns:1fr 1fr;gap:14px}.score-input{font-size:28px;font-weight:750;text-align:center}.button{background:var(--gold);border:0;border-radius:10px;color:#19160e;font:800 13px system-ui,sans-serif;letter-spacing:.06em;padding:15px 18px;min-height:48px;cursor:pointer}.button:disabled{opacity:.55;cursor:wait}.button.secondary{background:transparent;color:var(--text);border:1px solid var(--line)}.status{min-height:24px;margin-top:14px;font-size:14px;color:var(--muted);overflow-wrap:anywhere}.status.good{color:var(--good)}.status.bad{color:var(--bad)}.hidden{display:none!important}.row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}.row .button{flex:1}.small{font-size:12px;color:var(--muted)}footer{margin-top:30px;font-size:12px;color:var(--muted)}@media(max-width:520px){main{margin:28px auto}.scores{gap:9px}.panel{border-radius:14px}}
+main{width:min(760px,calc(100% - 32px));margin:48px auto}header{margin-bottom:28px}.back-dashboard{display:inline-flex;align-items:center;gap:8px;min-height:40px;margin-bottom:25px;padding:10px 13px;border:1px solid #393d47;border-radius:10px;background:#15171c;color:var(--text);font-size:10px;font-weight:900;letter-spacing:.07em;text-decoration:none;transition:background .16s,border-color .16s,transform .16s}.back-dashboard:hover{background:#20242b;border-color:#6d5b30;transform:translateX(-2px)}.back-dashboard:focus-visible{outline:2px solid var(--gold);outline-offset:3px}.eyebrow{color:var(--gold);font-size:12px;font-weight:800;letter-spacing:.16em;text-transform:uppercase}h1{font-size:clamp(30px,6vw,48px);line-height:1.05;letter-spacing:-.04em;margin:10px 0}p{color:var(--muted)}.panel{background:rgba(21,23,28,.94);border:1px solid var(--line);border-radius:18px;padding:clamp(18px,4vw,28px);margin:18px 0;box-shadow:0 18px 60px #0003}.field{display:grid;gap:7px;margin:16px 0}label{font-size:12px;color:var(--muted);font-weight:800;letter-spacing:.08em;text-transform:uppercase}input,select{width:100%;background:#0e1014;border:1px solid #393d47;border-radius:10px;padding:13px 14px;color:var(--text);font:inherit;min-height:48px}input:focus,select:focus{outline:2px solid var(--gold);outline-offset:2px}.scores{display:grid;grid-template-columns:1fr 1fr;gap:14px}.score-input{font-size:28px;font-weight:750;text-align:center}.button{background:var(--gold);border:0;border-radius:10px;color:#19160e;font:800 13px system-ui,sans-serif;letter-spacing:.06em;padding:15px 18px;min-height:48px;cursor:pointer}.button:disabled{opacity:.55;cursor:wait}.button.secondary{background:transparent;color:var(--text);border:1px solid var(--line)}.status{min-height:24px;margin-top:14px;font-size:14px;color:var(--muted);overflow-wrap:anywhere}.status.good{color:var(--good)}.status.bad{color:var(--bad)}.completion{display:flex;align-items:center;gap:9px;margin:10px 0 16px;padding:11px 13px;border:1px solid var(--line);border-radius:10px;background:#101216;font-size:13px;font-weight:800}.completion-dot{width:9px;height:9px;border-radius:50%;background:#a4a7af;flex:none}.completion.done{color:var(--good);border-color:#315a49}.completion.done .completion-dot{background:var(--good);box-shadow:0 0 12px #69d2a155}.completion.pending{color:#e2c578}.completion.pending .completion-dot{background:#e2c578}.hidden{display:none!important}.row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}.row .button{flex:1}.small{font-size:12px;color:var(--muted)}footer{margin-top:30px;font-size:12px;color:var(--muted)}@media(max-width:520px){main{margin:28px auto}.scores{gap:9px}.panel{border-radius:14px}}
 </style>
 </head>
 <body>
@@ -21,6 +21,7 @@ main{width:min(760px,calc(100% - 32px));margin:48px auto}header{margin-bottom:28
 <section class="panel hidden" id="entryPanel">
 <div class="row"><h2 style="margin:0;flex:1">Official result</h2><button class="button secondary" id="lock" type="button">LOCK PORTAL</button></div>
 <div class="field"><label for="fixture">Fixture</label><select id="fixture"><option value="">Loading fixtures…</option></select></div>
+ <div class="completion pending" id="completionStatus" role="status" aria-live="polite"><span class="completion-dot"></span><span id="completionText">Select a match to see its status.</span></div>
 <div class="scores">
 <div class="field"><label id="homeLabel" for="homeScore">Home score</label><input class="score-input" id="homeScore" type="number" min="0" max="99" step="1" inputmode="numeric" placeholder="0"></div>
 <div class="field"><label id="awayLabel" for="awayScore">Away score</label><input class="score-input" id="awayScore" type="number" min="0" max="99" step="1" inputmode="numeric" placeholder="0"></div>
@@ -144,19 +145,29 @@ async function loadData(){
  if(final3&&f1&&f2&&loser(f1)&&loser(f2))finalFixtures.push({...final3,home:loser(f1),away:loser(f2)});
  fixtures=[...regular,...finalFixtures].filter(f=>f.home&&f.away);
  const select=$("fixture"),previous=select.value;select.innerHTML="";
- fixtures.forEach(f=>{const o=document.createElement("option");o.value=String(f.id);o.textContent=(f.stage==="REGULAR"?"Game "+f.id:f.stage+" · Game "+f.id)+" · "+displayTeam(f.home)+" vs "+displayTeam(f.away);select.appendChild(o);});
+ fixtures.forEach(f=>{const o=document.createElement("option");o.value=String(f.id);o.textContent=fixtureLabel(f);select.appendChild(o);});
  if(previous&&fixtures.some(f=>String(f.id)===previous))select.value=previous;
  fillScores();status("saveStatus","Matches loaded.","good");
 }
 function selectedFixture(){return fixtures.find(f=>f.id===Number($("fixture").value));}
 function savedFor(id){return savedResults.find(r=>Number(r.matchId)===id);}
+function isCompleted(f){const r=f&&savedFor(f.id);return Boolean(r&&r.homeScore!==null&&r.homeScore!==""&&r.awayScore!==null&&r.awayScore!=="");}
+function fixtureLabel(f){return (f.stage==="REGULAR"?"Game "+f.id:f.stage+" · Game "+f.id)+" · "+displayTeam(f.home)+" vs "+displayTeam(f.away)+" · "+(isCompleted(f)?"COMPLETED":"NOT COMPLETED");}
+function refreshFixtureLabels(){const select=$("fixture");Array.from(select.options).forEach(o=>{const f=fixtures.find(item=>String(item.id)===o.value);if(f)o.textContent=fixtureLabel(f);});}
+function updateCompletionStatus(f){
+ const el=$("completionStatus"),label=$("completionText");
+ if(!f){el.className="completion pending";label.textContent="Select a match to see its status.";return;}
+ const done=isCompleted(f);el.className="completion "+(done?"done":"pending");
+ label.textContent=done?"MATCH COMPLETED · Official score: "+savedFor(f.id).homeScore+"–"+savedFor(f.id).awayScore:"MATCH NOT COMPLETED · No official result saved";
+}
 function fillScores(){
- const f=selectedFixture();if(!f)return;
+ const f=selectedFixture();if(!f){updateCompletionStatus(null);return;}
  $("homeLabel").textContent=displayTeam(f.home)+" score";$("awayLabel").textContent=displayTeam(f.away)+" score";
  const r=savedFor(f.id);
  $("homeScore").value=r&&r.homeScore!==null&&r.homeScore!==""?r.homeScore:"";
  $("awayScore").value=r&&r.awayScore!==null&&r.awayScore!==""?r.awayScore:"";
- status("saveStatus",r&&r.homeScore!==null&&r.awayScore!==null?"Current official score: "+r.homeScore+"–"+r.awayScore+".":"No official result recorded for this fixture.");
+ updateCompletionStatus(f);
+ status("saveStatus",isCompleted(f)?"Current official score: "+r.homeScore+"–"+r.awayScore+".":"No official result recorded for this fixture.");
 }
 async function unlock(){
  const code=$("code").value;
@@ -185,7 +196,7 @@ async function save(){
   let verified=null;
   for(let i=0;i<8;i++){await new Promise(r=>setTimeout(r,500));try{const response=await get("getMatchResults");verified=response?.ok&&Array.isArray(response.results)?response.results.find(r=>Number(r.matchId)===f.id):null;if(verified&&Number(verified.homeScore)===Number(h)&&Number(verified.awayScore)===Number(a))break;}catch{}}
   if(!verified||Number(verified.homeScore)!==Number(h)||Number(verified.awayScore)!==Number(a))throw new Error("Could not confirm the save. Refresh before trying again.");
-  savedResults=savedResults.filter(r=>Number(r.matchId)!==f.id);savedResults.push(verified);
+  savedResults=savedResults.filter(r=>Number(r.matchId)!==f.id);savedResults.push(verified);refreshFixtureLabels();updateCompletionStatus(f);
   status("saveStatus","Score saved.","good");
  }catch(e){status("saveStatus",e.message==="Could not confirm the save. Refresh before trying again."?e.message:"Could not save score. Refresh and try again.","bad");}
  finally{$("save").disabled=false;}
