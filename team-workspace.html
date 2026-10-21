@@ -49,6 +49,13 @@ footer{padding:18px;text-align:center;color:#6f859e;font-size:10px}
    <p>Edit your public team page, arrange its content and publish your changes when you're ready.</p>
    <span class="card-action">OPEN PAGE DESIGNER <span class="arrow" aria-hidden="true">↗</span></span>
   </a>
+  <a id="assetStudioLink" class="tool-card assets" href="asset-studio.html">
+   <span class="card-icon" aria-hidden="true">▧</span>
+   <p class="card-kicker">Images & artwork</p>
+   <h2>Asset Studio</h2>
+   <p>Upload player-card images, portraits, crests and backgrounds to your team's own image library.</p>
+   <span class="card-action">OPEN TEAM ASSETS <span class="arrow" aria-hidden="true">↗</span></span>
+  </a>
   <a class="tool-card cards" href="player-card-studio.html">
    <span class="card-icon" aria-hidden="true">▧</span>
    <p class="card-kicker">Player cards · Updated workflow</p>
@@ -75,6 +82,7 @@ if(!["A","B","C","D","E"].includes(teamId)||!token){
 }else{
  document.getElementById("teamLabel").textContent="TEAM "+teamId+" WORKSPACE";
  document.getElementById("studioLink").href="studio.html?team="+encodeURIComponent(teamId);
+ document.getElementById("assetStudioLink").href="asset-studio.html?team="+encodeURIComponent(teamId);
 }
 </script>
 <script src="image-editor.js"></script>
