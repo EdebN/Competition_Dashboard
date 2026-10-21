@@ -821,16 +821,17 @@ function readTeamAssets_(teamId) {
     while (files.hasNext() && assets.length < 200) {
       const file = files.next();
       if (file.isTrashed() || !/^image\//i.test(file.getMimeType())) continue;
-      const description = String(file.getDescription() || "");
-      const teamMatch = description.match(/(?:^|\\n)Team ID:\\s*([^\\n]+)/i);
-      if (!teamMatch || teamMatch[1].trim().toUpperCase() !== teamId) continue;
-      const categoryMatch = description.match(/(?:^|\\n)Category:\\s*([^\\n]+)/i);
-      const nameMatch = description.match(/(?:^|\\n)Asset name:\\s*([^\\n]+)/i);
+      const descriptionLines = String(file.getDescription() || "").split(String.fromCharCode(10));
+      const readMeta = function(prefix) {
+        const line = descriptionLines.find(function(value) { return value.indexOf(prefix) === 0; });
+        return line ? line.slice(prefix.length).trim() : "";
+      };
+      if (readMeta("Team ID:").toUpperCase() !== teamId) continue;
       assets.push({
         id: file.getId(),
         teamId: teamId,
-        name: nameMatch ? nameMatch[1].trim() : file.getName().replace(/\\.[^.]+$/, ""),
-        category: categoryMatch ? categoryMatch[1].trim() : "Other",
+        name: readMeta("Asset name:") || file.getName().replace(/\.[^.]+$/, ""),
+        category: readMeta("Category:") || "Other",
         url: "https://drive.google.com/uc?export=view&id=" + encodeURIComponent(file.getId()),
         thumbnailUrl: "https://drive.google.com/thumbnail?id=" + encodeURIComponent(file.getId()) + "&sz=w400",
         updatedAt: file.getLastUpdated().getTime()
