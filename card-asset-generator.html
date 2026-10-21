@@ -41,6 +41,7 @@ const RARITIES=["Bronze Non Rare","Silver Non Rare","Gold Non Rare","Bronze Rare
 const records=RARITIES.map((name,index)=>({name,index,bg:null,frame:null}));
 const guided={files:[],index:0,result:null,view:"original",busy:false};
 function initGuided(){const sel=$("guidedRarity");for(const r of records){const o=document.createElement("option");o.value=String(r.index);o.textContent=String(r.index+1).padStart(3,"0")+" · "+r.name;sel.append(o)}}
+function initRaritySelect(){const sel=$("cleanRarity");for(const r of records){const o=document.createElement("option");o.value=String(r.index);o.textContent=String(r.index+1).padStart(3,"0")+" · "+r.name;sel.append(o)}}
 function guidedCurrent(){return guided.files[guided.index]||null}
 function guidedRender(){const file=guidedCurrent(),preview=$("guidedPreview");preview.innerHTML="";if(!file){preview.innerHTML='<div class="empty">Batch complete. Your confirmed backgrounds are mapped in the asset grid below.</div>';$("guidedStep").textContent=guided.files.length?"Batch complete · "+guided.files.length+" images reviewed.":"No batch loaded yet.";$("guidedClean").disabled=true;$("guidedOriginal").disabled=true;$("guidedRarity").disabled=true;$("guidedConfirm").disabled=true;$("guidedSkip").disabled=true;return}
 const img=document.createElement("img");img.alt=guided.view==="clean"?"Transparent cleaned preview":"Original imported card image";img.src=URL.createObjectURL(guided.view==="clean"&&guided.result?guided.result:file);preview.append(img);
