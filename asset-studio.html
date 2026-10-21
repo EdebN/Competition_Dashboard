@@ -10,7 +10,7 @@
 </style>
 </head>
 <body>
-<header><div class="eyebrow">COMPETITION DASHBOARD / ASSET LIBRARY</div><h1>Asset Studio</h1><p>Bring in an image, clear its outside background, then save the finished asset directly to Google Drive. No ZIP packs, manifest exports, or mysterious extra buttons.</p></header>
+<header><div class="eyebrow" id="studioEyebrow">COMPETITION DASHBOARD / ASSET LIBRARY</div><h1 id="studioTitle">Asset Studio</h1><p id="studioDescription">Bring in an image, clear its outside background, then save the finished asset directly to Google Drive. No ZIP packs, manifest exports, or mysterious extra buttons.</p><p style="margin-top:10px"><a id="workspaceBack" href="team-workspace.html" style="color:var(--gold)">← Back to team workspace</a></p></header>
 <main class="shell">
 <section class="panel">
 <div class="topline"><h2>Image workspace</h2><span class="pill" id="previewState">No image loaded</span></div>
@@ -21,16 +21,16 @@
 <div class="status" id="workspaceStatus" role="status" aria-live="polite">Import an image to begin.</div>
 </section>
 <aside class="panel">
-<div class="topline"><h2>Save asset</h2><span class="pill">Google Drive</span></div>
+<div class="topline"><h2 id="saveHeading">Save asset</h2><span class="pill" id="storageScope">Google Drive</span></div>
 <div class="step"><span class="num">1</span><span>Import your source image.</span></div><div class="step"><span class="num">2</span><span>Remove the outside background and inspect the result.</span></div><div class="step"><span class="num">3</span><span>Name the asset, choose its category, and save.</span></div>
 <div style="height:14px"></div>
 <div class="field"><label for="assetName">Asset name</label><input id="assetName" maxlength="90" placeholder="e.g. Gold Icon card background"></div>
 <div class="field"><label for="assetCategory">Category</label><select id="assetCategory"><option value="Card background">Card background</option><option value="Card frame">Card frame</option><option value="Player portrait">Player portrait</option><option value="Team crest">Team crest</option><option value="Other">Other</option></select></div>
-<div class="field"><label for="adminToken">Admin token</label><input id="adminToken" type="password" autocomplete="off" placeholder="Required to save to Drive"></div>
+<div class="field" id="adminTokenField"><label for="adminToken">Admin token</label><input id="adminToken" type="password" autocomplete="off" placeholder="Required to save to Drive"></div>
 <div class="small" style="margin:-7px 0 14px">The token is used for this upload only and is not saved in the page.</div>
 <button id="saveBtn" type="button" disabled style="width:100%">Save asset to Drive</button>
 <div style="height:12px"></div><div class="status" id="saveStatus" role="status" aria-live="polite">Nothing saved yet.</div>
-<div class="saved" id="savedAssets"></div>
+<div class="topline" style="margin-top:18px"><h2 id="libraryHeading">Recently saved</h2><button type="button" id="refreshAssets" class="secondary">Refresh</button></div><div class="saved" id="savedAssets"></div>
 </aside>
 </main>
 <div class="footer">Uploads are limited to 5 MB per image. Drive access must be authorised in the Apps Script deployment. The saved file link is returned after the server confirms the upload.</div>
@@ -38,6 +38,12 @@
 "use strict";
 const API_URL="https://script.google.com/macros/s/AKfycbxMf_p_rayTFNdiyW0SfOswYlml-49F2J2bdp0yQs40bSazHRCxEGEHFz4Chpl8a6ww/exec";
 const $=id=>document.getElementById(id);
+const requestedTeamId=(new URLSearchParams(location.search).get("team")||"").trim().toUpperCase();
+const teamSessionId=sessionStorage.getItem("team-editor-authorized-team")||"";
+const teamSessionToken=sessionStorage.getItem("team-editor-session-token")||"";
+const teamMode=!!requestedTeamId;
+if(teamMode&&(!["A","B","C","D","E"].includes(requestedTeamId)||requestedTeamId!==teamSessionId||!teamSessionToken)){location.replace("team-editor.html");}
+if(teamMode){$("studioEyebrow").textContent="TEAM "+requestedTeamId+" / TEAM ASSET LIBRARY";$("studioTitle").textContent="Team "+requestedTeamId+" Asset Studio";$("studioDescription").textContent="Upload card images, player portraits, team crests and backgrounds to this team's own asset library. Images are stored in a team-specific Drive folder."; $("adminTokenField").hidden=true;$("saveHeading").textContent="Save to Team "+requestedTeamId;$("storageScope").textContent="Team-scoped Drive";$("libraryHeading").textContent="Team "+requestedTeamId+" saved assets";}
 const state={file:null,originalUrl:"",cleanBlob:null,cleaned:false,busy:false};
 function status(id,message,kind=""){const el=$(id);el.textContent=message;el.className="status"+(kind?" "+kind:"")}
 function revokePreview(){if(state.originalUrl){URL.revokeObjectURL(state.originalUrl);state.originalUrl=""}}
@@ -49,9 +55,49 @@ function canvasBlob(canvas){return new Promise((resolve,reject)=>canvas.toBlob(b
 async function removeBackground(){if(!state.file||state.busy)return;state.busy=true;state.cleanBlob=null;state.cleaned=false;updateControls();status("workspaceStatus","Removing the edge-connected outside background…");try{const img=await readImage(state.file),w=img.naturalWidth,h=img.naturalHeight,n=w*h;if(!w||!h)throw new Error("Image dimensions are invalid.");if(n>18000000)throw new Error("This image exceeds 18 megapixels. Resize it before cleaning.");const canvas=document.createElement("canvas");canvas.width=w;canvas.height=h;const ctx=canvas.getContext("2d",{willReadFrequently:true});ctx.drawImage(img,0,0);const image=ctx.getImageData(0,0,w,h),d=image.data,tol=Number($("tolerance").value),tol2=tol*tol*3,seen=new Uint8Array(n),queue=new Int32Array(n);let head=0,tail=0;function seed(i){if(i<0||i>=n||seen[i])return;seen[i]=1;queue[tail++]=i}for(let x=0;x<w;x++){seed(x);seed((h-1)*w+x)}for(let y=1;y<h-1;y++){seed(y*w);seed(y*w+w-1)}const samples=[];for(let q=0;q<tail;q++){const p=queue[q]*4;if(d[p+3]>0)samples.push([d[p],d[p+1],d[p+2]])}let removed=0;if(samples.length){const avg=samples.reduce((a,c)=>[a[0]+c[0],a[1]+c[1],a[2]+c[2]],[0,0,0]).map(v=>v/samples.length);head=0;tail=0;seen.fill(0);for(let x=0;x<w;x++){seed(x);seed((h-1)*w+x)}for(let y=1;y<h-1;y++){seed(y*w);seed(y*w+w-1)}while(head<tail){const i=queue[head++],p=i*4,dr=d[p]-avg[0],dg=d[p+1]-avg[1],db=d[p+2]-avg[2];if(d[p+3]===0||dr*dr+dg*dg+db*db>tol2)continue;d[p+3]=0;removed++;const x=i%w,y=(i/w)|0;if(x>0)seed(i-1);if(x<w-1)seed(i+1);if(y>0)seed(i-w);if(y<h-1)seed(i+w)}ctx.putImageData(image,0,0)}state.cleanBlob=await canvasBlob(canvas);state.cleaned=true;showPreview(state.cleanBlob);status("workspaceStatus",samples.length?"Background cleared from "+Math.round(removed/n*100)+"% of pixels. Inspect fine edges before saving.":"The image edges were already transparent. The PNG was preserved without removing more pixels.","success")}catch(error){state.cleanBlob=null;state.cleaned=false;status("workspaceStatus","Background removal failed: "+error.message,"error")}finally{state.busy=false;updateControls()}}
 function toDataUrl(blob){return new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result));reader.onerror=()=>reject(new Error("Could not prepare the image for upload."));reader.readAsDataURL(blob)})}
 function jsonp(params){return new Promise((resolve,reject)=>{const cb="__assetStudio_"+Date.now()+"_"+Math.random().toString(36).slice(2),script=document.createElement("script");let done=false;const timer=setTimeout(()=>finish(new Error("Drive did not confirm the upload in time.")),12000);function finish(error,value){if(done)return;done=true;clearTimeout(timer);try{delete window[cb]}catch{}script.remove();error?reject(error):resolve(value)}window[cb]=value=>finish(null,value);const url=new URL(API_URL);Object.entries(params).forEach(([k,v])=>url.searchParams.set(k,String(v)));url.searchParams.set("callback",cb);url.searchParams.set("_",String(Date.now()));script.onerror=()=>finish(new Error("Could not read the Drive upload status. Check the Apps Script deployment."));script.src=url.toString();document.head.append(script)})}
-async function waitForUpload(uploadKey){const deadline=Date.now()+90000;while(Date.now()<deadline){const result=await jsonp({action:"getCompetitionAssetUpload",uploadKey});if(result&&result.ok&&!result.pending)return result;if(result&&result.ok===false&&!result.pending)throw new Error(result.error||"Drive upload failed.");await new Promise(resolve=>setTimeout(resolve,1600))}throw new Error("The upload was sent, but Drive did not confirm it within 90 seconds. Check Apps Script Executions before retrying.")}
-async function saveAsset(){if(!state.cleaned||!state.cleanBlob||state.busy)return;const token=$("adminToken").value.trim(),name=$("assetName").value.trim(),category=$("assetCategory").value;if(!token){status("saveStatus","Enter the admin token before saving.","error");return}if(!name){status("saveStatus","Give this asset a name first.","error");$("assetName").focus();return}if(state.cleanBlob.size>5*1024*1024){status("saveStatus","The cleaned PNG is "+(state.cleanBlob.size/1048576).toFixed(2)+" MB. Drive uploads are limited to 5 MB.","error");return}state.busy=true;updateControls();$("saveBtn").textContent="Saving…";status("saveStatus","Preparing the transparent PNG for Drive…");try{const dataUrl=await toDataUrl(state.cleanBlob),uploadKey=crypto.randomUUID().replace(/-/g,"");const payload={action:"uploadCompetitionAsset",adminToken:token,uploadKey,assetName:name,category,dataUrl};await fetch(API_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=UTF-8"},body:JSON.stringify(payload)});status("saveStatus","Upload sent. Waiting for Google Drive to confirm…");const result=await waitForUpload(uploadKey);const row=document.createElement("div");row.className="saved-row";const title=document.createElement("strong");title.textContent=result.name||name;const meta=document.createElement("div");meta.className="small";meta.textContent=(result.category||category)+" · saved to Drive";const link=document.createElement("a");link.href=result.url;link.target="_blank";link.rel="noopener";link.textContent="Open saved asset ↗";const id=document.createElement("div");id.className="small";id.textContent="File ID: "+result.fileId;const copy=document.createElement("button");copy.className="secondary";copy.textContent="Copy asset URL";copy.style.marginTop="8px";copy.addEventListener("click",async()=>{try{await navigator.clipboard.writeText(result.url);copy.textContent="Copied"}catch{copy.textContent="Select the link above to copy"}});row.append(title,meta,link,id,copy);$("savedAssets").prepend(row);status("saveStatus","Saved to Google Drive and confirmed. The original is stored as a transparent PNG.","success");$("adminToken").value=""}catch(error){status("saveStatus",error.message,"error")}finally{state.busy=false;$("saveBtn").textContent="Save asset to Drive";updateControls()}}
-$("chooseBtn").addEventListener("click",()=>$("fileInput").click());$("fileInput").addEventListener("change",e=>{const file=e.target.files&&e.target.files[0];if(!file)return;if(!/^image\/(png|jpeg|webp|gif|bmp|avif)$/i.test(file.type)&&! /\.(png|jpe?g|webp|gif|bmp|avif)$/i.test(file.name)){status("workspaceStatus","Choose a PNG, JPEG, WebP, GIF, BMP or AVIF image.","error");return}if(file.size>5*1024*1024){status("workspaceStatus","This image is larger than the 5 MB upload limit.","error");return}state.file=file;state.cleanBlob=null;state.cleaned=false;$("assetName").value=file.name.replace(/\.[^.]+$/,"").replace(/[-_]+/g," ");showPreview(file);status("workspaceStatus","Image loaded. Remove the outside background, then inspect the transparent result.","success");status("saveStatus","Remove the background before saving.");});$("cleanBtn").addEventListener("click",removeBackground);$("originalBtn").addEventListener("click",()=>{if(!state.file)return;state.cleaned=false;state.cleanBlob=null;showPreview(state.file);status("workspaceStatus","Showing the original image. Remove the background again before saving.")});$("tolerance").addEventListener("input",e=>{$("toleranceValue").textContent=e.target.value});$("tolerance").addEventListener("change",()=>{if(state.file&&!state.busy)removeBackground()});$("saveBtn").addEventListener("click",saveAsset);updateControls();
+async function waitForUpload(uploadKey){const deadline=Date.now()+90000;while(Date.now()<deadline){const params=teamMode?{action:"getTeamAssetUpload",teamId:requestedTeamId,sessionToken:teamSessionToken,uploadKey}:{action:"getCompetitionAssetUpload",uploadKey};const result=await jsonp(params);if(result&&result.ok&&!result.pending)return result;if(result&&result.ok===false&&!result.pending)throw new Error(result.error||"Drive upload failed.");await new Promise(resolve=>setTimeout(resolve,1600))}throw new Error("The upload was sent, but Drive did not confirm it within 90 seconds. Check Apps Script Executions before retrying.")}
+function renderAssetRow(asset,prepend=false){
+ const row=document.createElement("div");row.className="saved-row";
+ const title=document.createElement("strong");title.textContent=asset.name||"Untitled asset";
+ const meta=document.createElement("div");meta.className="small";meta.textContent=(asset.category||"Other")+" · "+(teamMode?"Team "+requestedTeamId:"shared asset")+" · "+(asset.updatedAt?new Date(asset.updatedAt).toLocaleDateString():"saved to Drive");
+ const link=document.createElement("a");link.href=asset.url;link.target="_blank";link.rel="noopener";link.textContent="Open saved asset ↗";
+ const id=document.createElement("div");id.className="small";id.textContent="File ID: "+(asset.fileId||asset.id||"");
+ const copy=document.createElement("button");copy.className="secondary";copy.textContent="Copy asset URL";copy.style.marginTop="8px";copy.addEventListener("click",async()=>{try{await navigator.clipboard.writeText(asset.url);copy.textContent="Copied"}catch{copy.textContent="Select the link above to copy"}});
+ row.append(title,meta,link,id,copy);if(prepend)$("savedAssets").prepend(row);else $("savedAssets").append(row);
+}
+async function loadTeamAssets(){
+ if(!teamMode)return;
+ $("refreshAssets").disabled=true;
+ try{
+  const result=await jsonp({action:"getTeamAssets",teamId:requestedTeamId,sessionToken:teamSessionToken});
+  if(!result||!result.ok)throw new Error(result&&result.error||"Could not load this team's assets.");
+  $("savedAssets").replaceChildren();
+  (result.assets||[]).forEach(asset=>renderAssetRow(asset));
+  if(!(result.assets||[]).length){const empty=document.createElement("div");empty.className="small";empty.textContent="No assets saved for Team "+requestedTeamId+" yet."; $("savedAssets").append(empty);}
+ }catch(error){status("saveStatus",error.message,"error");}
+ finally{$("refreshAssets").disabled=false;}
+}
+async function saveAsset(){
+ if(!state.cleaned||!state.cleanBlob||state.busy)return;
+ const token=teamMode?teamSessionToken:$("adminToken").value.trim(),name=$("assetName").value.trim(),category=$("assetCategory").value;
+ if(!token){status("saveStatus",teamMode?"Team session expired. Return to the Team Workspace and sign in again.":"Enter the admin token before saving.","error");return}
+ if(!name){status("saveStatus","Give this asset a name first.","error");$("assetName").focus();return}
+ if(state.cleanBlob.size>5*1024*1024){status("saveStatus","The cleaned PNG is "+(state.cleanBlob.size/1048576).toFixed(2)+" MB. Drive uploads are limited to 5 MB.","error");return}
+ state.busy=true;updateControls();$("saveBtn").textContent="Saving…";status("saveStatus",teamMode?"Saving to Team "+requestedTeamId+" Drive folder…":"Preparing the transparent PNG for Drive…");
+ try{
+  const dataUrl=await toDataUrl(state.cleanBlob),uploadKey=crypto.randomUUID().replace(/-/g,"");
+  const payload=teamMode?{action:"uploadTeamAsset",teamId:requestedTeamId,sessionToken:teamSessionToken,uploadKey,assetName:name,category,dataUrl}:{action:"uploadCompetitionAsset",adminToken:token,uploadKey,assetName:name,category,dataUrl};
+  await fetch(API_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=UTF-8"},body:JSON.stringify(payload)});
+  status("saveStatus","Upload sent. Waiting for Google Drive to confirm…");
+  const result=await waitForUpload(uploadKey);
+  renderAssetRow(result,true);
+  status("saveStatus",teamMode?"Saved to Team "+requestedTeamId+" asset library.":"Saved to Google Drive and confirmed.","success");
+  if(!teamMode)$("adminToken").value="";
+  if(teamMode)await loadTeamAssets();
+ }catch(error){status("saveStatus",error.message,"error")}
+ finally{state.busy=false;$("saveBtn").textContent=teamMode?"Save to Team "+requestedTeamId:"Save asset to Drive";updateControls()}
+}
+$("chooseBtn").addEventListener("click",()=>$("fileInput").click());$("fileInput").addEventListener("change",e=>{const file=e.target.files&&e.target.files[0];if(!file)return;if(!/^image\/(png|jpeg|webp|gif|bmp|avif)$/i.test(file.type)&&! /\.(png|jpe?g|webp|gif|bmp|avif)$/i.test(file.name)){status("workspaceStatus","Choose a PNG, JPEG, WebP, GIF, BMP or AVIF image.","error");return}if(file.size>5*1024*1024){status("workspaceStatus","This image is larger than the 5 MB upload limit.","error");return}state.file=file;state.cleanBlob=null;state.cleaned=false;$("assetName").value=file.name.replace(/\.[^.]+$/,"").replace(/[-_]+/g," ");showPreview(file);status("workspaceStatus","Image loaded. Remove the outside background, then inspect the transparent result.","success");status("saveStatus","Remove the background before saving.");});$("cleanBtn").addEventListener("click",removeBackground);$("originalBtn").addEventListener("click",()=>{if(!state.file)return;state.cleaned=false;state.cleanBlob=null;showPreview(state.file);status("workspaceStatus","Showing the original image. Remove the background again before saving.")});$("tolerance").addEventListener("input",e=>{$("toleranceValue").textContent=e.target.value});$("tolerance").addEventListener("change",()=>{if(state.file&&!state.busy)removeBackground()});$("saveBtn").addEventListener("click",saveAsset);$("refreshAssets").addEventListener("click",loadTeamAssets);if(teamMode){$("saveBtn").textContent="Save to Team "+requestedTeamId;loadTeamAssets()}updateControls();
 </script>
 </body>
 </html>
