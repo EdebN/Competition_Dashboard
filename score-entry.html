@@ -110,7 +110,8 @@ async function loadData(){
  const [csvResponse,resultResponse,settingsResponse,teamSettingsResponse]=await Promise.all([
   fetch(CSV_URL+"&cacheBust="+Date.now()).then(r=>{if(!r.ok)throw new Error("Fixture sheet could not be loaded.");return r.text();}),
   get("getMatchResults"),
-  get("getCompetitionSettings").catch(()=>null)
+  get("getCompetitionSettings").catch(()=>null),
+  get("getTeamSettings").catch(()=>null)
  ]);
  const rows=parseCSV(csvResponse);if(rows.length<2)throw new Error("No fixtures were found in the published CSV.");
  const allRows=rows.slice(1).map(r=>({id:Number(String(r[0]||"").trim()),home:String(r[1]||"").trim(),homeScore:r[2],away:String(r[3]||"").trim(),awayScore:r[4],stage:String(r[5]||"REGULAR").trim().toUpperCase()})).filter(f=>Number.isInteger(f.id));
