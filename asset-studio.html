@@ -26,8 +26,8 @@
 <div style="height:14px"></div>
 <div class="field"><label for="assetName">Asset name</label><input id="assetName" maxlength="90" placeholder="e.g. Gold Icon card background"></div>
 <div class="field"><label for="assetCategory">Category</label><select id="assetCategory"><option value="Card background">Card background</option><option value="Card frame">Card frame</option><option value="Player portrait">Player portrait</option><option value="Team crest">Team crest</option><option value="Other">Other</option></select></div>
-<div class="field" id="adminTokenField"><label for="adminToken">Admin token</label><input id="adminToken" type="password" autocomplete="off" placeholder="Required to save to Drive"></div>
-<div class="small" style="margin:-7px 0 14px">The token is used for this upload only and is not saved in the page.</div>
+<div class="field" id="adminTokenField"><label for="adminToken">Team Workspace code</label><input id="adminToken" type="password" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="Enter your six-digit team code"></div>
+<div class="small" style="margin:-7px 0 14px">Enter the same six-digit PIN you use to open your Team Workspace.</div>
 <button id="saveBtn" type="button" disabled style="width:100%">Save asset to Drive</button>
 <div style="height:12px"></div><div class="status" id="saveStatus" role="status" aria-live="polite">Nothing saved yet.</div>
 <div class="topline" style="margin-top:18px"><h2 id="libraryHeading">Recently saved</h2><button type="button" id="refreshAssets" class="secondary">Refresh</button></div><div class="saved" id="savedAssets"></div>
