@@ -38,11 +38,14 @@
 "use strict";
 const API_URL="https://script.google.com/macros/s/AKfycbyoEK0CtKxtVXYT01qcSIq1_cbP9DpybzxDxHrbnw6nxFMWn_0pfY0pAaBkUTEfp5ij/exec";
 const $=id=>document.getElementById(id);
-const requestedTeamId=(new URLSearchParams(location.search).get("team")||"").trim().toUpperCase();
+const studioParams=new URLSearchParams(location.search);
+const requestedTeamId=(studioParams.get("team")||"").trim().toUpperCase();
 const teamSessionId=sessionStorage.getItem("team-editor-authorized-team")||"";
 const teamSessionToken=sessionStorage.getItem("team-editor-session-token")||"";
 const teamMode=!!requestedTeamId;
+const adminMode=studioParams.get("admin")==="1";
 if(teamMode&&(!["A","B","C","D","E"].includes(requestedTeamId)||requestedTeamId!==teamSessionId||!teamSessionToken)){location.replace("team-editor.html");}
+if(!teamMode&&!adminMode){location.replace("team-editor.html");}
 if(teamMode){$("studioEyebrow").textContent="TEAM "+requestedTeamId+" / TEAM ASSET LIBRARY";$("studioTitle").textContent="Team "+requestedTeamId+" Asset Studio";$("studioDescription").textContent="Upload card images, player portraits, team crests and backgrounds to this team's own asset library. Images are stored in a team-specific Drive folder."; $("adminTokenField").hidden=true;$("saveHeading").textContent="Save to Team "+requestedTeamId;$("storageScope").textContent="Team-scoped Drive";$("libraryHeading").textContent="Team "+requestedTeamId+" saved assets";$("assetFooter").textContent="Uploads are limited to 5 MB per image. The server checks your team session for every upload and library request. Files are organised in separate team folders. Images are link-viewable so published team pages can display them, so treat the image URL as public if shared."; }
 const state={file:null,originalUrl:"",cleanBlob:null,cleaned:false,busy:false};
 function status(id,message,kind=""){const el=$(id);el.textContent=message;el.className="status"+(kind?" "+kind:"")}
