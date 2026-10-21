@@ -10,7 +10,7 @@
 </style>
 </head>
 <body>
-<header><div class="eyebrow" id="studioEyebrow">COMPETITION DASHBOARD / ASSET LIBRARY</div><h1 id="studioTitle">Asset Studio</h1><p id="studioDescription">Bring in an image, clear its outside background, then save the finished asset directly to Google Drive. No ZIP packs, manifest exports, or mysterious extra buttons.</p><p style="margin-top:10px"><a id="workspaceBack" href="team-workspace.html" style="color:var(--gold)">← Back to team workspace</a></p></header>
+<header><div class="eyebrow" id="studioEyebrow">COMPETITION DASHBOARD / ASSET LIBRARY</div><h1 id="studioTitle">Asset Studio</h1><p id="studioDescription">Create reusable artwork for your team: card frames and backgrounds can be used in player-card displays and on-field lineups. Import the design, remove only the outside background if needed, then save it to your team asset library.</p><p style="margin-top:10px"><a id="workspaceBack" href="team-workspace.html" style="color:var(--gold)">← Back to team workspace</a></p></header>
 <main class="shell">
 <section class="panel">
 <div class="topline"><h2>Image workspace</h2><span class="pill" id="previewState">No image loaded</span></div>
@@ -22,10 +22,10 @@
 </section>
 <aside class="panel">
 <div class="topline"><h2 id="saveHeading">Save asset</h2><span class="pill" id="storageScope">Google Drive</span></div>
-<div class="step"><span class="num">1</span><span>Import your source image.</span></div><div class="step"><span class="num">2</span><span>Remove the outside background and inspect the result.</span></div><div class="step"><span class="num">3</span><span>Name the asset, choose its category, and save.</span></div>
+<div class="step"><span class="num">1</span><span>Import the card design, frame, background, or player portrait you want to reuse.</span></div><div class="step"><span class="num">2</span><span>Remove the outside background if needed. Check the preview so you do not erase parts of the design.</span></div><div class="step"><span class="num">3</span><span>Name it and choose <strong>Card frame</strong> or <strong>Card background</strong> for player-card artwork, or <strong>Player portrait</strong> for a player's photo. Save it to the team library.</span></div><div class="hint" style="margin-top:14px;padding:11px;border:1px solid #3a4150;border-radius:9px;background:#11151d;color:#cbd2de;font-size:12px;line-height:1.6">Your saved card artwork becomes a reusable asset for the Team Page Studio, where it can be selected for player-card displays and the on-field lineup. This saves the artwork as an asset; it does not automatically create a player's name, rating, position, or stats.</div>
 <div style="height:14px"></div>
 <div class="field"><label for="assetName">Asset name</label><input id="assetName" maxlength="90" placeholder="e.g. Gold Icon card background"></div>
-<div class="field"><label for="assetCategory">Category</label><select id="assetCategory"><option value="Card background">Card background</option><option value="Card frame">Card frame</option><option value="Player portrait">Player portrait</option><option value="Team crest">Team crest</option><option value="Other">Other</option></select></div>
+<div class="field"><label for="assetCategory">Category</label><select id="assetCategory"><option value="Card background">Card background</option><option value="Card frame">Card frame</option><option value="Player portrait">Player portrait</option><option value="Team crest">Team crest</option><option value="Other">Other</option></select><div class="small">For a designed player-card look, save the border as <strong>Card frame</strong> or the artwork behind the player as <strong>Card background</strong>.</div></div>
 <div class="field" id="adminTokenField"><label for="adminToken">Team Workspace code</label><input id="adminToken" type="password" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="Enter your six-digit team code"></div>
 <div class="small" style="margin:-7px 0 14px">Enter the same six-digit PIN you use to open your Team Workspace.</div>
 <button id="saveBtn" type="button" disabled style="width:100%">Save asset to Drive</button>
