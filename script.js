@@ -1105,10 +1105,11 @@ function calculateLadder(
     s.diff =
       s.pf - s.pa;
 
+    // Win percentage treats each draw as half a win.
     s.winPercent =
       s.played === 0
         ? 0
-        : s.wins /
+        : (s.wins + 0.5 * s.draws) /
           s.played;
 
     s.form =
