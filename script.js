@@ -172,150 +172,6 @@ function readCommunityApi(action, extraParams = {}) {
 }
 
 
-/* =========================================================
-   PRIVACY, COOKIES & LIGHTWEIGHT ANALYTICS
-========================================================= */
-const PRIVACY_CONSENT_COOKIE = "competition_privacy_consent";
-const ANALYTICS_VISITOR_COOKIE = "competition_analytics_visitor";
-const DASHBOARD_PREFERENCES_COOKIE = "competition_preferences";
-const PRIVACY_CONSENT_MAX_AGE = 60 * 60 * 24 * 180;
-
-function readCookie(name) {
-  const prefix = encodeURIComponent(name) + "=";
-  const item = document.cookie.split("; ").find(part => part.startsWith(prefix));
-  if (!item) return "";
-  try { return decodeURIComponent(item.slice(prefix.length)); } catch (_) { return ""; }
-}
-
-function writeCookie(name, value, maxAge = PRIVACY_CONSENT_MAX_AGE) {
-  const secure = window.location.protocol === "https:" ? "; Secure" : "";
-  document.cookie = encodeURIComponent(name) + "=" + encodeURIComponent(value) +
-    "; Max-Age=" + maxAge + "; Path=/; SameSite=Lax" + secure;
-}
-
-function getAnalyticsConsent() {
-  const value = readCookie(PRIVACY_CONSENT_COOKIE);
-  return value === "analytics" ? "analytics" : value === "essential" ? "essential" : "";
-}
-
-function getAnalyticsVisitorId() {
-  let id = readCookie(ANALYTICS_VISITOR_COOKIE);
-  if (!/^[a-f0-9-]{36}$/i.test(id)) {
-    id = (typeof crypto !== "undefined" && crypto.randomUUID)
-      ? crypto.randomUUID()
-      : "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, character => {
-          const random = Math.random() * 16 | 0;
-          return (character === "x" ? random : (random & 3 | 8)).toString(16);
-        });
-    writeCookie(ANALYTICS_VISITOR_COOKIE, id, 60 * 60 * 24 * 365);
-  }
-  return id;
-}
-
-
-function readDashboardPreference(key) {
-  if (getAnalyticsConsent() !== "analytics") return null;
-  try {
-    const preferences = JSON.parse(readCookie(DASHBOARD_PREFERENCES_COOKIE) || "{}");
-    return Object.prototype.hasOwnProperty.call(preferences, key) ? preferences[key] : null;
-  } catch (_) { return null; }
-}
-
-function saveDashboardPreference(key, value) {
-  if (getAnalyticsConsent() !== "analytics") return;
-  const allowedKeys = new Set(["preferredTeamIndex"]);
-  if (!allowedKeys.has(key)) return;
-  let preferences = {};
-  try { preferences = JSON.parse(readCookie(DASHBOARD_PREFERENCES_COOKIE) || "{}"); } catch (_) {}
-  preferences[key] = value;
-  writeCookie(DASHBOARD_PREFERENCES_COOKIE, JSON.stringify(preferences), 60 * 60 * 24 * 365);
-}
-
-function setPrivacyChoice(choice) {
-  const allowed = choice === "analytics" ? "analytics" : "essential";
-  writeCookie(PRIVACY_CONSENT_COOKIE, allowed);
-  if (allowed === "analytics") {
-    getAnalyticsVisitorId();
-    trackAnalyticsEvent("consent_granted", currentPage || "home");
-    const savedTeamPreference = readDashboardPreference("preferredTeamIndex");
-    const savedTeamIndex = savedTeamPreference === null ? NaN : Number(savedTeamPreference);
-    if (Number.isInteger(savedTeamIndex) && savedTeamIndex >= 0 && savedTeamIndex < TEAMS.length) {
-      selectedTeamIndex = savedTeamIndex;
-      if (typeof renderTeamWheelSelection === "function") renderTeamWheelSelection(selectedTeamIndex, false);
-    }
-  } else {
-    // Remove the analytics identifier when analytics is declined.
-    writeCookie(ANALYTICS_VISITOR_COOKIE, "", 0);
-    writeCookie(DASHBOARD_PREFERENCES_COOKIE, "", 0);
-  }
-  const banner = document.getElementById("privacy-consent");
-  if (banner) banner.hidden = true;
-  const settings = document.getElementById("privacy-settings-button");
-  if (settings) settings.setAttribute("aria-expanded", "false");
-}
-
-function trackAnalyticsEvent(eventName, pageName = "home") {
-  if (getAnalyticsConsent() !== "analytics") return;
-  const allowedEvents = new Set([
-    "page_view", "feature_interaction", "session_start", "consent_granted"
-  ]);
-  const allowedPages = new Set([
-    "home", "teams", "team-a", "team-b", "team-c", "team-d", "team-e",
-    "matches", "finals", "socials", "admin", "team-editor", "asset-studio", "player-card-studio"
-  ]);
-  if (!allowedEvents.has(eventName)) return;
-  const page = allowedPages.has(String(pageName)) ? String(pageName) : "other";
-  const visitorId = getAnalyticsVisitorId();
-  const now = Date.now();
-  const sessionKey = "competition-analytics-session";
-  let sessionStarted = false;
-  if (eventName === "page_view") {
-    try {
-      const last = Number(sessionStorage.getItem(sessionKey) || 0);
-      if (!last || now - last > 30 * 60 * 1000) sessionStarted = true;
-      sessionStorage.setItem(sessionKey, String(now));
-    } catch (_) {}
-  }
-  const eventNames = eventName === "page_view" && sessionStarted
-    ? ["session_start", "page_view"]
-    : [eventName];
-  // Analytics is deliberately best-effort and never blocks page navigation.
-  eventNames.forEach(name => {
-    const payload = {
-      action: "trackAnalyticsEvent",
-      visitorId,
-      eventName: name,
-      page,
-      device: window.matchMedia("(max-width: 700px)").matches ? "mobile" : "desktop",
-      occurredAt: new Date(now).toISOString()
-    };
-    try { postCommunityAction(payload).catch(() => {}); } catch (_) {}
-  });
-}
-
-function initializePrivacyControls() {
-  const banner = document.getElementById("privacy-consent");
-  const settings = document.getElementById("privacy-settings-button");
-  const detailsToggle = document.getElementById("privacy-details-toggle");
-  const details = document.getElementById("privacy-details");
-  const accept = document.getElementById("privacy-accept-analytics");
-  const essential = document.getElementById("privacy-essential-only");
-  if (!banner || !settings || !accept || !essential) return;
-
-  if (!getAnalyticsConsent()) banner.hidden = false;
-  settings.addEventListener("click", () => {
-    banner.hidden = false;
-    settings.setAttribute("aria-expanded", "true");
-  });
-  accept.addEventListener("click", () => setPrivacyChoice("analytics"));
-  essential.addEventListener("click", () => setPrivacyChoice("essential"));
-  if (detailsToggle && details) detailsToggle.addEventListener("click", () => {
-    const expanded = detailsToggle.getAttribute("aria-expanded") !== "true";
-    detailsToggle.setAttribute("aria-expanded", String(expanded));
-    details.hidden = !expanded;
-  });
-}
-
 function postCommunityAction(payload) {
   return fetch(COMMUNITY_API_URL, {
     method: "POST",
@@ -3601,7 +3457,6 @@ function showPage(pageName) {
     page.classList.add("active-page");
     button.classList.add("active");
     currentPage = pageName;
-    trackAnalyticsEvent("page_view", pageName);
     if (pageName === "socials" && typeof markSocialPostsRead === "function") markSocialPostsRead();
 
     if (isTeamProfile) {
@@ -3649,8 +3504,6 @@ document.querySelectorAll("[data-page]").forEach(button => {
   button.addEventListener("click", () => showPage(button.dataset.page));
 });
 
-initializePrivacyControls();
-trackAnalyticsEvent("page_view", "home");
 
 const menuToggle = document.getElementById("menu-toggle");
 const primaryNav = document.getElementById("primary-nav");
@@ -3684,7 +3537,6 @@ function renderTeamWheelSelection(index, announce = true) {
   if (!stops.length || !wheel || !current) return;
 
   selectedTeamIndex = (index + TEAMS.length) % TEAMS.length;
-  saveDashboardPreference("preferredTeamIndex", selectedTeamIndex);
   const step = 360 / TEAMS.length;
   const target = -selectedTeamIndex * step;
   const delta = ((target - (teamWheelRotation % 360) + 540) % 360) - 180;
