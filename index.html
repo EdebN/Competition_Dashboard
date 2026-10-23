@@ -210,7 +210,23 @@
 
   </div>
 
-  <script src="script.js?v=drive-asset-studio-20261021"></script>
+
+  <section id="privacy-consent" class="privacy-consent" role="dialog" aria-labelledby="privacy-consent-title" aria-describedby="privacy-consent-copy" hidden>
+    <div class="privacy-consent-copy">
+      <div class="privacy-eyebrow">YOUR PRIVACY</div>
+      <h2 id="privacy-consent-title">Your settings, your call.</h2>
+      <p id="privacy-consent-copy">Essential browser storage keeps basic site features working. With your permission, anonymous analytics help us understand which pages and features are useful. Analytics never records form contents, passwords or admin codes.</p>
+      <button type="button" id="privacy-details-toggle" class="privacy-text-button" aria-expanded="false">What gets saved?</button>
+      <p id="privacy-details" class="privacy-details" hidden>We remember your choice in a first-party cookie. If you allow analytics, a random browser ID and basic events such as page views are sent to the competition backend. You can change this choice at any time using Privacy settings. Clearing browser data also removes locally saved preferences.</p>
+    </div>
+    <div class="privacy-consent-actions">
+      <button type="button" id="privacy-essential-only" class="privacy-button privacy-secondary">Essential only</button>
+      <button type="button" id="privacy-accept-analytics" class="privacy-button privacy-primary">Allow analytics</button>
+    </div>
+  </section>
+  <button type="button" id="privacy-settings-button" class="privacy-settings-button" aria-haspopup="dialog">Privacy settings</button>
+
+  <script src="script.js?v=privacy-analytics-20261023"></script>
   <script src="match-page.js?v=finals-return-20261017"></script>
 
 <script src="image-editor.js"></script>
