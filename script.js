@@ -237,7 +237,8 @@ function setPrivacyChoice(choice) {
   if (allowed === "analytics") {
     getAnalyticsVisitorId();
     trackAnalyticsEvent("consent_granted", currentPage || "home");
-    const savedTeamIndex = Number(readDashboardPreference("preferredTeamIndex"));
+    const savedTeamPreference = readDashboardPreference("preferredTeamIndex");
+    const savedTeamIndex = savedTeamPreference === null ? NaN : Number(savedTeamPreference);
     if (Number.isInteger(savedTeamIndex) && savedTeamIndex >= 0 && savedTeamIndex < TEAMS.length) {
       selectedTeamIndex = savedTeamIndex;
       if (typeof renderTeamWheelSelection === "function") renderTeamWheelSelection(selectedTeamIndex, false);
