@@ -1548,7 +1548,7 @@ function unsubscribeMatchRemindersPage_(teamId, token) {
 
 function sendMatchDayReminders() {
   const zone="Australia/Perth",now=new Date(),today=Utilities.formatDate(now,zone,"yyyy-MM-dd"),clock=Utilities.formatDate(now,zone,"HH:mm");
-  if(clock<"07:00")return;
+  if(clock<"06:00")return;
   const sh=getMatchTimetableSheet_(),last=sh.getLastRow();if(last<2)return;
   const cs=getMatchReminderContactsSheet_(),cl=cs.getLastRow(),cr=cl<2?[]:cs.getRange(2,1,cl-1,5).getValues(),contacts={};
   cr.forEach(r=>{const id=String(r[0]||"");if(TEAM_IDS.includes(id))contacts[id]={email:String(r[1]||"").trim(),off:String(r[2]).toLowerCase()==="true",token:String(r[3]||"")};});
@@ -1579,9 +1579,9 @@ function sendMatchDayReminders() {
 function reminderTeamId_(name,names){const value=String(name||"").trim(),m=value.match(/^Team\s+([A-E])$/i);if(m)return m[1].toUpperCase();return Object.keys(names).find(id=>String(names[id]).trim().toLowerCase()===value.toLowerCase())||"";}
 function escapeEmailHtml_(v){return String(v==null?"":v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
 
-/* Set the Apps Script project timezone to Australia/Perth, then run once. */
+/* Set the Apps Script project timezone to Australia/Perth, then run once. Checks every 15 minutes from 6am. */
 function setupMatchDayReminderTrigger(){
   if(Session.getScriptTimeZone()!=="Australia/Perth")throw new Error("Set Project Settings > Time zone to Australia/Perth, then run this function again.");
   ScriptApp.getProjectTriggers().filter(t=>t.getHandlerFunction()==="sendMatchDayReminders").forEach(t=>ScriptApp.deleteTrigger(t));
-  ScriptApp.newTrigger("sendMatchDayReminders").timeBased().everyHours(1).create();
+  ScriptApp.newTrigger("sendMatchDayReminders").timeBased().everyMinutes(15).create();
 }
