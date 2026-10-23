@@ -4090,3 +4090,32 @@ select {
 .card-assets-admin .card-assets-frame{display:block;width:100%;height:1500px;border:0;background:#0c0e13}
 .card-assets-admin .page-access-intro{max-width:780px}
 @media(max-width:700px){.card-assets-admin .card-assets-frame{height:1700px}}
+
+
+/* PRIVACY & CONSENT */
+.privacy-consent[hidden], .privacy-details[hidden] { display:none !important; }
+.privacy-consent {
+  position:fixed; z-index:10000; left:22px; right:22px; bottom:22px;
+  display:flex; align-items:flex-end; justify-content:space-between; gap:28px;
+  max-width:980px; margin:0 auto; padding:22px;
+  color:#eef3fa; background:rgba(14,18,26,.97); border:1px solid #344052;
+  border-radius:18px; box-shadow:0 20px 70px rgba(0,0,0,.55); backdrop-filter:blur(18px);
+}
+.privacy-consent-copy { max-width:620px; }
+.privacy-eyebrow { margin-bottom:7px; color:#9baac0; font-size:10px; font-weight:850; letter-spacing:.16em; }
+.privacy-consent h2 { margin:0 0 8px; font-size:20px; letter-spacing:-.025em; }
+.privacy-consent p { margin:0; color:#bac5d4; font-size:12px; line-height:1.65; }
+.privacy-text-button { margin-top:9px; padding:0; border:0; background:none; color:#d8e4f5; font-size:12px; text-decoration:underline; cursor:pointer; }
+.privacy-details { padding-top:8px; }
+.privacy-consent-actions { display:flex; flex-shrink:0; gap:8px; }
+.privacy-button { min-height:40px; padding:0 14px; border-radius:10px; border:1px solid #394658; font:inherit; font-size:12px; font-weight:750; cursor:pointer; }
+.privacy-secondary { color:#e1e8f1; background:#171e29; }
+.privacy-primary { color:#0a1017; background:#e7c76d; border-color:#e7c76d; }
+.privacy-settings-button { position:fixed; z-index:9998; left:12px; bottom:12px; padding:7px 10px; border:1px solid #344052; border-radius:9px; color:#b9c5d4; background:rgba(12,16,23,.9); font-size:10px; font-weight:750; cursor:pointer; opacity:.82; }
+.privacy-settings-button:hover { opacity:1; }
+@media(max-width:700px) {
+  .privacy-consent { left:10px; right:10px; bottom:10px; display:block; padding:17px; max-height:85vh; overflow:auto; }
+  .privacy-consent h2 { font-size:18px; }
+  .privacy-consent-actions { margin-top:15px; display:grid; grid-template-columns:1fr 1fr; }
+  .privacy-button { padding:0 8px; }
+}
