@@ -2284,6 +2284,11 @@ main { gap:22px; }
 }
 
 .social-mod-nav-count { display:inline-grid; place-items:center; min-width:18px; height:18px; padding:0 5px; margin-left:6px; border-radius:6px; background:#b84953; color:#fff; font-size:10px; font-weight:900; line-height:1; }
+.nav-socials-label { display:flex; flex-direction:column; align-items:flex-start; gap:5px; }
+.social-unread-nav-count { display:inline-flex; align-items:center; width:max-content; min-height:17px; padding:2px 7px; border:1px solid rgba(110,188,231,.28); border-radius:999px; background:rgba(67,151,201,.15); color:#8fd4ff; font-size:9px; font-weight:900; letter-spacing:.07em; line-height:1; }
+.social-unread-nav-count[hidden] { display:none; }
+.nav-socials-button { align-items:center; }
+
 .social-mod-nav-count[hidden] { display:none; }
 
 
