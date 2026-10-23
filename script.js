@@ -3456,6 +3456,7 @@ function showPage(pageName) {
     page.classList.add("active-page");
     button.classList.add("active");
     currentPage = pageName;
+    if (pageName === "socials" && typeof markSocialPostsRead === "function") markSocialPostsRead();
 
     if (isTeamProfile) {
       renderTeamPage(getTeamNameFromPage(pageName));
@@ -5279,6 +5280,41 @@ loadSocialFeed();
 
 
 /* PUBLIC SOCIAL FEED */
+const SOCIAL_SEEN_POSTS_KEY = "competition-social-seen-posts-v1";
+function getSeenSocialPostIds() {
+  try {
+    const value = JSON.parse(localStorage.getItem(SOCIAL_SEEN_POSTS_KEY) || "[]");
+    return Array.isArray(value) ? value.map(String) : [];
+  } catch (_) {
+    return [];
+  }
+}
+function socialPostId(post) {
+  return String(post?.postId || post?.id || "");
+}
+function updateSocialUnreadBadge() {
+  const badge = document.getElementById("social-unread-nav-count");
+  if (!badge) return;
+  const seen = new Set(getSeenSocialPostIds());
+  const unread = socialFeedPosts.filter(post => {
+    const id = socialPostId(post);
+    return id && !seen.has(id);
+  }).length;
+  badge.textContent = unread + " NEW";
+  badge.hidden = unread === 0;
+  const button = document.querySelector(".nav-socials-button");
+  if (button) button.setAttribute("aria-label", unread ? "Socials, " + unread + " unread posts" : "Socials");
+}
+function markSocialPostsRead() {
+  const ids = socialFeedPosts.map(socialPostId).filter(Boolean);
+  if (ids.length) {
+    try {
+      const seen = new Set([...getSeenSocialPostIds(), ...ids]);
+      localStorage.setItem(SOCIAL_SEEN_POSTS_KEY, JSON.stringify([...seen].slice(-500)));
+    } catch (_) {}
+  }
+  updateSocialUnreadBadge();
+}
 function formatSocialDate(value) {
   if (!value) return "Recently";
   const date = new Date(value);
@@ -5293,6 +5329,8 @@ async function loadSocialFeed() {
     const result = await readCommunityApi("getSocialPosts");
     if (!result || result.ok !== true || !Array.isArray(result.posts)) throw new Error(result?.error || "Feed unavailable.");
     socialFeedPosts = result.posts;
+    updateSocialUnreadBadge();
+    if (currentPage === "socials") markSocialPostsRead();
     renderSocialFeed();
     refreshRenderedTeamNews();
   } catch (error) {
