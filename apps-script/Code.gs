@@ -1,6 +1,6 @@
 const SERVICE_NAME = "competition-community-api";
 const API_VERSION = 1;
-const BUILD_ID = "2026-10-21-drive-asset-studio";
+const BUILD_ID = "2026-10-23-match-day-reminders";
 
 // Keep the public action inventory in one place. The health endpoint and
 // POST allowlist both use these constants so they cannot silently drift apart.
@@ -24,7 +24,9 @@ const GET_ACTIONS = [
   "getTeamSocialStatus",
   "getModerationSession",
   "getScoreEditorSession",
-  "getModerationQueue"
+  "getModerationQueue",
+  "getMatchReminderSettings",
+  "unsubscribeMatchReminders"
 ];
 
 const POST_ACTIONS = [
@@ -47,7 +49,8 @@ const POST_ACTIONS = [
   "createScoreEditorSession",
   "moderateSocialPost",
   "markSocialPostViewed",
-  "setSocialPostingBan"
+  "setSocialPostingBan",
+  "saveMatchReminderSettings"
 ];
 
 const API_ACTIONS = [...new Set([...GET_ACTIONS, ...POST_ACTIONS])];
@@ -244,6 +247,11 @@ function doGet(e) {
     } else if (action === "getModerationQueue") {
       if (!getModerationSession_(params.sessionToken)) result = { ok: false, error: "Admin session expired." };
       else result = { ok: true, posts: readModerationPosts_(), bans: readSocialBans_(), audit: readSocialAudit_() };
+    } else if (action === "getMatchReminderSettings") {
+      if (!getModerationSession_(params.sessionToken)) result = { ok: false, error: "Admin session expired." };
+      else result = readMatchReminderSettings_();
+    } else if (action === "unsubscribeMatchReminders") {
+      return unsubscribeMatchRemindersPage_(params.teamId, params.token);
     } else {
       result = { ok: false, service: SERVICE_NAME, apiVersion: API_VERSION, error: "Unknown action" };
     }
@@ -321,6 +329,7 @@ function doPost(e) {
     });
   }
 
+  if (body.action === "saveMatchReminderSettings") return saveMatchReminderSettings_(body);
   if (body.action === "uploadCompetitionAsset") return uploadCompetitionAsset_(body);
   if (body.action === "updateCompetitionSettings") return updateCompetitionSettings_(body);
   if (body.action === "submitMatchResult") return submitMatchResult_(body);
@@ -1448,3 +1457,131 @@ function handleSocialModeration_(b) {
   return jsonResponse_({ ok: true, saved: true, decision: decision });
 }
 function readTeamSocialStatus_(teamId,token){const team=String(teamId||"").toUpperCase();if(!TEAM_IDS.includes(team)||getSessionTeam_(token)!==team)return {ok:false,error:"Team Studio session expired."};const bans=readSocialBans_();return {ok:true,teamId:team,banned:Boolean(bans[team]&&bans[team].banned),posts:allSocialPosts_().filter(p=>p.teamId===team).sort((a,b)=>String(b.submittedAt).localeCompare(String(a.submittedAt))).slice(0,30)};}
+
+
+/* MATCH-DAY EMAIL REMINDERS */
+const MATCH_TIMETABLE_TAB = "Match Timetable";
+const MATCH_TIMETABLE_HEADERS = ["Match ID","Date","Time","Venue","Status","Home Sent Date","Away Sent Date","Updated At"];
+const MATCH_CONTACTS_TAB = "Match Reminder Contacts";
+const MATCH_CONTACT_HEADERS = ["Team ID","Email","Unsubscribed","Unsubscribe Token","Updated At"];
+
+function reminderSheet_(tab, headers) {
+  const id = PropertiesService.getScriptProperties().getProperty("SPREADSHEET_ID");
+  if (!id) throw new Error("Missing SPREADSHEET_ID");
+  const ss = SpreadsheetApp.openById(id);
+  let sh = ss.getSheetByName(tab);
+  if (!sh) sh = ss.insertSheet(tab);
+  if (!sh.getLastRow()) {
+    sh.getRange(1,1,1,headers.length).setValues([headers]).setFontWeight("bold");
+    sh.setFrozenRows(1);
+  } else if (!headers.every((h,i) => sh.getRange(1,i+1).getDisplayValue() === h)) {
+    throw new Error("Unexpected headers in " + tab);
+  }
+  return sh;
+}
+function getMatchTimetableSheet_() { return reminderSheet_(MATCH_TIMETABLE_TAB, MATCH_TIMETABLE_HEADERS); }
+function getMatchReminderContactsSheet_() { return reminderSheet_(MATCH_CONTACTS_TAB, MATCH_CONTACT_HEADERS); }
+
+function readMatchReminderSettings_() {
+  const sh = getMatchTimetableSheet_(), last = sh.getLastRow();
+  const timetable = last < 2 ? [] : sh.getRange(2,1,last-1,8).getDisplayValues()
+    .filter(r => /^\d+$/.test(r[0]) && Number(r[0]) > 0)
+    .map(r => ({matchId:Number(r[0]),date:r[1],time:r[2],venue:r[3],status:r[4] || "Unscheduled"}));
+  const cs = getMatchReminderContactsSheet_(), cl = cs.getLastRow();
+  const rows = cl < 2 ? [] : cs.getRange(2,1,cl-1,5).getDisplayValues(), byId = {};
+  rows.forEach(r => { const id=String(r[0]||"").trim().toUpperCase(); if(TEAM_IDS.includes(id)) byId[id]={teamId:id,email:String(r[1]||""),enabled:String(r[2]).toLowerCase()!=="true"&&Boolean(r[1])}; });
+  return {ok:true,action:"getMatchReminderSettings",timetable,contacts:TEAM_IDS.map(id=>byId[id]||{teamId:id,email:"",enabled:true})};
+}
+
+function saveMatchReminderSettings_(body) {
+  if (!Array.isArray(body.timetable) || body.timetable.length > 200 || !Array.isArray(body.contacts)) return jsonResponse_({ok:false,error:"Invalid timetable or contacts."});
+  const fixtures=readMatchResults_(), valid=new Set(fixtures.map(m=>m.matchId)), sh=getMatchTimetableSheet_(), last=sh.getLastRow();
+  const oldRows=last<2?[]:sh.getRange(2,1,last-1,8).getValues(), sent={};
+  oldRows.forEach(r=>{const id=Number(r[0]);if(id>0)sent[id]={home:r[5]||"",away:r[6]||""};});
+  const seen=new Set(), clean=[];
+  for (const x of body.timetable) {
+    const id=Number(x.matchId),date=String(x.date||"").trim(),time=String(x.time||"").trim(),venue=String(x.venue||"").trim().slice(0,120);
+    let status=String(x.status||"Unscheduled");
+    if(!Number.isInteger(id)||!valid.has(id)||seen.has(id))return jsonResponse_({ok:false,error:"Unknown or duplicate match ID."});
+    seen.add(id);
+    if(date&&!/^\d{4}-\d{2}-\d{2}$/.test(date))return jsonResponse_({ok:false,error:"Dates must use YYYY-MM-DD."});
+    if(time&&!/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(time))return jsonResponse_({ok:false,error:"Times must use 24-hour HH:MM format."});
+    if(Boolean(date)!==Boolean(time))return jsonResponse_({ok:false,error:"Each fixture needs both date and time, or neither."});
+    if(!["Scheduled","Postponed","Cancelled","Unscheduled"].includes(status))return jsonResponse_({ok:false,error:"Invalid fixture status."});
+    if(status==="Scheduled"&&(!date||!time))status="Unscheduled";
+    clean.push({id,date,time,venue,status,sent:sent[id]||{home:"",away:""}});
+  }
+  const contacts={};
+  for(const x of body.contacts){
+    const id=String(x.teamId||"").toUpperCase(),email=String(x.email||"").trim().slice(0,254);
+    if(!TEAM_IDS.includes(id)||contacts[id])return jsonResponse_({ok:false,error:"Invalid or duplicate team contact."});
+    if(email&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return jsonResponse_({ok:false,error:"Enter a valid team email address."});
+    contacts[id]={email,enabled:x.enabled!==false};
+  }
+  if(TEAM_IDS.some(id=>!contacts[id]))return jsonResponse_({ok:false,error:"Contact settings are required for all teams."});
+  const lock=LockService.getScriptLock();if(!lock.tryLock(10000))return jsonResponse_({ok:false,error:"Service busy. Try again."});
+  try {
+    const now=new Date();
+    sh.clearContents();sh.getRange(1,1,1,8).setValues([MATCH_TIMETABLE_HEADERS]).setFontWeight("bold");
+    clean.sort((a,b)=>a.id-b.id);
+    if(clean.length){const data=clean.map(x=>[x.id,x.date,x.time,x.venue,x.status,x.sent.home,x.sent.away,now]);sh.getRange(2,1,data.length,8).setValues(data);sh.getRange(2,1,data.length,5).setNumberFormat("@");}
+    const cs=getMatchReminderContactsSheet_(), n=cs.getLastRow(), previous=n<2?[]:cs.getRange(2,1,n-1,5).getValues(), old={};
+    previous.forEach(r=>{if(TEAM_IDS.includes(String(r[0])))old[String(r[0])]=r;});
+    const rows=TEAM_IDS.map(id=>{const prior=old[id]||[],c=contacts[id],changed=String(prior[1]||"").trim().toLowerCase()!==c.email.toLowerCase(),token=String(prior[3]||"")||Utilities.getUuid().replace(/-/g,"")+Utilities.getUuid().replace(/-/g,"");return[id,c.email,changed?false:!c.enabled,token,now];});
+    cs.clearContents();cs.getRange(1,1,1,5).setValues([MATCH_CONTACT_HEADERS]).setFontWeight("bold");cs.getRange(2,1,rows.length,5).setValues(rows);cs.getRange(2,1,rows.length,4).setNumberFormat("@");
+    SpreadsheetApp.flush();return jsonResponse_({ok:true,saved:true,action:"saveMatchReminderSettings"});
+  }catch(e){console.error(e);return jsonResponse_({ok:false,error:"Could not save reminder settings. Check Apps Script configuration and execution logs."});}
+  finally{lock.releaseLock();}
+}
+
+function unsubscribeMatchRemindersPage_(teamId, token) {
+  const id=String(teamId||"").trim().toUpperCase(), supplied=String(token||"").trim();let success=false;
+  try {
+    if(TEAM_IDS.includes(id)&&/^[a-f0-9]{64}$/i.test(supplied)){
+      const sh=getMatchReminderContactsSheet_(),last=sh.getLastRow(),rows=last<2?[]:sh.getRange(2,1,last-1,5).getValues();
+      for(let i=0;i<rows.length;i++)if(String(rows[i][0])===id&&String(rows[i][3])===supplied){sh.getRange(i+2,3).setValue(true);sh.getRange(i+2,5).setValue(new Date());success=true;break;}
+    }
+  }catch(e){console.error(e);}
+  const message=success?"Match-day reminders have been turned off for this team email address.":"This link is invalid, expired, or the preference could not be updated.";
+  return HtmlService.createHtmlOutput('<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><title>Match reminders</title><style>body{font:16px system-ui,sans-serif;background:#0b0e13;color:#eef2f7;display:grid;place-items:center;min-height:90vh;margin:0;padding:20px}.card{max-width:440px;padding:28px;border:1px solid #283341;border-radius:16px;background:#121821}p{color:#aab5c3;line-height:1.6}</style></head><body><main class="card"><h1>Reminder preference updated</h1><p>'+message+'</p></main></body></html>').setTitle("Match reminders");
+}
+
+function sendMatchDayReminders() {
+  const zone="Australia/Perth",now=new Date(),today=Utilities.formatDate(now,zone,"yyyy-MM-dd"),clock=Utilities.formatDate(now,zone,"HH:mm");
+  if(clock<"07:00")return;
+  const sh=getMatchTimetableSheet_(),last=sh.getLastRow();if(last<2)return;
+  const cs=getMatchReminderContactsSheet_(),cl=cs.getLastRow(),cr=cl<2?[]:cs.getRange(2,1,cl-1,5).getValues(),contacts={};
+  cr.forEach(r=>{const id=String(r[0]||"");if(TEAM_IDS.includes(id))contacts[id]={email:String(r[1]||"").trim(),off:String(r[2]).toLowerCase()==="true",token:String(r[3]||"")};});
+  const names={};readTeamSettings_().forEach(t=>names[t.teamId]=t.displayName||"Team "+t.teamId);
+  const matches={};readMatchResults_().forEach(m=>matches[m.matchId]=m);
+  const lock=LockService.getScriptLock();if(!lock.tryLock(10000))return;
+  try{
+    const rows=sh.getRange(2,1,last-1,8).getValues(),base=ScriptApp.getService().getUrl();
+    rows.forEach((r,i)=>{
+      const id=Number(r[0]),date=String(r[1]||""),time=String(r[2]||""),venue=String(r[3]||""),status=String(r[4]||"");
+      if(!id||date!==today||!time||time<=clock||status!=="Scheduled")return;
+      const m=matches[id];if(!m)return;
+      const home=reminderTeamId_(m.home,names),away=reminderTeamId_(m.away,names);if(!home||!away)return;
+      [{team:home,opponent:away,col:6,own:m.home,other:m.away},{team:away,opponent:home,col:7,own:m.away,other:m.home}].forEach(t=>{
+        if(String(r[t.col-1]||"")===today)return;const c=contacts[t.team];if(!c||!c.email||c.off||!c.token)return;
+        const ownName=names[t.team]||t.own,otherName=names[t.opponent]||t.other;
+        const dateLabel=Utilities.formatDate(new Date(today+"T12:00:00"),zone,"EEE d MMM yyyy");
+        const link=base+"?action=unsubscribeMatchReminders&teamId="+encodeURIComponent(t.team)+"&token="+encodeURIComponent(c.token);
+        const subject="Match day: "+ownName+" vs "+otherName+" (Game "+id+")";
+        const body="Your match is today.\\n\\nGame "+id+": "+ownName+" vs "+otherName+"\\nDate: "+dateLabel+"\\nKick-off: "+time+(venue?"\\nVenue: "+venue:"")+"\\n\\nCheck the competition dashboard for timetable changes.\\n\\nUnsubscribe from match-day reminders: "+link;
+        const html='<div style="font-family:Arial,sans-serif;max-width:560px;margin:auto;color:#18202b"><p style="font-size:10px;letter-spacing:2px;color:#788596;font-weight:700">COMPETITION DASHBOARD</p><h1 style="font-size:24px">Match day</h1><p style="font-size:18px;font-weight:700">'+escapeEmailHtml_(ownName)+' vs '+escapeEmailHtml_(otherName)+'</p><p>Game '+id+'</p><p><strong>Date:</strong> '+dateLabel+'</p><p><strong>Kick-off:</strong> '+time+'</p>'+(venue?'<p><strong>Venue:</strong> '+escapeEmailHtml_(venue)+'</p>':'')+'<p style="color:#687687">Check the competition dashboard for timetable changes.</p><p style="margin-top:28px;font-size:9px;color:#9aa3ae"><a style="color:#9aa3ae" href="'+escapeEmailHtml_(link)+'">Unsubscribe</a></p></div>';
+        try{MailApp.sendEmail({to:c.email,subject,body,htmlBody:html,name:"Competition Dashboard"});sh.getRange(i+2,t.col).setValue(today);r[t.col-1]=today;}catch(e){console.error("Reminder email failed for game "+id+" team "+t.team+": "+e);}
+      });
+    });
+    SpreadsheetApp.flush();
+  }finally{lock.releaseLock();}
+}
+function reminderTeamId_(name,names){const value=String(name||"").trim(),m=value.match(/^Team\s+([A-E])$/i);if(m)return m[1].toUpperCase();return Object.keys(names).find(id=>String(names[id]).trim().toLowerCase()===value.toLowerCase())||"";}
+function escapeEmailHtml_(v){return String(v==null?"":v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+
+/* Set the Apps Script project timezone to Australia/Perth, then run once. */
+function setupMatchDayReminderTrigger(){
+  if(Session.getScriptTimeZone()!=="Australia/Perth")throw new Error("Set Project Settings > Time zone to Australia/Perth, then run this function again.");
+  ScriptApp.getProjectTriggers().filter(t=>t.getHandlerFunction()==="sendMatchDayReminders").forEach(t=>ScriptApp.deleteTrigger(t));
+  ScriptApp.newTrigger("sendMatchDayReminders").timeBased().everyHours(1).create();
+}
