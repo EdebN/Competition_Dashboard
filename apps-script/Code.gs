@@ -1489,7 +1489,7 @@ function readMatchReminderSettings_() {
     .map(r => ({matchId:Number(r[0]),date:r[1],time:r[2],venue:r[3],status:r[4] || "Unscheduled"}));
   const cs = getMatchReminderContactsSheet_(), cl = cs.getLastRow();
   const rows = cl < 2 ? [] : cs.getRange(2,1,cl-1,5).getDisplayValues(), byId = {};
-  rows.forEach(r => { const id=String(r[0]||"").trim().toUpperCase(); if(TEAM_IDS.includes(id)) byId[id]={teamId:id,email:String(r[1]||""),enabled:String(r[2]).toLowerCase()!=="true"&&Boolean(r[1])}; });
+  rows.forEach(r => { const id=String(r[0]||"").trim().toUpperCase(); if(TEAM_IDS.includes(id)) byId[id]={teamId:id,email:String(r[1]||""),enabled:String(r[2]).toLowerCase()!=="true"}; });
   return {ok:true,action:"getMatchReminderSettings",timetable,contacts:TEAM_IDS.map(id=>byId[id]||{teamId:id,email:"",enabled:true})};
 }
 
@@ -1527,7 +1527,7 @@ function saveMatchReminderSettings_(body) {
     if(clean.length){const data=clean.map(x=>[x.id,x.date,x.time,x.venue,x.status,x.sent.home,x.sent.away,now]);sh.getRange(2,1,data.length,8).setValues(data);sh.getRange(2,1,data.length,5).setNumberFormat("@");}
     const cs=getMatchReminderContactsSheet_(), n=cs.getLastRow(), previous=n<2?[]:cs.getRange(2,1,n-1,5).getValues(), old={};
     previous.forEach(r=>{if(TEAM_IDS.includes(String(r[0])))old[String(r[0])]=r;});
-    const rows=TEAM_IDS.map(id=>{const prior=old[id]||[],c=contacts[id],changed=String(prior[1]||"").trim().toLowerCase()!==c.email.toLowerCase(),token=String(prior[3]||"")||Utilities.getUuid().replace(/-/g,"")+Utilities.getUuid().replace(/-/g,"");return[id,c.email,changed?false:!c.enabled,token,now];});
+    const rows=TEAM_IDS.map(id=>{const prior=old[id]||[],c=contacts[id],changed=String(prior[1]||"").trim().toLowerCase()!==c.email.toLowerCase(),token=changed||!String(prior[3]||"")?Utilities.getUuid().replace(/-/g,"")+Utilities.getUuid().replace(/-/g,""):String(prior[3]);return[id,c.email,changed?false:!c.enabled,token,now];});
     cs.clearContents();cs.getRange(1,1,1,5).setValues([MATCH_CONTACT_HEADERS]).setFontWeight("bold");cs.getRange(2,1,rows.length,5).setValues(rows);cs.getRange(2,1,rows.length,4).setNumberFormat("@");
     SpreadsheetApp.flush();return jsonResponse_({ok:true,saved:true,action:"saveMatchReminderSettings"});
   }catch(e){console.error(e);return jsonResponse_({ok:false,error:"Could not save reminder settings. Check Apps Script configuration and execution logs."});}
@@ -1560,7 +1560,7 @@ function sendMatchDayReminders() {
     rows.forEach((r,i)=>{
       const id=Number(r[0]),date=String(r[1]||""),time=String(r[2]||""),venue=String(r[3]||""),status=String(r[4]||"");
       if(!id||date!==today||!time||time<=clock||status!=="Scheduled")return;
-      const m=matches[id];if(!m)return;
+      const m=matches[id];if(!m||m.homeScore!==null||m.awayScore!==null)return;
       const home=reminderTeamId_(m.home,names),away=reminderTeamId_(m.away,names);if(!home||!away)return;
       [{team:home,opponent:away,col:6,own:m.home,other:m.away},{team:away,opponent:home,col:7,own:m.away,other:m.home}].forEach(t=>{
         if(String(r[t.col-1]||"")===today)return;const c=contacts[t.team];if(!c||!c.email||c.off||!c.token)return;
