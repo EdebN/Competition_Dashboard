@@ -3378,6 +3378,16 @@ function initMatchReminderAdmin() {
     timetable: data.timetable.map(x => ({matchId:Number(x.matchId),date:x.date||"",time:x.time||"",venue:x.venue||"",status:x.status||"Unscheduled"})).sort((a,b)=>a.matchId-b.matchId),
     contacts: data.contacts.map(x=>({teamId:x.teamId,email:(x.email||"").trim().toLowerCase(),enabled:Boolean(x.enabled)})).sort((a,b)=>a.teamId.localeCompare(b.teamId))
   });
+  host.querySelectorAll(".reminder-date, .reminder-time").forEach(input => input.addEventListener("change", () => {
+    const row = input.closest("[data-reminder-match]");
+    if (!row) return;
+    const date = row.querySelector(".reminder-date")?.value || "";
+    const time = row.querySelector(".reminder-time")?.value || "";
+    const state = row.querySelector(".reminder-status");
+    if (!state) return;
+    if (date && time && state.value === "Unscheduled") state.value = "Scheduled";
+    else if ((!date || !time) && state.value === "Scheduled") state.value = "Unscheduled";
+  }));
   filter?.addEventListener("input", () => {
     const q = filter.value.trim().toLowerCase();
     host.querySelectorAll("[data-reminder-match]").forEach(row => { row.hidden = Boolean(q) && !String(row.dataset.reminderSearch||"").includes(q); });
