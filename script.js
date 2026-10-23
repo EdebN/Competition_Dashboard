@@ -2893,6 +2893,22 @@ function renderAdminPage() {
           </div>
         </div>
 
+
+        <!-- MATCH-DAY REMINDERS AND TIMETABLE -->
+        <div class="admin-setting match-reminder-admin">
+          <div class="admin-setting-header"><div class="admin-setting-name">Match-day reminders</div><span class="admin-setting-value">EMAIL</span></div>
+          <p class="admin-info">Set each team’s reminder address and each fixture’s date, kick-off time, venue and status. Emails are sent on match day before kick-off. Unconfirmed fixtures are skipped.</p>
+          <div class="match-reminder-contact-grid">
+            ${TEAMS.map(team => { const id = team.slice(-1); return '<div class="match-reminder-contact"><label class="admin-label" for="reminderEmail' + id + '">' + escapeHTML(getTeamDisplayName(team)) + ' EMAIL</label><input class="admin-input" id="reminderEmail' + id + '" type="email" maxlength="254" autocomplete="email" placeholder="team@example.com"><label class="match-reminder-enabled"><input id="reminderEnabled' + id + '" type="checkbox" checked> Reminders enabled</label></div>'; }).join("")}
+          </div>
+          <div class="match-reminder-table-heading"><div><strong>Fixture timetable</strong><span>Use Perth local time. Leave date and time blank until confirmed.</span></div><input class="admin-input match-reminder-filter" id="reminderFixtureFilter" type="search" placeholder="Find a team or game…" aria-label="Filter timetable"></div>
+          <div class="match-reminder-table-wrap"><table class="match-reminder-table"><thead><tr><th>Match</th><th>Date</th><th>Kick-off</th><th>Venue</th><th>Status</th></tr></thead><tbody id="matchReminderRows">
+            ${games.slice().sort((a,b)=>Number(a.id)-Number(b.id)).map(game => '<tr data-reminder-match="' + Number(game.id) + '" data-reminder-search="' + escapeHTML(("game " + game.id + " " + (game.home||"") + " " + (game.away||"")).toLowerCase()) + '"><td><strong>Game ' + Number(game.id) + '</strong><small>' + escapeHTML(getTeamDisplayName(game.home||"TBC")) + ' vs ' + escapeHTML(getTeamDisplayName(game.away||"TBC")) + '</small></td><td><input class="admin-input reminder-date" type="date" aria-label="Game ' + Number(game.id) + ' date"></td><td><input class="admin-input reminder-time" type="time" aria-label="Game ' + Number(game.id) + ' kick-off"></td><td><input class="admin-input reminder-venue" type="text" maxlength="120" placeholder="Venue" aria-label="Game ' + Number(game.id) + ' venue"></td><td><select class="admin-input reminder-status" aria-label="Game ' + Number(game.id) + ' status"><option>Unscheduled</option><option>Scheduled</option><option>Postponed</option><option>Cancelled</option></select></td></tr>').join("")}
+          </tbody></table></div>
+          <div id="matchReminderStatus" class="admin-info" role="status" aria-live="polite">Loading timetable and reminder settings…</div>
+          <button type="button" id="saveMatchReminderSettings" class="admin-button">SAVE TIMETABLE &amp; EMAIL SETTINGS</button>
+        </div>
+
         <!-- GAMES PER TEAM -->
 
         <div class="admin-setting">
@@ -3058,6 +3074,7 @@ function renderAdminPage() {
   moderationPanel.innerHTML = '<div class="section-title">SOCIALS</div><div class="social-mod-heading"><div><h2>Post moderation</h2><p>Review new submissions, manage publication and control posting access.</p></div><button type="button" class="admin-button" id="socialModRefresh">REFRESH QUEUE</button></div><section class="official-post-composer"><div class="official-post-brand"><span class="social-official-crest" aria-hidden="true"><svg viewBox="0 0 240 250" fill="none"><path d="M120 18L204 48V112C204 165 171 207 120 232C69 207 36 165 36 112V48L120 18Z" fill="#0A1728" stroke="#E0B95A" stroke-width="9"/><path d="M66 145L96 85H112L82 145H66Z" fill="#F4D57F"/><path d="M96 145L126 85H142L112 145H96Z" fill="#6EBCE7"/><path d="M126 145L156 85H172L142 145H126Z" fill="#F4D57F"/><path d="M74 160H166" stroke="#E0B95A" stroke-width="4" stroke-linecap="round"/></svg></span><div><strong>Competition Official</strong><span>Official account · published under the competition crest</span></div></div><form id="officialPostForm" class="official-post-form"><label>Headline<input class="admin-input" id="officialPostTitle" maxlength="120" minlength="3" required placeholder="Official announcement"></label><label>Category<select class="admin-input" id="officialPostCategory"><option>Announcements</option><option>Match reports</option><option>Team news</option></select></label><label>Post text<textarea class="admin-input" id="officialPostBody" maxlength="5000" minlength="10" required rows="4" placeholder="Write an official competition update…"></textarea><div class="match-mention-hint">Type <strong>@</strong> then choose a match number from the dropdown.</div><div class="match-mention-menu" id="officialMatchMentionMenu" hidden></div></label><div class="official-post-actions"><span id="officialPostStatus" role="status" aria-live="polite">Official posts publish immediately.</span><button type="submit" class="admin-button">PUBLISH AS OFFICIAL</button></div></form></section><div id="socialModStatus" class="admin-info" role="status" aria-live="polite">Loading moderation queue…</div><div class="social-mod-tabs" role="tablist"><button type="button" class="social-mod-tab is-active" data-mod-tab="Unviewed">Unviewed <span id="socialModUnviewedCount">0</span></button><button type="button" class="social-mod-tab" data-mod-tab="Viewed">Viewed</button><button type="button" class="social-mod-tab" data-mod-tab="Bans">Posting bans</button><button type="button" class="social-mod-tab" data-mod-tab="Audit">Audit history</button></div><div id="socialModContent" class="social-mod-content"></div>';
   page.appendChild(moderationPanel);
   initSocialModerationPanel();
+  initMatchReminderAdmin();
 
   const pageAccessTeams = document.getElementById("pageAccessTeams");
   if (pageAccessTeams) {
@@ -3332,7 +3349,82 @@ function renderAdminPage() {
   });
 
 }
-async function unlockAdmin() {
+async 
+function initMatchReminderAdmin() {
+  const host = document.getElementById("matchReminderRows");
+  const status = document.getElementById("matchReminderStatus");
+  const saveButton = document.getElementById("saveMatchReminderSettings");
+  const filter = document.getElementById("reminderFixtureFilter");
+  if (!host || !saveButton) return;
+  const setStatus = (message, kind = "info") => {
+    if (!status) return;
+    status.className = kind === "success" ? "admin-success" : kind === "warning" ? "admin-warning" : "admin-info";
+    status.textContent = message;
+  };
+  const readForm = () => ({
+    timetable: [...host.querySelectorAll("[data-reminder-match]")].map(row => ({
+      matchId: Number(row.dataset.reminderMatch),
+      date: row.querySelector(".reminder-date")?.value || "",
+      time: row.querySelector(".reminder-time")?.value || "",
+      venue: row.querySelector(".reminder-venue")?.value.trim() || "",
+      status: row.querySelector(".reminder-status")?.value || "Unscheduled"
+    })),
+    contacts: TEAMS.map(team => {
+      const teamId = team.slice(-1);
+      return { teamId, email: document.getElementById("reminderEmail" + teamId)?.value.trim() || "",
+        enabled: Boolean(document.getElementById("reminderEnabled" + teamId)?.checked) };
+    })
+  });
+  const signature = data => JSON.stringify({
+    timetable: data.timetable.map(x => ({matchId:Number(x.matchId),date:x.date||"",time:x.time||"",venue:x.venue||"",status:x.status||"Unscheduled"})).sort((a,b)=>a.matchId-b.matchId),
+    contacts: data.contacts.map(x=>({teamId:x.teamId,email:(x.email||"").trim().toLowerCase(),enabled:Boolean(x.enabled)})).sort((a,b)=>a.teamId.localeCompare(b.teamId))
+  });
+  filter?.addEventListener("input", () => {
+    const q = filter.value.trim().toLowerCase();
+    host.querySelectorAll("[data-reminder-match]").forEach(row => { row.hidden = Boolean(q) && !String(row.dataset.reminderSearch||"").includes(q); });
+  });
+  readCommunityApi("getMatchReminderSettings", {sessionToken:socialAdminSessionToken}).then(data => {
+    if (!data || data.ok !== true || !Array.isArray(data.timetable) || !Array.isArray(data.contacts)) throw new Error(data?.error || "Invalid reminder settings response.");
+    const saved = new Map(data.timetable.map(x => [Number(x.matchId), x]));
+    host.querySelectorAll("[data-reminder-match]").forEach(row => {
+      const x = saved.get(Number(row.dataset.reminderMatch)); if (!x) return;
+      row.querySelector(".reminder-date").value = x.date || "";
+      row.querySelector(".reminder-time").value = x.time || "";
+      row.querySelector(".reminder-venue").value = x.venue || "";
+      row.querySelector(".reminder-status").value = ["Scheduled","Postponed","Cancelled","Unscheduled"].includes(x.status) ? x.status : "Unscheduled";
+    });
+    data.contacts.forEach(x => {
+      const email = document.getElementById("reminderEmail" + x.teamId), enabled = document.getElementById("reminderEnabled" + x.teamId);
+      if (email) email.value = x.email || "";
+      if (enabled) enabled.checked = Boolean(x.enabled);
+    });
+    setStatus("Settings loaded. Reminders go out on match day before kick-off, only for confirmed fixtures and subscribed addresses.");
+  }).catch(error => setStatus("Could not load reminder settings. Deploy the updated Apps Script and reopen Admin. " + (error?.message || ""), "warning"));
+  saveButton.addEventListener("click", async () => {
+    if (!adminToken || !socialAdminSessionToken) { setStatus("Admin session expired. Lock and unlock Admin before saving.", "warning"); return; }
+    const data = readForm();
+    const incomplete = data.timetable.find(x => Boolean(x.date) !== Boolean(x.time));
+    if (incomplete) { setStatus("Game " + incomplete.matchId + " needs both date and kick-off time, or neither.", "warning"); host.querySelector('[data-reminder-match="' + incomplete.matchId + '"]')?.scrollIntoView({behavior:"smooth",block:"center"}); return; }
+    for (const x of data.contacts) if (x.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(x.email)) {
+      setStatus("Enter a valid email address for Team " + x.teamId + ".", "warning"); document.getElementById("reminderEmail" + x.teamId)?.focus(); return;
+    }
+    saveButton.disabled = true; const label = saveButton.textContent; saveButton.textContent = "SAVING…";
+    setStatus("Saving timetable and email preferences…");
+    try {
+      await postCommunityAction({action:"saveMatchReminderSettings",adminToken,...data});
+      const expected = signature(data); let verified = false;
+      for (let i=0;i<8;i++) {
+        await new Promise(resolve=>setTimeout(resolve,650));
+        try { const result=await readCommunityApi("getMatchReminderSettings",{sessionToken:socialAdminSessionToken}); if(result?.ok===true&&signature(result)===expected){verified=true;break;} } catch (_) {}
+      }
+      if (!verified) throw new Error("Could not verify the save. Check that the latest Apps Script version is deployed.");
+      setStatus("Saved and verified. Match-day emails will use this timetable and these preferences.", "success");
+    } catch(error) { setStatus("Could not verify the save: " + (error?.message || "Unknown error"), "warning"); }
+    finally { saveButton.disabled = false; saveButton.textContent = label; }
+  });
+}
+
+function unlockAdmin() {
   const input = document.getElementById("adminTokenInput");
   const error = document.getElementById("adminError");
 
