@@ -177,6 +177,7 @@ function readCommunityApi(action, extraParams = {}) {
 ========================================================= */
 const PRIVACY_CONSENT_COOKIE = "competition_privacy_consent";
 const ANALYTICS_VISITOR_COOKIE = "competition_analytics_visitor";
+const DASHBOARD_PREFERENCES_COOKIE = "competition_preferences";
 const PRIVACY_CONSENT_MAX_AGE = 60 * 60 * 24 * 180;
 
 function readCookie(name) {
@@ -211,12 +212,36 @@ function getAnalyticsVisitorId() {
   return id;
 }
 
+
+function readDashboardPreference(key) {
+  if (getAnalyticsConsent() !== "analytics") return null;
+  try {
+    const preferences = JSON.parse(readCookie(DASHBOARD_PREFERENCES_COOKIE) || "{}");
+    return Object.prototype.hasOwnProperty.call(preferences, key) ? preferences[key] : null;
+  } catch (_) { return null; }
+}
+
+function saveDashboardPreference(key, value) {
+  if (getAnalyticsConsent() !== "analytics") return;
+  const allowedKeys = new Set(["preferredTeamIndex"]);
+  if (!allowedKeys.has(key)) return;
+  let preferences = {};
+  try { preferences = JSON.parse(readCookie(DASHBOARD_PREFERENCES_COOKIE) || "{}"); } catch (_) {}
+  preferences[key] = value;
+  writeCookie(DASHBOARD_PREFERENCES_COOKIE, JSON.stringify(preferences), 60 * 60 * 24 * 365);
+}
+
 function setPrivacyChoice(choice) {
   const allowed = choice === "analytics" ? "analytics" : "essential";
   writeCookie(PRIVACY_CONSENT_COOKIE, allowed);
   if (allowed === "analytics") {
     getAnalyticsVisitorId();
     trackAnalyticsEvent("consent_granted", currentPage || "home");
+    const savedTeamIndex = Number(readDashboardPreference("preferredTeamIndex"));
+    if (Number.isInteger(savedTeamIndex) && savedTeamIndex >= 0 && savedTeamIndex < TEAMS.length) {
+      selectedTeamIndex = savedTeamIndex;
+      if (typeof renderTeamWheelSelection === "function") renderTeamWheelSelection(selectedTeamIndex, false);
+    }
   } else {
     // Remove the analytics identifier when analytics is declined.
     writeCookie(ANALYTICS_VISITOR_COOKIE, "", 0);
@@ -242,21 +267,28 @@ function trackAnalyticsEvent(eventName, pageName = "home") {
   const now = Date.now();
   const sessionKey = "competition-analytics-session";
   let sessionStarted = false;
-  try {
-    const last = Number(sessionStorage.getItem(sessionKey) || 0);
-    if (!last || now - last > 30 * 60 * 1000) sessionStarted = true;
-    sessionStorage.setItem(sessionKey, String(now));
-  } catch (_) {}
-  const payload = {
-    action: "trackAnalyticsEvent",
-    visitorId,
-    eventName: sessionStarted && eventName === "page_view" ? "session_start" : eventName,
-    page,
-    device: window.matchMedia("(max-width: 700px)").matches ? "mobile" : "desktop",
-    occurredAt: new Date(now).toISOString()
-  };
+  if (eventName === "page_view") {
+    try {
+      const last = Number(sessionStorage.getItem(sessionKey) || 0);
+      if (!last || now - last > 30 * 60 * 1000) sessionStarted = true;
+      sessionStorage.setItem(sessionKey, String(now));
+    } catch (_) {}
+  }
+  const eventNames = eventName === "page_view" && sessionStarted
+    ? ["session_start", "page_view"]
+    : [eventName];
   // Analytics is deliberately best-effort and never blocks page navigation.
-  try { postCommunityAction(payload).catch(() => {}); } catch (_) {}
+  eventNames.forEach(name => {
+    const payload = {
+      action: "trackAnalyticsEvent",
+      visitorId,
+      eventName: name,
+      page,
+      device: window.matchMedia("(max-width: 700px)").matches ? "mobile" : "desktop",
+      occurredAt: new Date(now).toISOString()
+    };
+    try { postCommunityAction(payload).catch(() => {}); } catch (_) {}
+  });
 }
 
 function initializePrivacyControls() {
@@ -3650,6 +3682,7 @@ function renderTeamWheelSelection(index, announce = true) {
   if (!stops.length || !wheel || !current) return;
 
   selectedTeamIndex = (index + TEAMS.length) % TEAMS.length;
+  saveDashboardPreference("preferredTeamIndex", selectedTeamIndex);
   const step = 360 / TEAMS.length;
   const target = -selectedTeamIndex * step;
   const delta = ((target - (teamWheelRotation % 360) + 540) % 360) - 180;
