@@ -4092,3 +4092,36 @@ select {
 @media(max-width:700px){.card-assets-admin .card-assets-frame{height:1700px}}
 
 
+
+
+/* Match-day reminder timetable */
+.match-reminder-admin { max-width: none; }
+.match-reminder-contact-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; margin:18px 0 24px; }
+.match-reminder-contact { min-width:0; padding:14px; border:1px solid var(--border,#27313d); border-radius:12px; background:rgba(127,145,166,.045); display:grid; gap:9px; }
+.match-reminder-contact .admin-input { width:100%; min-width:0; }
+.match-reminder-enabled { display:flex; align-items:center; gap:8px; color:var(--muted,#8996a7); font-size:11px; }
+.match-reminder-enabled input { accent-color:#bfa15b; }
+.match-reminder-table-heading { display:flex; justify-content:space-between; align-items:end; gap:16px; margin:20px 0 12px; }
+.match-reminder-table-heading > div { display:grid; gap:4px; }
+.match-reminder-table-heading strong { color:var(--text,#eef2f7); font-size:14px; }
+.match-reminder-table-heading span { color:var(--muted,#8996a7); font-size:11px; }
+.match-reminder-filter { max-width:220px; }
+.match-reminder-table-wrap { max-height:620px; overflow:auto; border:1px solid var(--border,#27313d); border-radius:12px; }
+.match-reminder-table { width:100%; min-width:760px; border-collapse:separate; border-spacing:0; font-size:12px; }
+.match-reminder-table th { position:sticky; top:0; z-index:1; padding:11px 9px; text-align:left; color:var(--muted,#8996a7); background:#111720; font-size:9px; letter-spacing:.08em; text-transform:uppercase; }
+.match-reminder-table td { padding:8px; border-top:1px solid var(--border,#27313d); vertical-align:middle; }
+.match-reminder-table tr[hidden] { display:none; }
+.match-reminder-table td:first-child { min-width:140px; }
+.match-reminder-table td:first-child strong,.match-reminder-table td:first-child small { display:block; }
+.match-reminder-table td:first-child strong { color:var(--text,#eef2f7); font-size:11px; }
+.match-reminder-table td:first-child small { margin-top:4px; color:var(--muted,#8996a7); font-size:10px; line-height:1.4; }
+.match-reminder-table .admin-input { width:100%; min-width:0; padding:8px 6px; font-size:11px; }
+.match-reminder-table .reminder-date { min-width:135px; }
+.match-reminder-table .reminder-time { min-width:105px; }
+.match-reminder-table .reminder-venue { min-width:130px; }
+.match-reminder-table .reminder-status { min-width:115px; }
+@media(max-width:640px) {
+  .match-reminder-contact-grid { grid-template-columns:1fr; }
+  .match-reminder-table-heading { align-items:stretch; flex-direction:column; }
+  .match-reminder-filter { max-width:none; width:100%; }
+}
