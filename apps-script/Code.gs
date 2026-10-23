@@ -1582,6 +1582,7 @@ function escapeEmailHtml_(v){return String(v==null?"":v).replace(/[&<>"']/g,c=>(
 /* Set the Apps Script project timezone to Australia/Perth, then run once. Checks every 15 minutes from 6am. */
 function setupMatchDayReminderTrigger(){
   if(Session.getScriptTimeZone()!=="Australia/Perth")throw new Error("Set Project Settings > Time zone to Australia/Perth, then run this function again.");
+  MailApp.getRemainingDailyQuota(); // Force Gmail authorization during manual setup, not the first scheduled run.
   ScriptApp.getProjectTriggers().filter(t=>t.getHandlerFunction()==="sendMatchDayReminders").forEach(t=>ScriptApp.deleteTrigger(t));
   ScriptApp.newTrigger("sendMatchDayReminders").timeBased().everyMinutes(15).create();
 }
