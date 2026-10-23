@@ -47,7 +47,8 @@ const POST_ACTIONS = [
   "createScoreEditorSession",
   "moderateSocialPost",
   "markSocialPostViewed",
-  "setSocialPostingBan"
+  "setSocialPostingBan",
+  "trackAnalyticsEvent"
 ];
 
 const API_ACTIONS = [...new Set([...GET_ACTIONS, ...POST_ACTIONS])];
@@ -293,6 +294,7 @@ function doPost(e) {
     });
   }
 
+  if (body.action === "trackAnalyticsEvent") return trackAnalyticsEvent_(body);
   if (body.action === "submitFeatureRequest") return submitFeatureRequest_(body);
   if (body.action === "submitSocialPost") return submitSocialPost_(body);
   if (body.action === "submitOfficialSocialPost") return submitOfficialSocialPost_(body);
@@ -1018,6 +1020,51 @@ function revertTeamPage_(body) {
   } catch (e) {
     console.error(e); return jsonResponse_({ ok: false, error: "Could not restore the default team page." });
   } finally { lock.releaseLock(); }
+}
+
+
+/**
+ * Minimal, consent-gated analytics. Only accepts a small event/page allowlist;
+ * no free-text fields, query strings, IP addresses, or form contents are stored.
+ * The sheet is an operational log for the site owner, not a public read endpoint.
+ */
+const ANALYTICS_TAB = "Visitor Analytics";
+const ANALYTICS_HEADERS = ["Occurred At", "Visitor ID", "Event", "Page", "Device"];
+
+function trackAnalyticsEvent_(body) {
+  const visitorId = String(body.visitorId || "").trim();
+  const eventName = String(body.eventName || "").trim();
+  const page = String(body.page || "").trim();
+  const device = String(body.device || "").trim();
+  const occurredAt = new Date();
+  if (!/^[a-f0-9-]{36}$/i.test(visitorId)) return jsonResponse_({ ok: false, error: "Invalid visitor ID." });
+  if (!["page_view", "feature_interaction", "session_start", "consent_granted"].includes(eventName)) return jsonResponse_({ ok: false, error: "Invalid analytics event." });
+  if (!["home", "teams", "team-a", "team-b", "team-c", "team-d", "team-e", "matches", "finals", "socials", "admin", "team-editor", "asset-studio", "player-card-studio", "other"].includes(page)) return jsonResponse_({ ok: false, error: "Invalid analytics page." });
+  if (!["mobile", "desktop"].includes(device)) return jsonResponse_({ ok: false, error: "Invalid device category." });
+  const lock = LockService.getScriptLock();
+  if (!lock.tryLock(3000)) return jsonResponse_({ ok: false, error: "Analytics is busy." });
+  try {
+    const id = PropertiesService.getScriptProperties().getProperty("SPREADSHEET_ID");
+    if (!id) throw new Error("Missing SPREADSHEET_ID");
+    const ss = SpreadsheetApp.openById(id);
+    let sheet = ss.getSheetByName(ANALYTICS_TAB);
+    if (!sheet) sheet = ss.insertSheet(ANALYTICS_TAB);
+    if (sheet.getLastRow() === 0) {
+      sheet.getRange(1, 1, 1, ANALYTICS_HEADERS.length).setValues([ANALYTICS_HEADERS]).setFontWeight("bold");
+      sheet.setFrozenRows(1);
+    } else {
+      const headers = sheet.getRange(1, 1, 1, ANALYTICS_HEADERS.length).getDisplayValues()[0];
+      if (!ANALYTICS_HEADERS.every((header, i) => headers[i] === header)) throw new Error("Unexpected Visitor Analytics headers.");
+    }
+    if (sheet.getLastRow() >= 20000) return jsonResponse_({ ok: false, error: "Analytics log is at its current capacity." });
+    sheet.appendRow([occurredAt, visitorId, eventName, page, device]);
+    return jsonResponse_({ ok: true, action: "trackAnalyticsEvent", saved: true });
+  } catch (error) {
+    console.error(error);
+    return jsonResponse_({ ok: false, error: "Analytics event could not be saved." });
+  } finally {
+    lock.releaseLock();
+  }
 }
 
 function submitFeatureRequest_(body) {
