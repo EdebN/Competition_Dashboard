@@ -3349,7 +3349,6 @@ function renderAdminPage() {
   });
 
 }
-async 
 function initMatchReminderAdmin() {
   const host = document.getElementById("matchReminderRows");
   const status = document.getElementById("matchReminderStatus");
@@ -3424,7 +3423,7 @@ function initMatchReminderAdmin() {
   });
 }
 
-function unlockAdmin() {
+async function unlockAdmin() {
   const input = document.getElementById("adminTokenInput");
   const error = document.getElementById("adminError");
 
