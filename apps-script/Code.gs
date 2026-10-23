@@ -1,6 +1,6 @@
 const SERVICE_NAME = "competition-community-api";
 const API_VERSION = 1;
-const BUILD_ID = "2026-10-21-drive-asset-studio";
+const BUILD_ID = "2026-10-23-privacy-analytics";
 
 // Keep the public action inventory in one place. The health endpoint and
 // POST allowlist both use these constants so they cannot silently drift apart.
@@ -1044,6 +1044,13 @@ function trackAnalyticsEvent_(body) {
   const lock = LockService.getScriptLock();
   if (!lock.tryLock(3000)) return jsonResponse_({ ok: false, error: "Analytics is busy." });
   try {
+    // Prevent a single browser from flooding the public write endpoint.
+    const cache = CacheService.getScriptCache();
+    const rateKey = "ANALYTICS_RATE_" + visitorId;
+    const count = Number(cache.get(rateKey) || 0);
+    if (count >= 30) return jsonResponse_({ ok: false, error: "Analytics rate limit reached." });
+    cache.put(rateKey, String(count + 1), 60);
+
     const id = PropertiesService.getScriptProperties().getProperty("SPREADSHEET_ID");
     if (!id) throw new Error("Missing SPREADSHEET_ID");
     const ss = SpreadsheetApp.openById(id);
