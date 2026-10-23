@@ -245,6 +245,7 @@ function setPrivacyChoice(choice) {
   } else {
     // Remove the analytics identifier when analytics is declined.
     writeCookie(ANALYTICS_VISITOR_COOKIE, "", 0);
+    writeCookie(DASHBOARD_PREFERENCES_COOKIE, "", 0);
   }
   const banner = document.getElementById("privacy-consent");
   if (banner) banner.hidden = true;
