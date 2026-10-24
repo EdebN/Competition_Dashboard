@@ -3399,7 +3399,7 @@ function initMatchReminderAdmin() {
     const perWeek = Math.max(1, Math.min(10, Number(document.getElementById("reminderMatchesPerWeek")?.value) || 2));
     const defaultTime = document.getElementById("reminderRepeatTime")?.value || "";
     const defaultVenue = document.getElementById("reminderRepeatVenue")?.value.trim() || "";
-    const skipDates = new Set((document.getElementById("reminderSkipDates")?.value || "").split(/[\\n,;]+/).map(x=>x.trim()).filter(x=>/^\\d{4}-\\d{2}-\\d{2}$/.test(x)));
+    const skipDates = new Set((document.getElementById("reminderSkipDates")?.value || "").split(/[,;]+/).map(x=>x.trim()).filter(x=>x.length===10 && x[4]==="-" && x[7]==="-"));
     const skipIds = new Set((document.getElementById("reminderSkipMatches")?.value || "").split(/[\\s,;]+/).map(Number).filter(Number.isInteger));
     if (startValue.length !== 10 || !defaultTime) { setStatus("Choose a start date and default kick-off time first.", "warning"); return; }
     const [year,month,day] = startValue.split("-").map(Number);
