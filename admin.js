@@ -12,7 +12,8 @@
     if(events.length>250) events.shift();
     renderConsole();
     renderRecent();
-    $("admin-error-value").textContent=String(clientErrors);\n    const bugCount=$("admin-bug-session-count");if(bugCount)bugCount.textContent=String(clientErrors);
+    $("admin-error-value").textContent=String(clientErrors);
+    const bugCount=$("admin-bug-session-count");if(bugCount)bugCount.textContent=String(clientErrors);
   }
   function renderConsole(){
     const host=$("admin-console-output"); if(!host)return;
