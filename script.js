@@ -5792,3 +5792,4 @@ function animateEloGraphLines(root, teamsToAnimate = null) {
     };
   });
 }
+
