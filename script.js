@@ -2735,8 +2735,22 @@ function renderAdminPage() {
 
 
   page.innerHTML = `
+    <nav class="admin-quick-nav" aria-label="Admin sections">
+      <div class="admin-quick-nav-heading">
+        <span class="section-title">ADMIN MENU</span>
+        <span class="admin-quick-nav-note">Jump straight to a task</span>
+      </div>
+      <div class="admin-quick-nav-links">
+        <a href="#admin-competition-settings">Team &amp; season</a>
+        <a href="#admin-match-results">Match results</a>
+        <a href="#admin-match-reminders">Timetable &amp; emails</a>
+        <a href="#admin-team-access">Team access</a>
+        <a href="#socialModerationPanel">Social moderation</a>
+        <a href="#admin-asset-tools">More tools</a>
+      </div>
+    </nav>
 
-    <section class="card admin-card">
+    <section class="card admin-card" id="admin-competition-settings">
 
       <div class="section-title">
         ADMINISTRATION
@@ -2752,7 +2766,7 @@ function renderAdminPage() {
 
         <!-- TEAM NAMES -->
 
-        <div class="admin-setting">
+        <div class="admin-setting" id="admin-team-names">
 
           <div class="admin-setting-header">
 
@@ -2874,7 +2888,7 @@ function renderAdminPage() {
 
 
         <!-- OFFICIAL MATCH RESULTS -->
-        <div class="admin-setting admin-results-setting">
+        <div class="admin-setting admin-results-setting" id="admin-match-results">
           <div class="admin-setting-header">
             <div class="admin-setting-name">Official match result</div>
             <span class="admin-setting-value">GOOGLE SHEETS</span>
@@ -2895,7 +2909,7 @@ function renderAdminPage() {
 
 
         <!-- MATCH-DAY REMINDERS AND TIMETABLE -->
-        <div class="admin-setting match-reminder-admin">
+        <div class="admin-setting match-reminder-admin" id="admin-match-reminders">
           <div class="admin-setting-header"><div class="admin-setting-name">Match-day reminders</div><span class="admin-setting-value">EMAIL</span></div>
           <p class="admin-info">Set each team’s reminder address and each fixture’s date, kick-off time, venue and status. Emails are sent on match day before kick-off. Unconfirmed fixtures are skipped.</p>
           <div class="match-reminder-contact-grid">
@@ -2925,7 +2939,7 @@ function renderAdminPage() {
 
         <!-- GAMES PER TEAM -->
 
-        <div class="admin-setting">
+        <div class="admin-setting" id="admin-season-length">
 
           <div class="admin-setting-header">
 
@@ -3062,7 +3076,7 @@ function renderAdminPage() {
     
 
 
-    <section class="card admin-card page-access-card">
+    <section class="card admin-card page-access-card" id="admin-team-access">
       <div class="section-title">TEAM CONTENT</div>
       <div class="page-access-heading"><div><h2>Page Editor Access</h2><p class="page-access-intro">Give each team’s social manager access to their own page. They can build the look, write updates and manage photos without touching competition settings.</p></div><div class="page-access-mark" aria-hidden="true">✦</div></div>
       <div class="page-access-notice"><span class="page-access-notice-dot"></span><div><strong>Shared Team Editor access</strong><br>PINs are saved to the private Google Sheet and work across devices.</div></div>
@@ -3071,12 +3085,15 @@ function renderAdminPage() {
       <div id="pageAccessStatus" class="admin-info" role="status" aria-live="polite">Loading saved PIN status from the shared Google Sheet…</div>
     </section>
 
-    <section class="card admin-card card-assets-admin">
-      <div class="section-title">PLAYER CARD ASSETS</div>
-      <div class="page-access-heading"><div><h2>Asset Studio</h2><p class="page-access-intro">Import an image, remove its outside background, and save the transparent result directly to Google Drive.</p></div></div>
-      <div class="admin-info">Import an image, remove its outside background, then save the finished PNG directly to the shared Google Drive asset library.</div>
-      <div class="card-assets-frame-wrap"><iframe class="card-assets-frame" src="asset-studio.html?v=drive-asset-studio-20261021" title="Google Drive asset studio" loading="lazy"></iframe></div>
-      <p class="admin-info"><a href="asset-studio.html?v=drive-asset-studio-20261021" target="_blank" rel="noopener">Open Asset Studio in its own tab ↗</a></p>
+    <section class="card admin-card card-assets-admin" id="admin-asset-tools">
+      <div class="section-title">OPTIONAL TOOLS</div>
+      <details class="admin-tool-disclosure">
+        <summary><span><strong>Asset Studio</strong><small>Import images, remove backgrounds and save assets to Drive.</small></span><span class="admin-tool-disclosure-action">Open tool <span aria-hidden="true">↗</span></span></summary>
+        <div class="admin-tool-disclosure-body">
+          <p class="admin-info">Kept out of the main admin workflow because most competition tasks do not need it. Open it separately when preparing player-card or team assets.</p>
+          <a class="admin-button" href="asset-studio.html?v=drive-asset-studio-20261021" target="_blank" rel="noopener">OPEN ASSET STUDIO ↗</a>
+        </div>
+      </details>
     </section>
 
   `;
@@ -3087,6 +3104,19 @@ function renderAdminPage() {
   moderationPanel.id = "socialModerationPanel";
   moderationPanel.innerHTML = '<div class="section-title">SOCIALS</div><div class="social-mod-heading"><div><h2>Post moderation</h2><p>Review new submissions, manage publication and control posting access.</p></div><button type="button" class="admin-button" id="socialModRefresh">REFRESH QUEUE</button></div><section class="official-post-composer"><div class="official-post-brand"><span class="social-official-crest" aria-hidden="true"><svg viewBox="0 0 240 250" fill="none"><path d="M120 18L204 48V112C204 165 171 207 120 232C69 207 36 165 36 112V48L120 18Z" fill="#0A1728" stroke="#E0B95A" stroke-width="9"/><path d="M66 145L96 85H112L82 145H66Z" fill="#F4D57F"/><path d="M96 145L126 85H142L112 145H96Z" fill="#6EBCE7"/><path d="M126 145L156 85H172L142 145H126Z" fill="#F4D57F"/><path d="M74 160H166" stroke="#E0B95A" stroke-width="4" stroke-linecap="round"/></svg></span><div><strong>Competition Official</strong><span>Official account · published under the competition crest</span></div></div><form id="officialPostForm" class="official-post-form"><label>Headline<input class="admin-input" id="officialPostTitle" maxlength="120" minlength="3" required placeholder="Official announcement"></label><label>Category<select class="admin-input" id="officialPostCategory"><option>Announcements</option><option>Match reports</option><option>Team news</option></select></label><label>Post text<textarea class="admin-input" id="officialPostBody" maxlength="5000" minlength="10" required rows="4" placeholder="Write an official competition update…"></textarea><div class="match-mention-hint">Type <strong>@</strong> then choose a match number from the dropdown.</div><div class="match-mention-menu" id="officialMatchMentionMenu" hidden></div></label><div class="official-post-actions"><span id="officialPostStatus" role="status" aria-live="polite">Official posts publish immediately.</span><button type="submit" class="admin-button">PUBLISH AS OFFICIAL</button></div></form></section><div id="socialModStatus" class="admin-info" role="status" aria-live="polite">Loading moderation queue…</div><div class="social-mod-tabs" role="tablist"><button type="button" class="social-mod-tab is-active" data-mod-tab="Unviewed">Unviewed <span id="socialModUnviewedCount">0</span></button><button type="button" class="social-mod-tab" data-mod-tab="Viewed">Viewed</button><button type="button" class="social-mod-tab" data-mod-tab="Bans">Posting bans</button><button type="button" class="social-mod-tab" data-mod-tab="Audit">Audit history</button></div><div id="socialModContent" class="social-mod-content"></div>';
   page.appendChild(moderationPanel);
+  page.querySelectorAll(".admin-quick-nav a").forEach(link => {
+    link.addEventListener("click", event => {
+      const target = document.querySelector(link.getAttribute("href"));
+      if (!target) return;
+      event.preventDefault();
+      if (target.id === "admin-asset-tools") {
+        const disclosure = target.querySelector("details");
+        if (disclosure) disclosure.open = true;
+      }
+      target.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
+      if (target.id === "admin-asset-tools") target.querySelector("summary")?.focus({ preventScroll: true });
+    });
+  });
   initSocialModerationPanel();
   initMatchReminderAdmin();
 
