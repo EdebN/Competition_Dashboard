@@ -1483,52 +1483,53 @@ function getMatchTimetableSheet_() { return reminderSheet_(MATCH_TIMETABLE_TAB, 
 function getMatchReminderContactsSheet_() { return reminderSheet_(MATCH_CONTACTS_TAB, MATCH_CONTACT_HEADERS); }
 
 function readMatchReminderSettings_() {
-  const sh = getMatchTimetableSheet_(), last = sh.getLastRow();
-  const timetable = last < 2 ? [] : sh.getRange(2,1,last-1,8).getDisplayValues()
-    .filter(r => /^\d+$/.test(r[0]) && Number(r[0]) > 0)
-    .map(r => ({matchId:Number(r[0]),date:r[1],time:r[2],venue:r[3],status:r[4] || "Unscheduled"}));
-  const cs = getMatchReminderContactsSheet_(), cl = cs.getLastRow();
-  const rows = cl < 2 ? [] : cs.getRange(2,1,cl-1,5).getDisplayValues(), byId = {};
-  rows.forEach(r => { const id=String(r[0]||"").trim().toUpperCase(); if(TEAM_IDS.includes(id)) byId[id]={teamId:id,email:String(r[1]||""),enabled:String(r[2]).toLowerCase()!=="true"}; });
-  return {ok:true,action:"getMatchReminderSettings",timetable,contacts:TEAM_IDS.map(id=>byId[id]||{teamId:id,email:"",enabled:true})};
+  const sh=getMatchTimetableSheet_(),last=sh.getLastRow();
+  const timetable=last<2?[]:sh.getRange(2,1,last-1,8).getDisplayValues().filter(r=>/^\\d+$/.test(r[0])&&Number(r[0])>0).map(r=>({matchId:Number(r[0]),date:r[1],time:r[2],venue:r[3],status:r[4]||"Unscheduled"}));
+  const cs=getMatchReminderContactsSheet_(),cl=cs.getLastRow(),rows=cl<2?[]:cs.getRange(2,1,cl-1,5).getDisplayValues(),byId={};
+  rows.forEach(r=>{const id=String(r[0]||"").trim().toUpperCase();if(!TEAM_IDS.includes(id)||!String(r[1]||"").trim())return;if(!byId[id])byId[id]=[];byId[id].push({email:String(r[1]).trim(),enabled:String(r[2]).toLowerCase()!=="true"});});
+  return {ok:true,action:"getMatchReminderSettings",timetable,contacts:TEAM_IDS.map(id=>({teamId:id,emails:(byId[id]||[]).map(x=>x.email),enabled:!byId[id]||byId[id].some(x=>x.enabled)}))};
 }
 
 function saveMatchReminderSettings_(body) {
-  if (!Array.isArray(body.timetable) || body.timetable.length > 200 || !Array.isArray(body.contacts)) return jsonResponse_({ok:false,error:"Invalid timetable or contacts."});
-  const fixtures=readMatchResults_(), valid=new Set(fixtures.map(m=>m.matchId)), sh=getMatchTimetableSheet_(), last=sh.getLastRow();
-  const oldRows=last<2?[]:sh.getRange(2,1,last-1,8).getValues(), sent={};
+  if(!Array.isArray(body.timetable)||body.timetable.length>200||!Array.isArray(body.contacts))return jsonResponse_({ok:false,error:"Invalid timetable or contacts."});
+  const fixtures=readMatchResults_(),valid=new Set(fixtures.map(m=>m.matchId)),sh=getMatchTimetableSheet_(),last=sh.getLastRow();
+  const oldRows=last<2?[]:sh.getRange(2,1,last-1,8).getValues(),sent={};
   oldRows.forEach(r=>{const id=Number(r[0]);if(id>0)sent[id]={home:r[5]||"",away:r[6]||""};});
-  const seen=new Set(), clean=[];
-  for (const x of body.timetable) {
+  const seen=new Set(),clean=[];
+  for(const x of body.timetable){
     const id=Number(x.matchId),date=String(x.date||"").trim(),time=String(x.time||"").trim(),venue=String(x.venue||"").trim().slice(0,120);
     let status=String(x.status||"Unscheduled");
-    if(!Number.isInteger(id)||!valid.has(id)||seen.has(id))return jsonResponse_({ok:false,error:"Unknown or duplicate match ID."});
-    seen.add(id);
-    if(date&&!/^\d{4}-\d{2}-\d{2}$/.test(date))return jsonResponse_({ok:false,error:"Dates must use YYYY-MM-DD."});
-    if(time&&!/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(time))return jsonResponse_({ok:false,error:"Times must use 24-hour HH:MM format."});
+    if(!Number.isInteger(id)||!valid.has(id)||seen.has(id))return jsonResponse_({ok:false,error:"Unknown or duplicate match ID."});seen.add(id);
+    if(date&&!/^\\d{4}-\\d{2}-\\d{2}$/.test(date))return jsonResponse_({ok:false,error:"Dates must use YYYY-MM-DD."});
+    if(time&&!/^(?:[01]\\d|2[0-3]):[0-5]\\d$/.test(time))return jsonResponse_({ok:false,error:"Times must use 24-hour HH:MM format."});
     if(Boolean(date)!==Boolean(time))return jsonResponse_({ok:false,error:"Each fixture needs both date and time, or neither."});
-    if(!["Scheduled","Postponed","Cancelled","Unscheduled"].includes(status))return jsonResponse_({ok:false,error:"Invalid fixture status."});
+    if(!["Scheduled","Postponed","Cancelled","Unscheduled","Skipped"].includes(status))return jsonResponse_({ok:false,error:"Invalid fixture status."});
     if(status==="Scheduled"&&(!date||!time))status="Unscheduled";
     clean.push({id,date,time,venue,status,sent:sent[id]||{home:"",away:""}});
   }
   const contacts={};
   for(const x of body.contacts){
-    const id=String(x.teamId||"").toUpperCase(),email=String(x.email||"").trim().slice(0,254);
+    const id=String(x.teamId||"").toUpperCase(),emails=Array.isArray(x.emails)?x.emails.map(e=>String(e||"").trim()).filter(Boolean):String(x.email||"").split(/[\\n,;]+/).map(e=>e.trim()).filter(Boolean);
     if(!TEAM_IDS.includes(id)||contacts[id])return jsonResponse_({ok:false,error:"Invalid or duplicate team contact."});
-    if(email&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return jsonResponse_({ok:false,error:"Enter a valid team email address."});
-    contacts[id]={email,enabled:x.enabled!==false};
+    const unique=[...new Set(emails.map(e=>e.toLowerCase()))];
+    if(unique.some(e=>e.length>254||! /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(e)))return jsonResponse_({ok:false,error:"Enter valid email addresses for each team."});
+    contacts[id]={emails:unique,enabled:x.enabled!==false};
   }
   if(TEAM_IDS.some(id=>!contacts[id]))return jsonResponse_({ok:false,error:"Contact settings are required for all teams."});
   const lock=LockService.getScriptLock();if(!lock.tryLock(10000))return jsonResponse_({ok:false,error:"Service busy. Try again."});
-  try {
-    const now=new Date();
-    sh.clearContents();sh.getRange(1,1,1,8).setValues([MATCH_TIMETABLE_HEADERS]).setFontWeight("bold");
-    clean.sort((a,b)=>a.id-b.id);
+  try{
+    const now=new Date();sh.clearContents();sh.getRange(1,1,1,8).setValues([MATCH_TIMETABLE_HEADERS]).setFontWeight("bold");clean.sort((a,b)=>a.id-b.id);
     if(clean.length){const data=clean.map(x=>[x.id,x.date,x.time,x.venue,x.status,x.sent.home,x.sent.away,now]);sh.getRange(2,1,data.length,8).setValues(data);sh.getRange(2,1,data.length,5).setNumberFormat("@");}
-    const cs=getMatchReminderContactsSheet_(), n=cs.getLastRow(), previous=n<2?[]:cs.getRange(2,1,n-1,5).getValues(), old={};
-    previous.forEach(r=>{if(TEAM_IDS.includes(String(r[0])))old[String(r[0])]=r;});
-    const rows=TEAM_IDS.map(id=>{const prior=old[id]||[],c=contacts[id],changed=String(prior[1]||"").trim().toLowerCase()!==c.email.toLowerCase(),token=changed||!String(prior[3]||"")?Utilities.getUuid().replace(/-/g,"")+Utilities.getUuid().replace(/-/g,""):String(prior[3]);return[id,c.email,changed?false:!c.enabled,token,now];});
-    cs.clearContents();cs.getRange(1,1,1,5).setValues([MATCH_CONTACT_HEADERS]).setFontWeight("bold");cs.getRange(2,1,rows.length,5).setValues(rows);cs.getRange(2,1,rows.length,4).setNumberFormat("@");
+    const cs=getMatchReminderContactsSheet_(),n=cs.getLastRow(),previous=n<2?[]:cs.getRange(2,1,n-1,5).getValues(),old={};
+    previous.forEach(r=>{const id=String(r[0]||"").toUpperCase(),email=String(r[1]||"").trim().toLowerCase();if(TEAM_IDS.includes(id)&&email)old[id+"|"+email]=r;});
+    const rows=[];
+    TEAM_IDS.forEach(id=>contacts[id].emails.forEach(email=>{
+      const prior=old[id+"|"+email]||[],changed=!prior.length,token=String(prior[3]||"")||(Utilities.getUuid().replace(/-/g,"")+Utilities.getUuid().replace(/-/g,""));
+      const unsubscribed=changed?false:(contacts[id].enabled?String(prior[2]).toLowerCase()==="true":true);
+      rows.push([id,email,unsubscribed,token,now]);
+    }));
+    cs.clearContents();cs.getRange(1,1,1,5).setValues([MATCH_CONTACT_HEADERS]).setFontWeight("bold");
+    if(rows.length){cs.getRange(2,1,rows.length,5).setValues(rows);cs.getRange(2,1,rows.length,4).setNumberFormat("@");}
     SpreadsheetApp.flush();return jsonResponse_({ok:true,saved:true,action:"saveMatchReminderSettings"});
   }catch(e){console.error(e);return jsonResponse_({ok:false,error:"Could not save reminder settings. Check Apps Script configuration and execution logs."});}
   finally{lock.releaseLock();}
