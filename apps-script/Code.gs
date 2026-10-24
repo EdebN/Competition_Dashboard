@@ -1525,7 +1525,7 @@ function saveMatchReminderSettings_(body) {
     const rows=[];
     TEAM_IDS.forEach(id=>contacts[id].emails.forEach(email=>{
       const prior=old[id+"|"+email]||[],changed=!prior.length,token=String(prior[3]||"")||(Utilities.getUuid().replace(/-/g,"")+Utilities.getUuid().replace(/-/g,""));
-      const unsubscribed=changed?false:(contacts[id].enabled?String(prior[2]).toLowerCase()==="true":true);
+      const unsubscribed=!contacts[id].enabled?true:(changed?false:String(prior[2]).toLowerCase()==="true");
       rows.push([id,email,unsubscribed,token,now]);
     }));
     cs.clearContents();cs.getRange(1,1,1,5).setValues([MATCH_CONTACT_HEADERS]).setFontWeight("bold");
