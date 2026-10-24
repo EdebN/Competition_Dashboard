@@ -22,6 +22,7 @@
         <button data-admin-view="competition"><span>⌘</span> Competition</button>
         <button data-admin-view="matchday"><span>▦</span> Matchday &amp; email</button>
         <button data-admin-view="access"><span>⌑</span> Team access</button>
+        <button data-admin-view="bugs"><span>⚑</span> Bugs &amp; reports</button>
         <button data-admin-view="console"><span>›_</span> System console</button>
       </nav>
       <div class="admin-sidebar-bottom">
@@ -82,6 +83,15 @@
       <section class="admin-view" data-admin-panel="access">
         <div class="admin-page-intro"><div><div class="admin-eyebrow">PERMISSIONS / TEAM CONTENT</div><h1>Team access</h1><p>Manage each team’s page-editor access without exposing competition settings.</p></div></div>
         <div class="admin-section-hero"><div class="admin-section-icon">⌑</div><div><h2>Team editor permissions</h2><p>Check configured PINs or regenerate access in the authenticated admin workspace. Existing PINs remain hidden.</p><a class="admin-primary-button" href="index.html#admin">OPEN TEAM ACCESS ↗</a></div></div>
+      </section>
+
+      <section class="admin-view" data-admin-panel="bugs">
+        <div class="admin-page-intro"><div><div class="admin-eyebrow">RELIABILITY / INCIDENTS</div><h1>Bugs &amp; reports</h1><p>Browser errors observed in this session and the project's issue tracker.</p></div></div>
+        <div class="admin-metric-grid admin-bug-metrics">
+          <article class="admin-metric-card"><div class="admin-metric-top"><span>SESSION JAVASCRIPT ERRORS</span><span class="admin-metric-icon">!</span></div><strong id="admin-bug-session-count">0</strong><p>Errors captured by this admin page since it loaded.</p><button class="admin-inline-action" data-open-view="console">Inspect console →</button></article>
+          <article class="admin-metric-card"><div class="admin-metric-top"><span>ISSUE TRACKER</span><span class="admin-metric-icon">↗</span></div><strong>GITHUB</strong><p>Persistent bug reports belong in the repository issue tracker, not in a pretend local log.</p><a class="admin-inline-action" href="https://github.com/EdebN/Competition_Dashboard/issues" target="_blank" rel="noopener">Open issue tracker ↗</a></article>
+        </div>
+        <div class="admin-note-card"><strong>Important limitation</strong><p>Browser errors are local to this session and are not automatically uploaded. This page does not yet have a backend bug-report inbox or live issue-count integration, so it will not invent a count or claim to have read server logs.</p></div>
       </section>
 
       <section class="admin-view" data-admin-panel="console">
