@@ -1552,7 +1552,7 @@ function sendMatchDayReminders() {
   if(clock<"06:00")return;
   const sh=getMatchTimetableSheet_(),last=sh.getLastRow();if(last<2)return;
   const cs=getMatchReminderContactsSheet_(),cl=cs.getLastRow(),cr=cl<2?[]:cs.getRange(2,1,cl-1,5).getValues(),contacts={};
-  cr.forEach(r=>{const id=String(r[0]||"");if(TEAM_IDS.includes(id))contacts[id]={email:String(r[1]||"").trim(),off:String(r[2]).toLowerCase()==="true",token:String(r[3]||"")};});
+  cr.forEach(r=>{const id=String(r[0]||"");if(TEAM_IDS.includes(id)&&r[1]){if(!contacts[id])contacts[id]=[];contacts[id].push({email:String(r[1]).trim(),off:String(r[2]).toLowerCase()==="true",token:String(r[3]||"")});}});
   const names={};readTeamSettings_().forEach(t=>names[t.teamId]=t.displayName||"Team "+t.teamId);
   const matches={};readMatchResults_().forEach(m=>matches[m.matchId]=m);
   const lock=LockService.getScriptLock();if(!lock.tryLock(10000))return;
@@ -1564,14 +1564,20 @@ function sendMatchDayReminders() {
       const m=matches[id];if(!m||m.homeScore!==null||m.awayScore!==null)return;
       const home=reminderTeamId_(m.home,names),away=reminderTeamId_(m.away,names);if(!home||!away)return;
       [{team:home,opponent:away,col:6,own:m.home,other:m.away},{team:away,opponent:home,col:7,own:m.away,other:m.home}].forEach(t=>{
-        if(String(r[t.col-1]||"")===today)return;const c=contacts[t.team];if(!c||!c.email||c.off||!c.token)return;
+        const teamSent=String(r[t.col-1]||"")===today;
+        const recipients=(contacts[t.team]||[]).filter(c=>c.email&&!c.off&&c.token);
+        if(teamSent||!recipients.length)return;
         const ownName=names[t.team]||t.own,otherName=names[t.opponent]||t.other;
         const dateLabel=Utilities.formatDate(new Date(today+"T12:00:00"),zone,"EEE d MMM yyyy");
-        const link=base+"?action=unsubscribeMatchReminders&teamId="+encodeURIComponent(t.team)+"&token="+encodeURIComponent(c.token);
-        const subject="Match day: "+ownName+" vs "+otherName+" (Game "+id+")";
-        const body="Your match is today.\\n\\nGame "+id+": "+ownName+" vs "+otherName+"\\nDate: "+dateLabel+"\\nKick-off: "+time+(venue?"\\nVenue: "+venue:"")+"\\n\\nCheck the competition dashboard for timetable changes.\\n\\nUnsubscribe from match-day reminders: "+link;
-        const html='<div style="font-family:Arial,sans-serif;max-width:560px;margin:auto;color:#18202b"><p style="font-size:10px;letter-spacing:2px;color:#788596;font-weight:700">COMPETITION DASHBOARD</p><h1 style="font-size:24px">Match day</h1><p style="font-size:18px;font-weight:700">'+escapeEmailHtml_(ownName)+' vs '+escapeEmailHtml_(otherName)+'</p><p>Game '+id+'</p><p><strong>Date:</strong> '+dateLabel+'</p><p><strong>Kick-off:</strong> '+time+'</p>'+(venue?'<p><strong>Venue:</strong> '+escapeEmailHtml_(venue)+'</p>':'')+'<p style="color:#687687">Check the competition dashboard for timetable changes.</p><p style="margin-top:28px;font-size:9px;color:#9aa3ae"><a style="color:#9aa3ae" href="'+escapeEmailHtml_(link)+'">Unsubscribe</a></p></div>';
-        try{MailApp.sendEmail({to:c.email,subject,body,htmlBody:html,name:"Competition Dashboard"});sh.getRange(i+2,t.col).setValue(today);r[t.col-1]=today;}catch(e){console.error("Reminder email failed for game "+id+" team "+t.team+": "+e);}
+        let allSent=true;
+        recipients.forEach(c=>{
+          const link=base+"?action=unsubscribeMatchReminders&teamId="+encodeURIComponent(t.team)+"&token="+encodeURIComponent(c.token);
+          const subject="Match day: "+ownName+" vs "+otherName+" (Game "+id+")";
+          const body="Your match is today.\n\nGame "+id+": "+ownName+" vs "+otherName+"\nDate: "+dateLabel+"\nKick-off: "+time+(venue?"\nVenue: "+venue:"")+"\n\nCheck the competition dashboard for timetable changes.\n\nUnsubscribe from match-day reminders: "+link;
+          const html='<div style="font-family:Arial,sans-serif;max-width:560px;margin:auto;color:#18202b"><p style="font-size:10px;letter-spacing:2px;color:#788596;font-weight:700">COMPETITION DASHBOARD</p><h1 style="font-size:24px">Match day</h1><p style="font-size:18px;font-weight:700">'+escapeEmailHtml_(ownName)+' vs '+escapeEmailHtml_(otherName)+'</p><p>Game '+id+'</p><p><strong>Date:</strong> '+dateLabel+'</p><p><strong>Kick-off:</strong> '+time+'</p>'+(venue?'<p><strong>Venue:</strong> '+escapeEmailHtml_(venue)+'</p>':'')+'<p style="color:#687687">Check the competition dashboard for timetable changes.</p><p style="margin-top:28px;font-size:9px;color:#9aa3ae"><a style="color:#9aa3ae" href="'+escapeEmailHtml_(link)+'">Unsubscribe</a></p></div>';
+          try{MailApp.sendEmail({to:c.email,subject,body,htmlBody:html,name:"Competition Dashboard"});}catch(e){allSent=false;console.error("Reminder email failed for game "+id+", team "+t.team+", recipient "+c.email+": "+e);}
+        });
+        if(allSent){sh.getRange(i+2,t.col).setValue(today);r[t.col-1]=today;}
       });
     });
     SpreadsheetApp.flush();
