@@ -2909,7 +2909,7 @@ function renderAdminPage() {
               <label>Matches per event/week<input class="admin-input" id="reminderMatchesPerWeek" type="number" min="1" max="10" value="2"></label>
               <label>Default kick-off<input class="admin-input" id="reminderRepeatTime" type="time" value="10:00"></label>
               <label class="match-reminder-repeat-wide">Default venue<input class="admin-input" id="reminderRepeatVenue" type="text" maxlength="120" placeholder="Venue"></label>
-              <label class="match-reminder-repeat-wide">Skip dates (comma-separated YYYY-MM-DD dates)<textarea class="admin-input" id="reminderSkipDates" rows="2" placeholder="2026-12-26&#10;2027-01-02"></textarea></label>
+              <label class="match-reminder-repeat-wide">Skip dates (comma-separated YYYY-MM-DD dates)<textarea class="admin-input" id="reminderSkipDates" rows="2" placeholder="2026-12-26, 2027-01-02"></textarea></label>
               <label class="match-reminder-repeat-wide">Skip match IDs (comma-separated)<input class="admin-input" id="reminderSkipMatches" type="text" placeholder="4, 7, 12"></label>
             </div>
             <button type="button" id="generateMatchSchedule" class="admin-button">GENERATE / READJUST WEEKLY SCHEDULE</button>
