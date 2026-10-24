@@ -1742,7 +1742,7 @@ function jumpToGame(gameId) {
   }
 
   // Graceful fallback for builds where match details are unavailable.
-  showPage("home");
+  showPage(window.location.hash.startsWith("#admin") ? "admin" : "home");
   setTimeout(() => {
     const row = document.querySelector(`.game[data-game-id="${id}"]`);
     if (!row) return;
