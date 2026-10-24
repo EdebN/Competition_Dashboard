@@ -2899,11 +2899,25 @@ function renderAdminPage() {
           <div class="admin-setting-header"><div class="admin-setting-name">Match-day reminders</div><span class="admin-setting-value">EMAIL</span></div>
           <p class="admin-info">Set each team’s reminder address and each fixture’s date, kick-off time, venue and status. Emails are sent on match day before kick-off. Unconfirmed fixtures are skipped.</p>
           <div class="match-reminder-contact-grid">
-            ${TEAMS.map(team => { const id = team.slice(-1); return '<div class="match-reminder-contact"><label class="admin-label" for="reminderEmail' + id + '">' + escapeHTML(getTeamDisplayName(team)) + ' EMAIL</label><input class="admin-input" id="reminderEmail' + id + '" type="email" maxlength="254" autocomplete="email" placeholder="team@example.com"><label class="match-reminder-enabled"><input id="reminderEnabled' + id + '" type="checkbox" checked> Reminders enabled</label></div>'; }).join("")}
+            ${TEAMS.map(team => { const id = team.slice(-1); return '<div class="match-reminder-contact"><label class="admin-label" for="reminderEmail' + id + '">' + escapeHTML(getTeamDisplayName(team)) + ' EMAIL ADDRESSES</label><textarea class="admin-input reminder-emails" id="reminderEmail' + id + '" rows="3" maxlength="2000" placeholder="One address per line"></textarea><small class="match-reminder-help">Add every player/recipient. Separate addresses with commas or new lines.</small><label class="match-reminder-enabled"><input id="reminderEnabled' + id + '" type="checkbox" checked> Reminders enabled</label></div>'; }).join("")}
+          </div>
+          <div class="match-reminder-recurring">
+            <div class="match-reminder-table-heading"><div><strong>Repeat schedule</strong><span>Generate dates for the fixture list, then adjust any match individually below.</span></div></div>
+            <div class="match-reminder-repeat-grid">
+              <label>First match date<input class="admin-input" id="reminderRepeatStart" type="date"></label>
+              <label>Repeat every (weeks)<input class="admin-input" id="reminderRepeatWeeks" type="number" min="1" max="12" value="1"></label>
+              <label>Matches per event/week<input class="admin-input" id="reminderMatchesPerWeek" type="number" min="1" max="10" value="2"></label>
+              <label>Default kick-off<input class="admin-input" id="reminderRepeatTime" type="time" value="10:00"></label>
+              <label class="match-reminder-repeat-wide">Default venue<input class="admin-input" id="reminderRepeatVenue" type="text" maxlength="120" placeholder="Venue"></label>
+              <label class="match-reminder-repeat-wide">Skip dates (one YYYY-MM-DD date per line)<textarea class="admin-input" id="reminderSkipDates" rows="2" placeholder="2026-12-26&#10;2027-01-02"></textarea></label>
+              <label class="match-reminder-repeat-wide">Skip match IDs (comma-separated)<input class="admin-input" id="reminderSkipMatches" type="text" placeholder="4, 7, 12"></label>
+            </div>
+            <button type="button" id="generateMatchSchedule" class="admin-button">GENERATE / READJUST WEEKLY SCHEDULE</button>
+            <p class="match-reminder-help">Skipped dates push affected rounds to the next available week. Skipped matches are excluded from reminder emails. Generation changes dates but does not send anything immediately.</p>
           </div>
           <div class="match-reminder-table-heading"><div><strong>Fixture timetable</strong><span>Use Perth local time. Leave date and time blank until confirmed.</span></div><input class="admin-input match-reminder-filter" id="reminderFixtureFilter" type="search" placeholder="Find a team or game…" aria-label="Filter timetable"></div>
           <div class="match-reminder-table-wrap"><table class="match-reminder-table"><thead><tr><th>Match</th><th>Date</th><th>Kick-off</th><th>Venue</th><th>Status</th></tr></thead><tbody id="matchReminderRows">
-            ${games.slice().sort((a,b)=>Number(a.id)-Number(b.id)).map(game => '<tr data-reminder-match="' + Number(game.id) + '" data-reminder-search="' + escapeHTML(("game " + game.id + " " + (game.home||"") + " " + (game.away||"")).toLowerCase()) + '"><td><strong>Game ' + Number(game.id) + '</strong><small>' + escapeHTML(getTeamDisplayName(game.home||"TBC")) + ' vs ' + escapeHTML(getTeamDisplayName(game.away||"TBC")) + '</small></td><td><input class="admin-input reminder-date" type="date" aria-label="Game ' + Number(game.id) + ' date"></td><td><input class="admin-input reminder-time" type="time" aria-label="Game ' + Number(game.id) + ' kick-off"></td><td><input class="admin-input reminder-venue" type="text" maxlength="120" placeholder="Venue" aria-label="Game ' + Number(game.id) + ' venue"></td><td><select class="admin-input reminder-status" aria-label="Game ' + Number(game.id) + ' status"><option>Unscheduled</option><option>Scheduled</option><option>Postponed</option><option>Cancelled</option></select></td></tr>').join("")}
+            ${games.slice().sort((a,b)=>Number(a.id)-Number(b.id)).map(game => '<tr data-reminder-match="' + Number(game.id) + '" data-reminder-search="' + escapeHTML(("game " + game.id + " " + (game.home||"") + " " + (game.away||"")).toLowerCase()) + '"><td><strong>Game ' + Number(game.id) + '</strong><small>' + escapeHTML(getTeamDisplayName(game.home||"TBC")) + ' vs ' + escapeHTML(getTeamDisplayName(game.away||"TBC")) + '</small></td><td><input class="admin-input reminder-date" type="date" aria-label="Game ' + Number(game.id) + ' date"></td><td><input class="admin-input reminder-time" type="time" aria-label="Game ' + Number(game.id) + ' kick-off"></td><td><input class="admin-input reminder-venue" type="text" maxlength="120" placeholder="Venue" aria-label="Game ' + Number(game.id) + ' venue"></td><td><select class="admin-input reminder-status" aria-label="Game ' + Number(game.id) + ' status"><option>Unscheduled</option><option>Scheduled</option><option>Postponed</option><option>Cancelled</option><option>Skipped</option></select></td></tr>').join("")}
           </tbody></table></div>
           <div id="matchReminderStatus" class="admin-info" role="status" aria-live="polite">Loading timetable and reminder settings…</div>
           <button type="button" id="saveMatchReminderSettings" class="admin-button">SAVE TIMETABLE &amp; EMAIL SETTINGS</button>
@@ -3370,13 +3384,46 @@ function initMatchReminderAdmin() {
     })),
     contacts: TEAMS.map(team => {
       const teamId = team.slice(-1);
-      return { teamId, email: document.getElementById("reminderEmail" + teamId)?.value.trim() || "",
+      return { teamId, emails: (document.getElementById("reminderEmail" + teamId)?.value || "").split(/[\\n,;]+/).map(value => value.trim()).filter(Boolean),
         enabled: Boolean(document.getElementById("reminderEnabled" + teamId)?.checked) };
     })
   });
   const signature = data => JSON.stringify({
     timetable: data.timetable.map(x => ({matchId:Number(x.matchId),date:x.date||"",time:x.time||"",venue:x.venue||"",status:x.status||"Unscheduled"})).sort((a,b)=>a.matchId-b.matchId),
-    contacts: data.contacts.map(x=>({teamId:x.teamId,email:(x.email||"").trim().toLowerCase(),enabled:Boolean(x.enabled)})).sort((a,b)=>a.teamId.localeCompare(b.teamId))
+    contacts: data.contacts.map(x=>({teamId:x.teamId,emails:(x.emails||[]).map(email=>email.trim().toLowerCase()).sort(),enabled:Boolean(x.enabled)})).sort((a,b)=>a.teamId.localeCompare(b.teamId))
+  });
+
+  document.getElementById("generateMatchSchedule")?.addEventListener("click", () => {
+    const startValue = document.getElementById("reminderRepeatStart")?.value || "";
+    const interval = Math.max(1, Math.min(12, Number(document.getElementById("reminderRepeatWeeks")?.value) || 1));
+    const perWeek = Math.max(1, Math.min(10, Number(document.getElementById("reminderMatchesPerWeek")?.value) || 2));
+    const defaultTime = document.getElementById("reminderRepeatTime")?.value || "";
+    const defaultVenue = document.getElementById("reminderRepeatVenue")?.value.trim() || "";
+    const skipDates = new Set((document.getElementById("reminderSkipDates")?.value || "").split(/[\\n,;]+/).map(x=>x.trim()).filter(x=>/^\\d{4}-\\d{2}-\\d{2}$/.test(x)));
+    const skipIds = new Set((document.getElementById("reminderSkipMatches")?.value || "").split(/[\\s,;]+/).map(Number).filter(Number.isInteger));
+    if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(startValue) || !defaultTime) { setStatus("Choose a start date and default kick-off time first.", "warning"); return; }
+    const [year,month,day] = startValue.split("-").map(Number);
+    const base = new Date(Date.UTC(year,month-1,day,12));
+    const fixtureRows = [...host.querySelectorAll("[data-reminder-match]")].sort((a,b)=>Number(a.dataset.reminderMatch)-Number(b.dataset.reminderMatch));
+    let roundIndex = 0, previousDate = "";
+    fixtureRows.forEach((row,index) => {
+      const id = Number(row.dataset.reminderMatch);
+      const dateInput=row.querySelector(".reminder-date"), timeInput=row.querySelector(".reminder-time"), venueInput=row.querySelector(".reminder-venue"), state=row.querySelector(".reminder-status");
+      if(skipIds.has(id)){state.value="Skipped";return;}
+      let week=roundIndex*interval;
+      let date="";
+      for(let attempts=0;attempts<100;attempts++,week++){
+        const d=new Date(base.getTime()+week*7*86400000);
+        date=d.toISOString().slice(0,10);
+        if(!skipDates.has(date))break;
+      }
+      dateInput.value=date;
+      timeInput.value=defaultTime;
+      if(!venueInput.value.trim())venueInput.value=defaultVenue;
+      state.value="Scheduled";
+      roundIndex=Math.floor(index/perWeek)+1;
+    });
+    setStatus("Schedule generated. Review dates, skipped matches and venues, then save. Nothing has been emailed yet.", "success");
   });
   host.querySelectorAll(".reminder-date, .reminder-time").forEach(input => input.addEventListener("change", () => {
     const row = input.closest("[data-reminder-match]");
@@ -3400,11 +3447,11 @@ function initMatchReminderAdmin() {
       row.querySelector(".reminder-date").value = x.date || "";
       row.querySelector(".reminder-time").value = x.time || "";
       row.querySelector(".reminder-venue").value = x.venue || "";
-      row.querySelector(".reminder-status").value = ["Scheduled","Postponed","Cancelled","Unscheduled"].includes(x.status) ? x.status : "Unscheduled";
+      row.querySelector(".reminder-status").value = ["Scheduled","Postponed","Cancelled","Unscheduled","Skipped"].includes(x.status) ? x.status : "Unscheduled";
     });
     data.contacts.forEach(x => {
       const email = document.getElementById("reminderEmail" + x.teamId), enabled = document.getElementById("reminderEnabled" + x.teamId);
-      if (email) email.value = x.email || "";
+      if (email) email.value = Array.isArray(x.emails) ? x.emails.join("\\n") : (x.email || "");
       if (enabled) enabled.checked = Boolean(x.enabled);
     });
     setStatus("Settings loaded. Reminders go out on match day before kick-off, only for confirmed fixtures and subscribed addresses.");
