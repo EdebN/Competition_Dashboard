@@ -3464,8 +3464,10 @@ function initMatchReminderAdmin() {
     const data = readForm();
     const incomplete = data.timetable.find(x => Boolean(x.date) !== Boolean(x.time));
     if (incomplete) { setStatus("Game " + incomplete.matchId + " needs both date and kick-off time, or neither.", "warning"); host.querySelector('[data-reminder-match="' + incomplete.matchId + '"]')?.scrollIntoView({behavior:"smooth",block:"center"}); return; }
-    for (const x of data.contacts) if (x.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(x.email)) {
-      setStatus("Enter a valid email address for Team " + x.teamId + ".", "warning"); document.getElementById("reminderEmail" + x.teamId)?.focus(); return;
+    for (const x of data.contacts) {
+      const invalid = (x.emails || []).find(email => !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email));
+      if (invalid) { setStatus("Invalid email address for Team " + x.teamId + ": " + invalid, "warning"); document.getElementById("reminderEmail" + x.teamId)?.focus(); return; }
+      x.emails = [...new Set((x.emails || []).map(email => email.toLowerCase()))];
     }
     saveButton.disabled = true; const label = saveButton.textContent; saveButton.textContent = "SAVING…";
     setStatus("Saving timetable and email preferences…");
