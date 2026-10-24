@@ -3405,25 +3405,28 @@ function initMatchReminderAdmin() {
     const [year,month,day] = startValue.split("-").map(Number);
     const base = new Date(Date.UTC(year,month-1,day,12));
     const fixtureRows = [...host.querySelectorAll("[data-reminder-match]")].sort((a,b)=>Number(a.dataset.reminderMatch)-Number(b.dataset.reminderMatch));
-    let roundIndex = 0, previousDate = "";
+    const roundDates = new Map();
+    let lastAssignedWeek = -interval;
     fixtureRows.forEach((row,index) => {
       const id = Number(row.dataset.reminderMatch);
       const dateInput=row.querySelector(".reminder-date"), timeInput=row.querySelector(".reminder-time"), venueInput=row.querySelector(".reminder-venue"), state=row.querySelector(".reminder-status");
-      if(skipIds.has(id)){state.value="Skipped";return;}
-      let week=Math.floor(index/perWeek)*interval;
-      let date="";
-      for(let attempts=0;attempts<100;attempts++,week++){
-        const d=new Date(base.getTime()+week*7*86400000);
-        date=d.toISOString().slice(0,10);
-        if(!skipDates.has(date))break;
+      const round=Math.floor(index/perWeek);
+      if(!roundDates.has(round)){
+        let week=Math.max(round*interval,lastAssignedWeek+interval),date="";
+        for(let attempts=0;attempts<100;attempts++,week++){
+          const candidate=new Date(base.getTime()+week*7*86400000);
+          date=candidate.toISOString().slice(0,10);
+          if(!skipDates.has(date))break;
+        }
+        roundDates.set(round,date);
+        lastAssignedWeek=week;
       }
-      dateInput.value=date;
+      dateInput.value=roundDates.get(round);
       timeInput.value=defaultTime;
       if(!venueInput.value.trim())venueInput.value=defaultVenue;
-      state.value="Scheduled";
-      
+      state.value=skipIds.has(id)?"Skipped":"Scheduled";
     });
-    setStatus("Schedule generated. Review dates, skipped matches and venues, then save. Nothing has been emailed yet.", "success");
+        setStatus("Schedule generated. Review dates, skipped matches and venues, then save. Nothing has been emailed yet.", "success");
   });
   host.querySelectorAll(".reminder-date, .reminder-time").forEach(input => input.addEventListener("change", () => {
     const row = input.closest("[data-reminder-match]");
