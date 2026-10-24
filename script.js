@@ -3401,7 +3401,7 @@ function initMatchReminderAdmin() {
     const defaultVenue = document.getElementById("reminderRepeatVenue")?.value.trim() || "";
     const skipDates = new Set((document.getElementById("reminderSkipDates")?.value || "").split(/[\\n,;]+/).map(x=>x.trim()).filter(x=>/^\\d{4}-\\d{2}-\\d{2}$/.test(x)));
     const skipIds = new Set((document.getElementById("reminderSkipMatches")?.value || "").split(/[\\s,;]+/).map(Number).filter(Number.isInteger));
-    if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(startValue) || !defaultTime) { setStatus("Choose a start date and default kick-off time first.", "warning"); return; }
+    if (startValue.length !== 10 || !defaultTime) { setStatus("Choose a start date and default kick-off time first.", "warning"); return; }
     const [year,month,day] = startValue.split("-").map(Number);
     const base = new Date(Date.UTC(year,month-1,day,12));
     const fixtureRows = [...host.querySelectorAll("[data-reminder-match]")].sort((a,b)=>Number(a.dataset.reminderMatch)-Number(b.dataset.reminderMatch));
