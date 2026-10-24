@@ -3410,7 +3410,7 @@ function initMatchReminderAdmin() {
       const id = Number(row.dataset.reminderMatch);
       const dateInput=row.querySelector(".reminder-date"), timeInput=row.querySelector(".reminder-time"), venueInput=row.querySelector(".reminder-venue"), state=row.querySelector(".reminder-status");
       if(skipIds.has(id)){state.value="Skipped";return;}
-      let week=roundIndex*interval;
+      let week=Math.floor(index/perWeek)*interval;
       let date="";
       for(let attempts=0;attempts<100;attempts++,week++){
         const d=new Date(base.getTime()+week*7*86400000);
@@ -3421,7 +3421,7 @@ function initMatchReminderAdmin() {
       timeInput.value=defaultTime;
       if(!venueInput.value.trim())venueInput.value=defaultVenue;
       state.value="Scheduled";
-      roundIndex=Math.floor(index/perWeek)+1;
+      
     });
     setStatus("Schedule generated. Review dates, skipped matches and venues, then save. Nothing has been emailed yet.", "success");
   });
