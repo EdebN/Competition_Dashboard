@@ -1484,7 +1484,7 @@ function getMatchReminderContactsSheet_() { return reminderSheet_(MATCH_CONTACTS
 
 function readMatchReminderSettings_() {
   const sh=getMatchTimetableSheet_(),last=sh.getLastRow();
-  const timetable=last<2?[]:sh.getRange(2,1,last-1,8).getDisplayValues().filter(r=>/^\\d+$/.test(r[0])&&Number(r[0])>0).map(r=>({matchId:Number(r[0]),date:r[1],time:r[2],venue:r[3],status:r[4]||"Unscheduled"}));
+  const timetable=last<2?[]:sh.getRange(2,1,last-1,8).getDisplayValues().filter(r=>Number.isInteger(Number(r[0]))&&Number(r[0])>0).map(r=>({matchId:Number(r[0]),date:r[1],time:r[2],venue:r[3],status:r[4]||"Unscheduled"}));
   const cs=getMatchReminderContactsSheet_(),cl=cs.getLastRow(),rows=cl<2?[]:cs.getRange(2,1,cl-1,5).getDisplayValues(),byId={};
   rows.forEach(r=>{const id=String(r[0]||"").trim().toUpperCase();if(!TEAM_IDS.includes(id)||!String(r[1]||"").trim())return;if(!byId[id])byId[id]=[];byId[id].push({email:String(r[1]).trim(),enabled:String(r[2]).toLowerCase()!=="true"});});
   return {ok:true,action:"getMatchReminderSettings",timetable,contacts:TEAM_IDS.map(id=>({teamId:id,emails:(byId[id]||[]).map(x=>x.email),enabled:!byId[id]||byId[id].some(x=>x.enabled)}))};
@@ -1500,8 +1500,8 @@ function saveMatchReminderSettings_(body) {
     const id=Number(x.matchId),date=String(x.date||"").trim(),time=String(x.time||"").trim(),venue=String(x.venue||"").trim().slice(0,120);
     let status=String(x.status||"Unscheduled");
     if(!Number.isInteger(id)||!valid.has(id)||seen.has(id))return jsonResponse_({ok:false,error:"Unknown or duplicate match ID."});seen.add(id);
-    if(date&&!/^\\d{4}-\\d{2}-\\d{2}$/.test(date))return jsonResponse_({ok:false,error:"Dates must use YYYY-MM-DD."});
-    if(time&&!/^(?:[01]\\d|2[0-3]):[0-5]\\d$/.test(time))return jsonResponse_({ok:false,error:"Times must use 24-hour HH:MM format."});
+    const dateParts=date.split("-");if(date&&(dateParts.length!==3||dateParts[0].length!==4||dateParts[1].length!==2||dateParts[2].length!==2||dateParts.some(part=>!part.split("").every(ch=>ch>="0"&&ch<="9"))))return jsonResponse_({ok:false,error:"Dates must use YYYY-MM-DD."});
+    const timeParts=time.split(":");if(time&&(timeParts.length!==2||timeParts[0].length!==2||timeParts[1].length!==2||timeParts.some(part=>!part.split("").every(ch=>ch>="0"&&ch<="9"))||Number(timeParts[0])>23||Number(timeParts[1])>59))return jsonResponse_({ok:false,error:"Times must use 24-hour HH:MM format."});
     if(Boolean(date)!==Boolean(time))return jsonResponse_({ok:false,error:"Each fixture needs both date and time, or neither."});
     if(!["Scheduled","Postponed","Cancelled","Unscheduled","Skipped"].includes(status))return jsonResponse_({ok:false,error:"Invalid fixture status."});
     if(status==="Scheduled"&&(!date||!time))status="Unscheduled";
@@ -1512,7 +1512,7 @@ function saveMatchReminderSettings_(body) {
     const id=String(x.teamId||"").toUpperCase(),emails=Array.isArray(x.emails)?x.emails.map(e=>String(e||"").trim()).filter(Boolean):String(x.email||"").split(/[\\n,;]+/).map(e=>e.trim()).filter(Boolean);
     if(!TEAM_IDS.includes(id)||contacts[id])return jsonResponse_({ok:false,error:"Invalid or duplicate team contact."});
     const unique=[...new Set(emails.map(e=>e.toLowerCase()))];
-    if(unique.some(e=>e.length>254||! /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(e)))return jsonResponse_({ok:false,error:"Enter valid email addresses for each team."});
+    if(unique.some(e=>{const parts=e.split("@");return e.length>254||parts.length!==2||!parts[0]||!parts[1]||!parts[1].includes(".");}))return jsonResponse_({ok:false,error:"Enter valid email addresses for each team."});
     contacts[id]={emails:unique,enabled:x.enabled!==false};
   }
   if(TEAM_IDS.some(id=>!contacts[id]))return jsonResponse_({ok:false,error:"Contact settings are required for all teams."});
