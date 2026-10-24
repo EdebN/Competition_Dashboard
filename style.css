@@ -4125,3 +4125,6 @@ select {
   .match-reminder-table-heading { align-items:stretch; flex-direction:column; }
   .match-reminder-filter { max-width:none; width:100%; }
 }
+
+/* Recurring fixture scheduling and multiple reminder recipients */
+.match-reminder-contact .reminder-emails{width:100%;min-height:78px;resize:vertical;font:inherit;font-size:12px;line-height:1.5}.match-reminder-help{color:var(--muted,#8996a7);font-size:10px;line-height:1.5}.match-reminder-recurring{margin:20px 0 24px;padding:16px;border:1px solid var(--border,#27313d);border-radius:14px;background:rgba(127,145,166,.035)}.match-reminder-repeat-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:14px 0}.match-reminder-repeat-grid label{display:grid;align-content:start;gap:7px;color:var(--muted,#8996a7);font-size:11px}.match-reminder-repeat-grid .admin-input{width:100%;min-width:0}.match-reminder-repeat-wide{grid-column:1/-1}.match-reminder-recurring>.admin-button{margin-top:4px}@media(max-width:640px){.match-reminder-repeat-grid{grid-template-columns:1fr}.match-reminder-repeat-wide{grid-column:auto}}
