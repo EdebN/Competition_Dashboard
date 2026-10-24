@@ -1,7 +1,7 @@
 (() => {
   "use strict";
   const API_URL = "https://script.google.com/macros/s/AKfycbw77wOi2EhaSUkWHwiyowOIFieZqlNCFkDO-s6AUa5X63jbDs5m6n8F0lrsjIouwfHC/exec";
-  const titles = {overview:"Overview",moderation:"Moderation",competition:"Competition",matchday:"Matchday & email",access:"Team access",console:"System console"};
+  const titles = {overview:"Overview",moderation:"Moderation",competition:"Competition",matchday:"Matchday & email",access:"Team access",bugs:"Bugs & reports",console:"System console"};
   const events = [];
   let clientErrors = 0;
   const $ = id => document.getElementById(id);
@@ -12,7 +12,7 @@
     if(events.length>250) events.shift();
     renderConsole();
     renderRecent();
-    $("admin-error-value").textContent=String(clientErrors);
+    $("admin-error-value").textContent=String(clientErrors);\n    const bugCount=$("admin-bug-session-count");if(bugCount)bugCount.textContent=String(clientErrors);
   }
   function renderConsole(){
     const host=$("admin-console-output"); if(!host)return;
