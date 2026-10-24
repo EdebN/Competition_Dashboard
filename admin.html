@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b1119">
+  <title>Admin Control Room · Competition Dashboard</title>
+  <link rel="stylesheet" href="style.css?v=admin-navigation-20261024">
+  <link rel="stylesheet" href="admin.css?v=admin-control-room-20261024">
+</head>
+<body class="admin-shell-body">
+  <div class="admin-shell">
+    <aside class="admin-sidebar">
+      <a class="admin-brand" href="admin.html" aria-label="Admin Control Room home">
+        <span class="admin-brand-mark">C</span>
+        <span><strong>COMPETITION</strong><small>ADMIN CONTROL ROOM</small></span>
+      </a>
+      <div class="admin-side-label">WORKSPACE</div>
+      <nav class="admin-side-nav" aria-label="Admin navigation">
+        <button class="is-active" data-admin-view="overview"><span>◫</span> Overview</button>
+        <button data-admin-view="moderation"><span>◉</span> Moderation <b class="side-live-dot"></b></button>
+        <button data-admin-view="competition"><span>⌘</span> Competition</button>
+        <button data-admin-view="matchday"><span>▦</span> Matchday &amp; email</button>
+        <button data-admin-view="access"><span>⌑</span> Team access</button>
+        <button data-admin-view="console"><span>›_</span> System console</button>
+      </nav>
+      <div class="admin-sidebar-bottom">
+        <span class="admin-online-indicator"></span>
+        <span><strong>Control room</strong><small>Browser-side status checks</small></span>
+      </div>
+    </aside>
+
+    <main class="admin-main">
+      <header class="admin-topbar">
+        <div class="admin-breadcrumb"><a href="index.html">Public site</a><span>/</span><strong id="admin-breadcrumb-current">Overview</strong></div>
+        <div class="admin-top-actions"><span class="admin-env-pill"><i></i> PRODUCTION API</span><a class="admin-public-link" href="index.html">View public site ↗</a></div>
+      </header>
+
+      <section class="admin-view is-active" data-admin-panel="overview">
+        <div class="admin-page-intro">
+          <div><div class="admin-eyebrow">OPERATIONS / OVERVIEW</div><h1>Control room</h1><p>The competition at a glance. Alerts first, settings second, mystery third.</p></div>
+          <button class="admin-refresh-button" id="admin-run-checks" type="button">↻ Run system checks</button>
+        </div>
+        <div class="admin-alert-banner" id="admin-primary-alert" role="status">
+          <span class="admin-alert-icon">!</span><div><strong>Moderation status requires a secure admin session</strong><p>The queue is protected. Open moderation to authenticate and review pending submissions.</p></div>
+          <button type="button" data-open-view="moderation">Review queue ↗</button>
+        </div>
+        <div class="admin-metric-grid">
+          <article class="admin-metric-card"><div class="admin-metric-top"><span>API CONNECTION</span><span class="admin-metric-icon">⌁</span></div><strong id="admin-api-value">CHECKING</strong><p id="admin-api-detail">Contacting the Apps Script health endpoint…</p><span class="admin-metric-status" id="admin-api-status">Checking</span></article>
+          <article class="admin-metric-card"><div class="admin-metric-top"><span>MODERATION QUEUE</span><span class="admin-metric-icon">◉</span></div><strong id="admin-mod-value">LOCKED</strong><p>Pending submissions are only visible after admin authentication.</p><button class="admin-inline-action" data-open-view="moderation">Open moderation →</button></article>
+          <article class="admin-metric-card"><div class="admin-metric-top"><span>SHARED SETTINGS</span><span class="admin-metric-icon">⌘</span></div><strong id="admin-settings-value">CHECKING</strong><p id="admin-settings-detail">Checking shared team settings…</p><span class="admin-metric-status" id="admin-settings-status">Checking</span></article>
+          <article class="admin-metric-card"><div class="admin-metric-top"><span>CLIENT ERRORS</span><span class="admin-metric-icon">⌁</span></div><strong id="admin-error-value">0</strong><p>JavaScript errors observed during this page session.</p><button class="admin-inline-action" data-open-view="console">Inspect console →</button></article>
+        </div>
+        <div class="admin-dashboard-columns">
+          <section class="admin-panel-card"><div class="admin-panel-heading"><div><span class="admin-eyebrow">ACTION REQUIRED</span><h2>Quick actions</h2></div><span class="admin-panel-mark">↗</span></div>
+            <button class="admin-action-row" data-open-view="moderation"><span class="admin-action-symbol">◉</span><span><strong>Review social submissions</strong><small>Authenticate before viewing the moderation queue.</small></span><b>→</b></button>
+            <button class="admin-action-row" data-open-view="competition"><span class="admin-action-symbol">⌘</span><span><strong>Competition settings</strong><small>Team names, season length and official scores.</small></span><b>→</b></button>
+            <button class="admin-action-row" data-open-view="matchday"><span class="admin-action-symbol">▦</span><span><strong>Timetable &amp; reminders</strong><small>Fixtures, skip dates and team email recipients.</small></span><b>→</b></button>
+            <button class="admin-action-row" data-open-view="access"><span class="admin-action-symbol">⌑</span><span><strong>Team editor access</strong><small>Manage team-page editor PINs.</small></span><b>→</b></button>
+          </section>
+          <section class="admin-panel-card"><div class="admin-panel-heading"><div><span class="admin-eyebrow">SYSTEM ACTIVITY</span><h2>Recent checks</h2></div><button class="admin-text-button" data-open-view="console">Full console ↗</button></div><div id="admin-recent-events" class="admin-event-list"><div class="admin-event"><span class="admin-event-dot is-pending"></span><div><strong>API health check</strong><p>Request in progress…</p></div><time>NOW</time></div></div></section>
+        </div>
+        <div class="admin-footnote"><span>SECURITY NOTE</span> This dashboard does not store your admin token. Protected actions still run through the existing authenticated admin workspace.</div>
+      </section>
+
+      <section class="admin-view" data-admin-panel="moderation">
+        <div class="admin-page-intro"><div><div class="admin-eyebrow">OPERATIONS / CONTENT</div><h1>Moderation</h1><p>Review submissions, manage posting access and inspect the audit trail.</p></div></div>
+        <div class="admin-section-hero"><div class="admin-section-icon">◉</div><div><h2>Secure moderation workspace</h2><p>The queue requires a short-lived admin session. This control room deliberately does not cache or copy that session token.</p><a class="admin-primary-button" href="index.html#admin">OPEN SECURE ADMIN WORKSPACE ↗</a></div></div>
+        <div class="admin-note-card"><strong>Why is the queue not shown here?</strong><p>The current moderation API requires a session created after the admin token is verified. This page cannot truthfully display a queue count without that authentication step. The existing workspace remains the source of truth.</p></div>
+      </section>
+
+      <section class="admin-view" data-admin-panel="competition">
+        <div class="admin-page-intro"><div><div class="admin-eyebrow">CONFIGURATION / COMPETITION</div><h1>Competition settings</h1><p>Season configuration, team names and official match results.</p></div></div>
+        <div class="admin-section-hero"><div class="admin-section-icon">⌘</div><div><h2>Competition configuration</h2><p>Manage shared team names, season length and official scores in the authenticated workspace.</p><a class="admin-primary-button" href="index.html#admin">OPEN COMPETITION SETTINGS ↗</a></div></div>
+      </section>
+
+      <section class="admin-view" data-admin-panel="matchday">
+        <div class="admin-page-intro"><div><div class="admin-eyebrow">OPERATIONS / SCHEDULING</div><h1>Matchday &amp; email</h1><p>Fixtures, recurring schedules, exceptions and team-wide reminders.</p></div></div>
+        <div class="admin-section-hero"><div class="admin-section-icon">▦</div><div><h2>Timetable and reminders</h2><p>Update fixture dates and kick-off times, configure recipients, skip dates or matches, and save the schedule.</p><a class="admin-primary-button" href="index.html#admin">OPEN MATCHDAY SETTINGS ↗</a></div></div>
+      </section>
+
+      <section class="admin-view" data-admin-panel="access">
+        <div class="admin-page-intro"><div><div class="admin-eyebrow">PERMISSIONS / TEAM CONTENT</div><h1>Team access</h1><p>Manage each team’s page-editor access without exposing competition settings.</p></div></div>
+        <div class="admin-section-hero"><div class="admin-section-icon">⌑</div><div><h2>Team editor permissions</h2><p>Check configured PINs or regenerate access in the authenticated admin workspace. Existing PINs remain hidden.</p><a class="admin-primary-button" href="index.html#admin">OPEN TEAM ACCESS ↗</a></div></div>
+      </section>
+
+      <section class="admin-view" data-admin-panel="console">
+        <div class="admin-page-intro"><div><div class="admin-eyebrow">DIAGNOSTICS / CLIENT</div><h1>System console</h1><p>Real connection checks and browser-side errors. No pretend server logs.</p></div><button class="admin-refresh-button" id="admin-clear-console" type="button">Clear events</button></div>
+        <div class="admin-console-toolbar"><span><i></i> LOCAL DIAGNOSTICS</span><span id="admin-console-count">0 EVENTS</span></div>
+        <div id="admin-console-output" class="admin-console-output" role="log" aria-live="polite"><div class="admin-console-line"><time>BOOT</time><span class="console-info">[INFO]</span><code>Control room initialised. Running API checks…</code></div></div>
+        <div class="admin-console-command"><span>›</span><input id="admin-console-input" type="text" autocomplete="off" spellcheck="false" placeholder="Type help, health, settings, or clear"><button id="admin-console-run" type="button">RUN</button></div>
+        <p class="admin-console-help">Commands: <code>help</code>, <code>health</code>, <code>settings</code>, <code>clear</code>. These are read-only checks; no destructive commands are available.</p>
+      </section>
+    </main>
+  </div>
+  <script src="admin.js?v=admin-control-room-20261024"></script>
+</body>
+</html>
