@@ -72,3 +72,49 @@
 .admin-fixture-highlight td{background:#332b19!important;transition:background .2s}
 @media(max-width:850px){.admin-calendar{padding:10px}.admin-calendar-day{min-height:88px;padding:5px}.admin-calendar-event{padding:4px}.admin-calendar-event small{display:none}.admin-calendar-event strong{font-size:8px}.admin-calendar-toolbar h3{font-size:21px}}
 @media(max-width:560px){.admin-calendar-toolbar{align-items:flex-start;flex-direction:column}.admin-calendar-day{min-height:60px;padding:4px 2px}.admin-calendar-weekdays span{font-size:8px;padding:8px 1px}.admin-calendar-day-number{font-size:9px;justify-content:center}.admin-calendar-day-number span{display:none}.admin-calendar-event{border-left-width:2px;padding:3px 2px}.admin-calendar-event-time{font-size:7px}.admin-calendar-event strong{font-size:7px}.admin-calendar-event small{display:none}.admin-calendar-more{font-size:7px;padding:0}}
+
+/* Matchday calendar */
+.admin-calendar{padding:17px;border:1px solid #263442;border-radius:13px;background:linear-gradient(145deg,#121b26,#0d141d);overflow:hidden}
+.admin-calendar-toolbar{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:20px}
+.admin-calendar-toolbar h3{margin:7px 0 5px;font-size:25px;letter-spacing:-.04em}
+.admin-calendar-toolbar p{margin:0;color:#8b9aac;font-size:11px}
+.admin-calendar-controls{display:flex;align-items:center;gap:6px}
+.admin-calendar-controls button{min-width:34px;height:34px;padding:0 10px;border:1px solid #304051;border-radius:8px;background:#17222e;color:#e4ebf3;font:inherit;font-size:13px;font-weight:800;cursor:pointer}
+.admin-calendar-controls button:hover{border-color:#7b6841;background:#222b34}
+.admin-calendar-controls button[data-calendar-today]{font-size:10px}
+.admin-calendar-weekdays,.admin-calendar-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr))}
+.admin-calendar-weekdays{border:1px solid #273544;border-bottom:0;border-radius:8px 8px 0 0;background:#111a24}
+.admin-calendar-weekdays span{padding:10px 5px;text-align:center;color:#8494a7;font-size:10px;font-weight:800;letter-spacing:.07em}
+.admin-calendar-grid{border-top:1px solid #273544;border-left:1px solid #273544}
+.admin-calendar-day{min-width:0;min-height:112px;padding:8px;border-right:1px solid #273544;border-bottom:1px solid #273544;background:#0e151e}
+.admin-calendar-day.is-empty{background:#0a1017}
+.admin-calendar-day.is-today{background:linear-gradient(145deg,#202a35,#121b25);box-shadow:inset 0 0 0 1px #b99a56}
+.admin-calendar-day-number{display:flex;align-items:center;justify-content:space-between;gap:4px;margin-bottom:7px;color:#b8c4d1;font-size:11px;font-weight:800}
+.admin-calendar-day.is-today .admin-calendar-day-number{color:#f0d99c}
+.admin-calendar-day-number span{color:#d9bd75;font-size:8px;letter-spacing:.08em}
+.admin-calendar-events{display:grid;gap:4px}
+.admin-calendar-event{display:grid;gap:3px;width:100%;min-width:0;padding:6px 7px;border:1px solid #31483f;border-left:3px solid #69b99b;border-radius:5px;background:#172820;color:#e1eee8;text-align:left;cursor:pointer}
+.admin-calendar-event:hover{background:#20382d;border-color:#75c9a8}
+.admin-calendar-event-time{color:#a3d6bf;font-size:9px;font-weight:800}
+.admin-calendar-event strong{font-size:9px;line-height:1.35;overflow-wrap:anywhere}
+.admin-calendar-event strong i{color:#91a69c;font-style:normal;font-weight:500}
+.admin-calendar-event small{color:#91a79b;font-size:8px;line-height:1.35;overflow-wrap:anywhere}
+.admin-calendar-event.is-disrupted{border-color:#6b4547;border-left-color:#d77c83;background:#2a1b20}
+.admin-calendar-event.is-disrupted .admin-calendar-event-time{color:#e9a0a4}
+.admin-calendar-more{padding:2px 3px;color:#b7c2ce;font-size:9px}
+.admin-calendar-legend{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;padding-top:13px;color:#8292a4;font-size:10px}
+.admin-calendar-legend span:first-child{display:flex;align-items:center;gap:7px}
+.admin-calendar-legend i{width:7px;height:7px;border-radius:50%;background:#69b99b}
+.admin-unscheduled-note{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:10px;padding:12px 14px;border:1px solid #3b3425;border-radius:8px;background:#19170f}
+.admin-unscheduled-note strong{color:#e4c982;font-size:11px}
+.admin-unscheduled-note span{color:#a69a7e;font-size:10px}
+.admin-fixture-editor{margin-top:14px;border:1px solid #263442;border-radius:10px;background:#101720}
+.admin-fixture-editor summary{padding:14px 16px;color:#d9c17f;font-size:11px;font-weight:850;cursor:pointer}
+.admin-fixture-editor .admin-timetable-table-wrap{padding:0 12px 12px}
+.admin-fixture-editor th{padding:10px 8px;text-align:left;color:#8b9bad;font-size:9px;letter-spacing:.06em;border-bottom:1px solid #2a3745}
+.admin-fixture-editor td{padding:8px;border-bottom:1px solid #202c38;color:#cbd5df;font-size:10px}
+.admin-fixture-editor tr:last-child td{border-bottom:0}
+.admin-fixture-editor .admin-input{min-width:110px;width:100%;box-sizing:border-box}
+.admin-fixture-highlight td{background:#332b19!important;transition:background .2s}
+@media(max-width:850px){.admin-calendar{padding:10px}.admin-calendar-day{min-height:88px;padding:5px}.admin-calendar-event{padding:4px}.admin-calendar-event small{display:none}.admin-calendar-event strong{font-size:8px}.admin-calendar-toolbar h3{font-size:21px}}
+@media(max-width:560px){.admin-calendar-toolbar{align-items:flex-start;flex-direction:column}.admin-calendar-day{min-height:60px;padding:4px 2px}.admin-calendar-weekdays span{font-size:8px;padding:8px 1px}.admin-calendar-day-number{font-size:9px;justify-content:center}.admin-calendar-day-number span{display:none}.admin-calendar-event{border-left-width:2px;padding:3px 2px}.admin-calendar-event-time{font-size:7px}.admin-calendar-event strong{font-size:7px}.admin-calendar-event small{display:none}.admin-calendar-more{font-size:7px;padding:0}}
