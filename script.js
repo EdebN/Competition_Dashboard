@@ -3496,7 +3496,7 @@ async function unlockTeamGateway() {
   const error = document.getElementById("teamGatewayError");
   const button = document.getElementById("teamGatewayUnlock");
   const pin = input?.value.trim() || "";
-  if (!/^\\d{6}$/.test(pin)) { if (error) error.textContent = "Enter the six-digit team PIN."; input?.focus(); return; }
+  if (!/^\d{6}$/.test(pin)) { if (error) error.textContent = "Enter the six-digit team PIN."; input?.focus(); return; }
   if (button) button.disabled = true;
   if (error) error.textContent = "Checking team PIN with Apps Script…";
   try {
