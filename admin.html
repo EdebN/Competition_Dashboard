@@ -102,10 +102,14 @@
 
       <section class="admin-view" data-admin-panel="console">
         <div class="admin-page-intro"><div><div class="admin-eyebrow">DIAGNOSTICS / CLIENT</div><h1>System console</h1><p>Real connection checks and browser-side errors. No pretend server logs.</p></div><button class="admin-refresh-button" id="admin-clear-console" type="button">Clear events</button></div>
-        <div class="admin-console-toolbar"><span><i></i> LOCAL DIAGNOSTICS</span><span id="admin-console-count">0 EVENTS</span></div>
-        <div id="admin-console-output" class="admin-console-output" role="log" aria-live="polite"><div class="admin-console-line"><time>BOOT</time><span class="console-info">[INFO]</span><code>Control room initialised. Running API checks…</code></div></div>
-        <div class="admin-console-command"><span>›</span><input id="admin-console-input" type="text" autocomplete="off" spellcheck="false" placeholder="Type help, health, settings, or clear"><button id="admin-console-run" type="button">RUN</button></div>
-        <p class="admin-console-help">Commands: <code>help</code>, <code>health</code>, <code>settings</code>, <code>clear</code>. These are read-only checks; no destructive commands are available.</p>
+        <div class="admin-terminal-frame">
+          <div class="admin-console-toolbar"><span><i></i> <b>TERMINAL</b> <span class="admin-terminal-host">admin@competition: ~</span></span><span id="admin-console-count">0 EVENTS</span></div>
+          <div class="admin-terminal-meta"><span>SESSION: <b>AUTHENTICATED</b></span><span>MODE: <b>READ-ONLY DIAGNOSTICS</b></span><span>BACKEND: <b>APPS SCRIPT</b></span></div>
+          <div id="admin-console-output" class="admin-console-output" role="log" aria-live="polite"><div class="admin-console-line"><time>BOOT</time><span class="console-info">[INFO]</span><code>Competition Dashboard terminal ready. Type 'help' to list commands.</code></div></div>
+          <div class="admin-console-command"><span class="admin-terminal-prompt">admin@competition:<b>~</b>$</span><input id="admin-console-input" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Terminal command" placeholder="help"><button id="admin-console-run" type="button">ENTER ↵</button></div>
+        </div>
+        <div class="admin-terminal-shortcuts"><span><kbd>↑</kbd><kbd>↓</kbd> command history</span><span><kbd>Enter</kbd> run command</span><span><kbd>Tab</kbd> complete command</span></div>
+        <p class="admin-console-help">Linux-inspired interface, not a real OS shell. Commands operate only on dashboard sections and diagnostics. No arbitrary code execution or destructive server commands.</p>
       </section>
     </main>
   </div>
