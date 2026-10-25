@@ -1,6 +1,6 @@
 const SERVICE_NAME = "competition-community-api";
 const API_VERSION = 1;
-const BUILD_ID = "2026-10-23-match-day-reminders";
+const BUILD_ID = "2026-10-25-matchday-email-test";
 
 // Keep the public action inventory in one place. The health endpoint and
 // POST allowlist both use these constants so they cannot silently drift apart.
@@ -50,7 +50,8 @@ const POST_ACTIONS = [
   "moderateSocialPost",
   "markSocialPostViewed",
   "setSocialPostingBan",
-  "saveMatchReminderSettings"
+  "saveMatchReminderSettings",
+  "sendMatchReminderTest"
 ];
 
 const API_ACTIONS = [...new Set([...GET_ACTIONS, ...POST_ACTIONS])];
@@ -306,6 +307,7 @@ function doPost(e) {
   if (body.action === "submitOfficialSocialPost") return submitOfficialSocialPost_(body);
   if (body.action === "createModerationSession") return requestModerationSession_(body);
   if (body.action === "createScoreEditorSession") return requestScoreEditorSession_(body);
+  if (body.action === "sendMatchReminderTest") return sendMatchReminderTest_(body);
   if (body.action === "submitMatchResult" && isScoreEditorSession_(body.scoreSessionToken)) return submitMatchResult_(body);
   if (["moderateSocialPost", "markSocialPostViewed", "setSocialPostingBan"].includes(body.action)) return handleSocialModeration_(body);
   if (body.action === "submitMatchVote") return submitMatchVote_(body);
@@ -1545,6 +1547,35 @@ function unsubscribeMatchRemindersPage_(teamId, token) {
   }catch(e){console.error(e);}
   const message=success?"Match-day reminders have been turned off for this team email address.":"This link is invalid, expired, or the preference could not be updated.";
   return HtmlService.createHtmlOutput('<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><title>Match reminders</title><style>body{font:16px system-ui,sans-serif;background:#0b0e13;color:#eef2f7;display:grid;place-items:center;min-height:90vh;margin:0;padding:20px}.card{max-width:440px;padding:28px;border:1px solid #283341;border-radius:16px;background:#121821}p{color:#aab5c3;line-height:1.6}</style></head><body><main class="card"><h1>Reminder preference updated</h1><p>'+message+'</p></main></body></html>').setTitle("Match reminders");
+}
+
+
+/**
+ * Sends one isolated test email to the address supplied by the authenticated admin.
+ * It never reads team recipient settings or changes reminder delivery markers.
+ */
+function sendMatchReminderTest_(body) {
+  if (!getModerationSession_(body.sessionToken)) {
+    return jsonResponse_({ok:false, action:"sendMatchReminderTest", error:"Admin session expired. Reload the admin panel and try again."});
+  }
+  const to = String(body.to || "").trim();
+  if (to.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(to)) {
+    return jsonResponse_({ok:false, action:"sendMatchReminderTest", error:"Enter a valid destination email address."});
+  }
+  try {
+    const now = Utilities.formatDate(new Date(), "Australia/Perth", "EEE d MMM yyyy, h:mm a");
+    MailApp.sendEmail({
+      to: to,
+      subject: "TEST: Competition Dashboard matchday email",
+      body: "This is a test email from the Competition Dashboard matchday reminder system.\n\nSent: " + now + " (Perth time)\n\nThis test was sent only to the address entered in the admin panel. No team contacts were emailed and no reminder delivery records were changed.",
+      htmlBody: '<div style="font-family:Arial,sans-serif;max-width:560px;margin:auto;color:#18202b"><p style="font-size:10px;letter-spacing:2px;color:#788596;font-weight:700">COMPETITION DASHBOARD</p><h1 style="font-size:24px">Email delivery test</h1><p>The matchday email service successfully processed a test message.</p><p><strong>Sent:</strong> ' + escapeEmailHtml_(now) + ' (Perth time)</p><p style="padding:12px 14px;background:#eef6f0;border-radius:8px;color:#285a3e">This message was sent only to the address entered in the admin panel. No team contacts were emailed, and no reminder delivery records were changed.</p></div>',
+      name: "Competition Dashboard"
+    });
+    return jsonResponse_({ok:true, action:"sendMatchReminderTest", sent:true});
+  } catch (error) {
+    console.error("Matchday test email failed: " + error);
+    return jsonResponse_({ok:false, action:"sendMatchReminderTest", error:"Could not send the test email. Check Apps Script execution logs and MailApp authorization."});
+  }
 }
 
 function sendMatchDayReminders() {
