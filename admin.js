@@ -354,7 +354,7 @@
     setStatus("admin-matchday-status","Loading timetable and reminder contacts…");
     try{
       if(!moderationToken)await createModerationSession();
-      const [settings,results,teamResponse]=await Promise.all([jsonp("getMatchReminderSettings",{sessionToken:moderationToken}),jsonp("getMatchResults"),jsonp("getTeamSettings")]);
+      const [settings,results,teamResponse,season]=await Promise.all([jsonp("getMatchReminderSettings",{sessionToken:moderationToken}),jsonp("getMatchResults"),jsonp("getTeamSettings"),jsonp("getCompetitionSettings")]);
       if(!settings?.ok)throw new Error(settings?.error||"Could not load reminder settings.");
       if(!results?.ok||!Array.isArray(results.results))throw new Error(results?.error||"Could not load fixture list.");
       reminderSettings=settings;
@@ -367,7 +367,12 @@
         for(const [id,name] of displayNameById){if(raw.toLowerCase()===name.toLowerCase())return name;if(raw.toLowerCase()===("team "+id).toLowerCase())return name;}
         return raw;
       };
-      const fixtures=results.results.map(m=>({...m,home:resolveTeamName(m.home),away:resolveTeamName(m.away)}));
+      const regularLimit=season?.ok&&Number.isFinite(Number(season.gamesPerTeam))?Math.max(0,Math.floor(Number(season.gamesPerTeam)*(teamResponse?.ok&&Array.isArray(teamResponse.teams)?teamResponse.teams.length:5)/2)):40;
+      const fixtures=results.results
+        .filter(m=>String(m.stage||"REGULAR").trim().toUpperCase()==="REGULAR")
+        .sort((a,b)=>Number(a.matchId)-Number(b.matchId))
+        .slice(0,regularLimit)
+        .map(m=>({...m,home:resolveTeamName(m.home),away:resolveTeamName(m.away)}));
       matchdayFixtures=fixtures;
       $("admin-timetable-calendar").innerHTML="";
       $("admin-timetable-fields").innerHTML='<details class="admin-fixture-editor"><summary>Edit fixture details</summary><div class="admin-timetable-table-wrap" style="overflow:auto"><table class="admin-timetable-table" style="width:100%;min-width:760px;border-collapse:collapse"><thead><tr><th>Game</th><th>Fixture</th><th>Date</th><th>Time</th><th>Venue</th><th>Status</th></tr></thead><tbody>'+fixtures.map(m=>{
