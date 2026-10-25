@@ -1,6 +1,6 @@
 const SERVICE_NAME = "competition-community-api";
 const API_VERSION = 1;
-const BUILD_ID = "2026-10-25-matchday-email-test";
+const BUILD_ID = "2026-10-26-matchday-email-diagnostics";
 
 // Keep the public action inventory in one place. The health endpoint and
 // POST allowlist both use these constants so they cannot silently drift apart.
@@ -1555,14 +1555,19 @@ function unsubscribeMatchRemindersPage_(teamId, token) {
  * It never reads team recipient settings or changes reminder delivery markers.
  */
 function sendMatchReminderTest_(body) {
-  if (!getModerationSession_(body.sessionToken)) {
-    return jsonResponse_({ok:false, action:"sendMatchReminderTest", error:"Admin session expired. Reload the admin panel and try again."});
-  }
-  const to = String(body.to || "").trim();
-  if (to.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(to)) {
-    return jsonResponse_({ok:false, action:"sendMatchReminderTest", error:"Enter a valid destination email address."});
-  }
+  Logger.log("[matchday-test] Handler entered.");
   try {
+    if (!getModerationSession_(body.sessionToken)) {
+      Logger.log("[matchday-test] Rejected: moderation session invalid or expired.");
+      return jsonResponse_({ok:false, action:"sendMatchReminderTest", error:"Admin session expired. Reload the admin panel and try again."});
+    }
+    Logger.log("[matchday-test] Moderation session validated.");
+    const to = String(body.to || "").trim();
+    if (to.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(to)) {
+      Logger.log("[matchday-test] Rejected: destination address failed validation.");
+      return jsonResponse_({ok:false, action:"sendMatchReminderTest", error:"Enter a valid destination email address."});
+    }
+    Logger.log("[matchday-test] Destination address validated; attempting MailApp.sendEmail.");
     const now = Utilities.formatDate(new Date(), "Australia/Perth", "EEE d MMM yyyy, h:mm a");
     MailApp.sendEmail({
       to: to,
@@ -1571,9 +1576,11 @@ function sendMatchReminderTest_(body) {
       htmlBody: '<div style="font-family:Arial,sans-serif;max-width:560px;margin:auto;color:#18202b"><p style="font-size:10px;letter-spacing:2px;color:#788596;font-weight:700">COMPETITION DASHBOARD</p><h1 style="font-size:24px">Email delivery test</h1><p>The matchday email service successfully processed a test message.</p><p><strong>Sent:</strong> ' + escapeEmailHtml_(now) + ' (Perth time)</p><p style="padding:12px 14px;background:#eef6f0;border-radius:8px;color:#285a3e">This message was sent only to the address entered in the admin panel. No team contacts were emailed, and no reminder delivery records were changed.</p></div>',
       name: "Competition Dashboard"
     });
+    Logger.log("[matchday-test] MailApp.sendEmail returned successfully.");
     return jsonResponse_({ok:true, action:"sendMatchReminderTest", sent:true});
   } catch (error) {
-    console.error("Matchday test email failed: " + error);
+    Logger.log("[matchday-test] FAILED: " + String(error && error.stack ? error.stack : error));
+    console.error("[matchday-test] FAILED: " + String(error && error.stack ? error.stack : error));
     return jsonResponse_({ok:false, action:"sendMatchReminderTest", error:"Could not send the test email. Check Apps Script execution logs and MailApp authorization."});
   }
 }
