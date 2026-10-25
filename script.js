@@ -3471,6 +3471,7 @@ async function unlockScoreGateway() {
     const health = await readCommunityApi("health");
     if (!health || health.ok !== true || health.service !== "competition-community-api") throw new Error("The expected Apps Script service did not respond.");
     if (!Array.isArray(health.actions) || !health.actions.includes("createScoreEditorSession") || !health.actions.includes("getScoreEditorSession")) throw new Error("Apps Script is missing the score-editor session actions. Deploy the current Code.gs.");
+    if (health.configuration && health.configuration.scoreEditorCode !== true) throw new Error("Score Entry is not configured. Add SCORE_EDITOR_CODE to Apps Script Script Properties.");
     await postCommunityAction({action:"createScoreEditorSession", scoreEditorCode:code, nonce});
     let session = null;
     let lastError = "";
