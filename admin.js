@@ -5,7 +5,7 @@
   const escapeHTML = value => String(value ?? "").replace(/[&<>"']/g, c => ({
     "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
   })[c]);
-  const API_URL = "https://script.google.com/macros/s/AKfycbw3i1OF12ctwmvbseZMPSwXUqyidM7Wg5WxnMj8doiLc6RQKkETxTk4ppm3dE6lptEv/exec";
+  const API_URL = "https://script.google.com/macros/s/AKfycbzauh8hHiM6XAjWDzg6LgaMnjAsPct-drw8pUTHpm4plN_2Kw7p8mSNj8P2gE0g2gBX/exec";
   const titles = {overview:"Overview",moderation:"Moderation",competition:"Competition",matchday:"Matchday & email",access:"Team access",bugs:"Bugs & reports",console:"System console"};
   const events = [];
   let clientErrors = 0;
