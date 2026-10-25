@@ -325,7 +325,7 @@
     button.disabled=true;setStatus("admin-session-plan-status","Applying the anchored class cycle and saving fixtures…");
     try{
       const groups=fixtureGroups(),planned=[],playedIds=playedFixtureIds(),savedRows=currentTimetableMap(matchdayFixtures);
-      groups.forEach((group,index)=>{const slot=sessionAt(index+1);group.forEach(m=>planned.push({matchId:Number(m.matchId),date:slot.date,time:slot.time,venue,status:"Scheduled"}));});
+      groups.forEach((group,index)=>{const slot=sessionAt(index);group.forEach(m=>planned.push({matchId:Number(m.matchId),date:slot.date,time:slot.time,venue,status:"Scheduled"}));});
       const ids=new Set(planned.map(x=>x.matchId));
       const extras=[...document.querySelectorAll("[data-timetable-row]")].filter(r=>!ids.has(Number(r.dataset.timetableRow))).map(r=>{const id=Number(r.dataset.timetableRow),old=savedRows.get(id)||{};return {matchId:id,date:r.querySelector("[data-fixture-date]").value||old.date||($("admin-session-start-date")?.value||""),time:r.querySelector("[data-fixture-time]").value||old.time||($("admin-session-b2-time")?.value||"13:35"),venue:r.querySelector("[data-fixture-venue]").value.trim()||old.venue||venue,status:playedIds.has(id)?"Played":r.querySelector("[data-fixture-status]").value};});
       const payload=[...planned,...extras].sort((a,b)=>a.matchId-b.matchId);
