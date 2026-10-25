@@ -281,12 +281,14 @@
   }
   function sessionPattern() {
     // Anchor the sequence to the first actual session, Week B Wednesday.
+    // Weekday controls remain adjustable relative to the standard cycle.
+    const a1=Number($("admin-session-a1-day")?.value??2),a2=Number($("admin-session-a2-day")?.value??4),b1=Number($("admin-session-b1-day")?.value??0);
     return [
       {offset:0,time:$("admin-session-b2-time")?.value||"13:35",label:"Week B · Session 2"},
-      {offset:7,time:$("admin-session-a1-time")?.value||"13:35",label:"Week A · Session 1"},
-      {offset:9,time:$("admin-session-a2-time")?.value||"12:05",label:"Week A · Session 2"},
-      {offset:12,time:$("admin-session-b1-time")?.value||"13:35",label:"Week B · Session 1"}
-    ];
+      {offset:7+a1-2,time:$("admin-session-a1-time")?.value||"13:35",label:"Week A · Session 1"},
+      {offset:7+a2-2,time:$("admin-session-a2-time")?.value||"12:05",label:"Week A · Session 2"},
+      {offset:14+b1-2,time:$("admin-session-b1-time")?.value||"13:35",label:"Week B · Session 1"}
+    ].sort((a,b)=>a.offset-b.offset);
   }
   function sessionAt(index) {
     const pattern=sessionPattern(),cycle=Math.floor(index/pattern.length),slot=pattern[index%pattern.length];
