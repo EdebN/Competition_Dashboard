@@ -2673,48 +2673,62 @@ function renderAdminPage() {
 
   if (!adminUnlocked) {
     page.innerHTML = `
-      <section class="card admin-card">
-        <div class="section-title">ADMINISTRATION</div>
-        <h2>Admin access</h2>
-        <div class="admin-lock">
-          <label class="admin-label" for="adminTokenInput">API ADMIN TOKEN</label>
-          <input
-            id="adminTokenInput"
-            class="admin-input"
-            type="password"
-            autocomplete="off"
-            autocapitalize="off"
-            spellcheck="false"
-            placeholder="Enter your API admin token"
-          >
-          <button class="admin-button" id="adminUnlock">OPEN ADMIN SETTINGS</button>
-          <div id="adminError" class="admin-error" role="status" aria-live="polite"></div>
-          <div class="admin-info">
-            The token stays in this page's memory only and is never saved to browser storage or included in the website code. The server checks it when you save shared settings.
-          </div>
-          <div class="admin-info">
-            ${communitySettingsLoaded
-              ? "Shared team settings connected."
-              : communitySettingsError
-                ? "Shared settings could not be loaded. Check the API connection."
-                : "Connecting to shared team settings…"}
-          </div>
-        </div>
+      <section class="teams-intro admin-gateway-intro">
+        <div class="section-title">RESTRICTED ACCESS</div>
+        <h1>Workspace sign-in</h1>
+        <p>Choose your role and authenticate with the credential issued for that workspace.</p>
       </section>
-      <section class="card admin-card admin-portal-links-card" aria-label="Separate team tools">
-        <div class="section-title">SEPARATE PORTALS</div>
-        <h2>Team tools</h2>
-        <p class="admin-info">These tools stay separate from competition administration and use their own access controls.</p>
-        <div class="admin-portal-entry">
-          <a class="admin-button page-access-studio" href="team-editor.html">OPEN TEAM EDITOR PORTAL ↗</a>
-          <a class="admin-button score-entry-portal" href="score-entry.html">OPEN SCORE ENTRY PORTAL ↗</a>
-        </div>
-      </section>
+      <div class="admin-gateway-grid">
+        <section class="card admin-card admin-gateway-card">
+          <div class="section-title">01 / ADMINISTRATOR</div>
+          <h2>Admin Control Room</h2>
+          <p class="admin-info">Full competition administration. Requires the private API admin token.</p>
+          <div class="admin-lock">
+            <label class="admin-label" for="adminTokenInput">API ADMIN TOKEN</label>
+            <input id="adminTokenInput" class="admin-input" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Enter API admin token">
+            <button class="admin-button" id="adminUnlock" type="button">OPEN ADMIN CONTROL ROOM ↗</button>
+            <div id="adminError" class="admin-error" role="status" aria-live="polite"></div>
+            <div class="admin-info">The token stays in page memory only. Apps Script verifies it before access is granted.</div>
+          </div>
+        </section>
+        <section class="card admin-card admin-gateway-card">
+          <div class="section-title">02 / SCORE EDITOR</div>
+          <h2>Score Entry</h2>
+          <p class="admin-info">Record official scores without granting access to competition administration.</p>
+          <div class="admin-lock">
+            <label class="admin-label" for="scoreEditorCodeInput">SCORE EDITOR CODE</label>
+            <input id="scoreEditorCodeInput" class="admin-input" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Enter score editor code">
+            <button class="admin-button" id="scoreGatewayUnlock" type="button">OPEN SCORE ENTRY ↗</button>
+            <div id="scoreGatewayError" class="admin-error" role="status" aria-live="polite"></div>
+            <div class="admin-info">Apps Script issues a separate, short-lived score-entry session.</div>
+          </div>
+        </section>
+        <section class="card admin-card admin-gateway-card">
+          <div class="section-title">03 / TEAM MANAGER</div>
+          <h2>Team Workspace</h2>
+          <p class="admin-info">Edit your team's page and posting tools. Access is limited to the team assigned to your PIN.</p>
+          <div class="admin-lock">
+            <label class="admin-label" for="teamGatewayPin">SIX-DIGIT TEAM PIN</label>
+            <input id="teamGatewayPin" class="admin-input" type="password" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="one-time-code" placeholder="Enter team PIN">
+            <button class="admin-button" id="teamGatewayUnlock" type="button">OPEN TEAM WORKSPACE ↗</button>
+            <div id="teamGatewayError" class="admin-error" role="status" aria-live="polite"></div>
+            <div class="admin-info">Apps Script identifies the team and issues a team-scoped session.</div>
+          </div>
+        </section>
+      </div>
     `;
 
     document.getElementById("adminUnlock").addEventListener("click", unlockAdmin);
     document.getElementById("adminTokenInput").addEventListener("keydown", event => {
       if (event.key === "Enter") unlockAdmin();
+    });
+    document.getElementById("scoreGatewayUnlock").addEventListener("click", unlockScoreGateway);
+    document.getElementById("scoreEditorCodeInput").addEventListener("keydown", event => {
+      if (event.key === "Enter") unlockScoreGateway();
+    });
+    document.getElementById("teamGatewayUnlock").addEventListener("click", unlockTeamGateway);
+    document.getElementById("teamGatewayPin").addEventListener("keydown", event => {
+      if (event.key === "Enter") unlockTeamGateway();
     });
     return;
   }
@@ -3444,6 +3458,64 @@ function initMatchReminderAdmin() {
   });
 }
 
+async function unlockScoreGateway() {
+  const input = document.getElementById("scoreEditorCodeInput");
+  const error = document.getElementById("scoreGatewayError");
+  const button = document.getElementById("scoreGatewayUnlock");
+  const code = input?.value.trim() || "";
+  if (!code) { if (error) error.textContent = "Enter the score editor code."; input?.focus(); return; }
+  if (button) button.disabled = true;
+  if (error) error.textContent = "Verifying score editor code with Apps Script…";
+  const nonce = Array.from(crypto.getRandomValues(new Uint8Array(24))).map(byte => byte.toString(16).padStart(2, "0")).join("");
+  try {
+    const health = await readCommunityApi("health");
+    if (!health || health.ok !== true || health.service !== "competition-community-api") throw new Error("The expected Apps Script service did not respond.");
+    if (!Array.isArray(health.actions) || !health.actions.includes("createScoreEditorSession") || !health.actions.includes("getScoreEditorSession")) throw new Error("Apps Script is missing the score-editor session actions. Deploy the current Code.gs.");
+    await postCommunityAction({action:"createScoreEditorSession", scoreEditorCode:code, nonce});
+    let session = null;
+    let lastError = "";
+    for (let attempt = 0; attempt < 8; attempt++) {
+      await new Promise(resolve => setTimeout(resolve, 350));
+      try {
+        session = await readCommunityApi("getScoreEditorSession", {nonce});
+        if (session?.ok && session.sessionToken) break;
+        if (session?.error && session.error !== "Session exchange pending. Try again.") { lastError = session.error; break; }
+      } catch (e) { lastError = e?.message || ""; }
+    }
+    if (!session?.ok || !session.sessionToken) throw new Error(lastError || "Score editor code was rejected or the session could not be created.");
+    sessionStorage.setItem("score-entry-session-token", session.sessionToken);
+    location.href = "score-entry.html";
+  } catch (e) {
+    if (error) error.textContent = e?.message || "Score Entry sign-in failed.";
+    if (button) button.disabled = false;
+  }
+}
+
+async function unlockTeamGateway() {
+  const input = document.getElementById("teamGatewayPin");
+  const error = document.getElementById("teamGatewayError");
+  const button = document.getElementById("teamGatewayUnlock");
+  const pin = input?.value.trim() || "";
+  if (!/^\\d{6}$/.test(pin)) { if (error) error.textContent = "Enter the six-digit team PIN."; input?.focus(); return; }
+  if (button) button.disabled = true;
+  if (error) error.textContent = "Checking team PIN with Apps Script…";
+  try {
+    const health = await readCommunityApi("health");
+    if (!health || health.ok !== true || health.service !== "competition-community-api") throw new Error("The expected Apps Script service did not respond.");
+    if (!Array.isArray(health.getActions) || !health.getActions.includes("verifyTeamEditorPin")) throw new Error("Apps Script is missing team PIN verification. Deploy the current Code.gs.");
+    const result = await readCommunityApi("verifyTeamEditorPin", {pin});
+    if (!result?.ok || !["A","B","C","D","E"].includes(result.teamId) || !/^[a-f0-9]{64}$/.test(String(result.sessionToken || ""))) {
+      throw new Error(result?.error || "Team PIN was not accepted.");
+    }
+    sessionStorage.setItem("team-editor-authorized-team", result.teamId);
+    sessionStorage.setItem("team-editor-session-token", result.sessionToken);
+    location.href = "team-workspace.html";
+  } catch (e) {
+    if (error) error.textContent = e?.message || "Team Workspace sign-in failed.";
+    if (button) button.disabled = false;
+  }
+}
+
 async function unlockAdmin() {
   const input = document.getElementById("adminTokenInput");
   const error = document.getElementById("adminError");
@@ -3509,7 +3581,8 @@ async function unlockAdmin() {
     }
 
     adminUnlocked = true;
-    renderAdminPage();
+    sessionStorage.setItem("admin-control-room-authorized", "yes");
+    location.href = "admin.html";
   } catch (err) {
     adminToken = "";
     adminUnlocked = false;
