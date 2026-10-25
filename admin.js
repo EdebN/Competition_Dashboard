@@ -417,6 +417,20 @@
     finally{button.disabled=false;}
   }
 
+  async function sendMatchdayTestEmail() {
+    const input=$("admin-matchday-test-email"),button=$("admin-matchday-test-send"),to=String(input?.value||"").trim();
+    if(!to||!input.checkValidity()){input?.reportValidity();return;}
+    button.disabled=true;setStatus("admin-matchday-test-status","Sending one test message to "+to+"…");
+    try{
+      if(!moderationToken)await createModerationSession();
+      await post({action:"sendMatchReminderTest",sessionToken:moderationToken,to});
+      await delay(900);
+      setStatus("admin-matchday-test-status","Test request sent to Apps Script. Check the inbox and spam folder for "+to+". No team contacts were emailed.");
+      log("INFO","Matchday test email requested for "+to+".");
+    }catch(e){setStatus("admin-matchday-test-status",e.message||"Could not send test email.","error");log("ERROR","Matchday test email failed: "+(e.message||e));}
+    finally{button.disabled=false;}
+  }
+
   async function loadTeamAccess() {
     setStatus("admin-access-status","Loading configured PIN status…");
     try{
@@ -543,6 +557,7 @@
   if($("admin-matchday-refresh"))$("admin-matchday-refresh").addEventListener("click",loadMatchday);
   if($("admin-access-refresh"))$("admin-access-refresh").addEventListener("click",loadTeamAccess);
   if($("admin-matchday-form"))$("admin-matchday-form").addEventListener("submit",saveMatchday);
+  if($("admin-matchday-test-send"))$("admin-matchday-test-send").addEventListener("click",sendMatchdayTestEmail);
   if($("admin-session-apply"))$("admin-session-apply").addEventListener("click",applySessionPlan);
   ["admin-session-games","admin-session-duration","admin-session-start-date","admin-session-venue","admin-session-a1-day","admin-session-a1-time","admin-session-a2-day","admin-session-a2-time","admin-session-b1-day","admin-session-b1-time","admin-session-b2-day","admin-session-b2-time"].forEach(id=>{const el=$(id);if(el)el.addEventListener("change",renderSessionList);});
   window.addEventListener("error",e=>{clientErrors++;log("ERROR","Browser error: "+(e.message||"Unknown error")+" ("+(e.filename||"unknown file")+":"+e.lineno+")");});
