@@ -312,7 +312,7 @@
   }
   async function applySessionPlan() {
     const button=$("admin-session-apply"),start=$("admin-session-start-date")?.value,venue=$("admin-session-venue")?.value.trim()||"",size=Number($("admin-session-games")?.value)||4,duration=Number($("admin-session-duration")?.value)||50;
-    if(!start||!Number.isInteger(size)||size<1||size>12||!Number.isInteger(duration)||duration<20||duration>120){setStatus("admin-session-plan-status","Set the Week A Monday date, 1–12 games per session and a session duration of 20–120 minutes.","error");return;}
+    if(!start||new Date(start+"T12:00:00").getDay()!==1||!Number.isInteger(size)||size<1||size>12||!Number.isInteger(duration)||duration<20||duration>120){setStatus("admin-session-plan-status","Choose a Monday for the start of Week A, 1–12 games per session and a session duration of 20–120 minutes.","error");return;}
     if(!matchdayFixtures.length){setStatus("admin-session-plan-status","No fixtures are available to schedule.","error");return;}
     button.disabled=true;setStatus("admin-session-plan-status","Applying the two-week class cycle and saving fixtures…");
     try{
