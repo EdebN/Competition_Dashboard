@@ -4,6 +4,8 @@
     document.body.innerHTML = '<main style="min-height:100vh;display:grid;place-items:center;padding:24px;background:#0b1119;color:#edf2f8;font:15px/1.6 system-ui,-apple-system,sans-serif"><section style="width:min(100%,520px);padding:32px;border:1px solid #293747;border-radius:20px;background:#111b27;box-shadow:0 24px 80px #0005"><p style="margin:0 0 8px;color:#d9b65f;font-size:11px;font-weight:800;letter-spacing:.16em">RESTRICTED WORKSPACE</p><h1 style="margin:0;font-size:32px">Admin sign-in required</h1><p style="color:#aab8c8">The Control Room is not available from a direct public link. Sign in through the normal Competition Dashboard using the API admin token.</p><a href="index.html#admin" style="display:inline-flex;margin-top:12px;padding:13px 16px;border-radius:10px;background:#dfbd69;color:#151a20;font-weight:850;text-decoration:none">OPEN DASHBOARD SIGN-IN ↗</a></section></main>';
     return;
   }
+  const controlRoom = document.querySelector(".admin-shell");
+  if (controlRoom) controlRoom.style.visibility = "visible";
   const API_URL = "https://script.google.com/macros/s/AKfycbw77wOi2EhaSUkWHwiyowOIFieZqlNCFkDO-s6AUa5X63jbDs5m6n8F0lrsjIouwfHC/exec";
   const titles = {overview:"Overview",moderation:"Moderation",competition:"Competition",matchday:"Matchday & email",access:"Team access",bugs:"Bugs & reports",console:"System console"};
   const events = [];
