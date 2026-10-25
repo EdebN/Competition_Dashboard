@@ -1,7 +1,7 @@
 /* Shared display-name lookup for standalone team tools.
    Team A–E remain stable internal IDs; only labels are replaced. */
 (function () {
-  const API = "https://script.google.com/macros/s/AKfycbzWgyZHeqJEk6AzNBqX8rHA92vUK7fVdVpRapstD4Homh6oBRmW0Zn7NycMSHVO5RSJ/exec";
+  const API = "https://script.google.com/macros/s/AKfycbxwX1d-8ouPGgFv7pMSBHkenyZ20f8EXFX3Ns9UMjrEgIR8RQKgRKHM7y2HYonfJlDC/exec";
   const fallback = Object.fromEntries(["A","B","C","D","E"].map(id => [id, "Team " + id]));
   window.CompetitionTeamNames = { ...fallback };
   window.getCompetitionTeamDisplayName = function (id) {
