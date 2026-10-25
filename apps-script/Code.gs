@@ -1503,7 +1503,7 @@ function saveMatchReminderSettings_(body) {
     const dateParts=date.split("-");if(date&&(dateParts.length!==3||dateParts[0].length!==4||dateParts[1].length!==2||dateParts[2].length!==2||dateParts.some(part=>!part.split("").every(ch=>ch>="0"&&ch<="9"))))return jsonResponse_({ok:false,error:"Dates must use YYYY-MM-DD."});
     const timeParts=time.split(":");if(time&&(timeParts.length!==2||timeParts[0].length!==2||timeParts[1].length!==2||timeParts.some(part=>!part.split("").every(ch=>ch>="0"&&ch<="9"))||Number(timeParts[0])>23||Number(timeParts[1])>59))return jsonResponse_({ok:false,error:"Times must use 24-hour HH:MM format."});
     if(Boolean(date)!==Boolean(time))return jsonResponse_({ok:false,error:"Each fixture needs both date and time, or neither."});
-    if(!["Scheduled","Postponed","Cancelled","Unscheduled","Skipped"].includes(status))return jsonResponse_({ok:false,error:"Invalid fixture status."});
+    if(!["Scheduled","Postponed","Cancelled","Unscheduled","Skipped","Played"].includes(status))return jsonResponse_({ok:false,error:"Invalid fixture status."});
     if(status==="Scheduled"&&(!date||!time))status="Unscheduled";
     clean.push({id,date,time,venue,status,sent:sent[id]||{home:"",away:""}});
   }
