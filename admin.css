@@ -148,3 +148,30 @@
 .admin-cycle-week .admin-input{width:100%;min-width:0}
 @media(max-width:760px){.admin-cycle-grid{grid-template-columns:1fr}.admin-cycle-week{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:440px){.admin-cycle-week{grid-template-columns:1fr}.admin-cycle-week h4{grid-column:auto}}
+
+
+/* Linux-inspired terminal treatment */
+.admin-terminal-frame{overflow:hidden;border:1px solid #2b3947;border-radius:12px;background:#070b10;box-shadow:0 18px 60px #0003}
+.admin-terminal-frame .admin-console-toolbar{align-items:center;min-height:43px;box-sizing:border-box;background:#151e28;border:0;border-bottom:1px solid #263342;border-radius:0}
+.admin-console-toolbar b{color:#e0e8f1;font-size:10px;letter-spacing:.12em}
+.admin-terminal-host{margin-left:8px;padding-left:10px;border-left:1px solid #354251;color:#8192a4;font-weight:500;letter-spacing:0}
+.admin-terminal-meta{display:flex;gap:18px;flex-wrap:wrap;padding:9px 14px;background:#0d141c;border-bottom:1px solid #1b2835;color:#66798c;font:9px ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.06em}
+.admin-terminal-meta b{color:#8bcbb0;font-weight:700}
+.admin-terminal-frame .admin-console-output{height:min(55vh,560px);border:0;border-radius:0;background:radial-gradient(ellipse at 15% 0%,#101a22 0,transparent 50%),#080d12;padding:18px 16px;box-sizing:border-box}
+.admin-terminal-frame .admin-console-line{grid-template-columns:70px 62px minmax(0,1fr);gap:10px;margin-bottom:7px;font-size:12px}
+.admin-terminal-frame .admin-console-line time{font-size:10px;padding-top:2px}
+.admin-terminal-frame .admin-console-line code{color:#c8d5df}
+.admin-terminal-frame .admin-console-line .console-info{color:#78d6a8}
+.admin-terminal-frame .admin-console-line .console-warn{color:#e8c16f}
+.admin-terminal-frame .admin-console-line .console-error{color:#ff858c}
+.admin-terminal-frame .admin-console-command{min-height:52px;box-sizing:border-box;gap:12px;border:0;border-top:1px solid #253341;border-radius:0;background:#101821;padding:12px 15px}
+.admin-terminal-prompt{flex:0 0 auto;color:#77d6a7;font:12px ui-monospace,SFMono-Regular,Menlo,monospace;white-space:nowrap}
+.admin-terminal-prompt b{color:#d7c17f;font-weight:600}
+.admin-terminal-frame .admin-console-command input{font-size:12px;caret-color:#80e0b0}
+.admin-terminal-frame .admin-console-command input::placeholder{color:#506174}
+.admin-terminal-frame .admin-console-command button{padding:8px 12px;border-color:#3a514c;background:#172a27;color:#9ee0c2;letter-spacing:.04em}
+.admin-terminal-frame .admin-console-command button:hover{background:#203a33}
+.admin-terminal-shortcuts{display:flex;flex-wrap:wrap;gap:17px;margin:10px 0;color:#78899a;font-size:10px}
+.admin-terminal-shortcuts span{display:flex;align-items:center;gap:5px}
+.admin-terminal-shortcuts kbd{min-width:17px;padding:2px 4px;text-align:center;border:1px solid #344252;border-radius:4px;background:#151f2a;color:#c1cbd5;font:10px ui-monospace,SFMono-Regular,Menlo,monospace}
+@media(max-width:560px){.admin-terminal-meta{gap:7px 12px;font-size:8px}.admin-terminal-host{display:none}.admin-terminal-frame .admin-console-output{height:48vh;padding:13px 10px}.admin-terminal-frame .admin-console-line{grid-template-columns:45px 49px minmax(0,1fr);gap:5px;font-size:10px}.admin-terminal-frame .admin-console-line time{font-size:9px}.admin-terminal-prompt{font-size:10px}.admin-terminal-frame .admin-console-command{gap:7px;padding:10px}.admin-terminal-frame .admin-console-command button{padding:7px 8px;font-size:8px}.admin-terminal-shortcuts{gap:8px 12px}}
