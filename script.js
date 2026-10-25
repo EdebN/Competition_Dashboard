@@ -3582,6 +3582,9 @@ async function unlockAdmin() {
     }
 
     adminUnlocked = true;
+    // One-time same-tab handoff: admin.js consumes and deletes this immediately.
+    // The token is not retained in localStorage or persisted beyond this page transition.
+    sessionStorage.setItem("admin-control-room-token", token);
     sessionStorage.setItem("admin-control-room-authorized", "yes");
     location.href = "admin.html";
   } catch (err) {
