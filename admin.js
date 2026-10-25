@@ -230,6 +230,7 @@
   async function loadMatchday() {
     setStatus("admin-matchday-status","Loading timetable and reminder contacts…");
     try{
+      if(!moderationToken)await createModerationSession();
       const [settings,results]=await Promise.all([jsonp("getMatchReminderSettings",{sessionToken:moderationToken}),jsonp("getMatchResults")]);
       if(!settings?.ok)throw new Error(settings?.error||"Could not load reminder settings.");
       if(!results?.ok||!Array.isArray(results.results))throw new Error(results?.error||"Could not load fixture list.");
@@ -249,7 +250,7 @@
       const matchId=Number(row.dataset.timetableRow);
       return {matchId,date:row.querySelector("[data-fixture-date]").value,time:row.querySelector("[data-fixture-time]").value,venue:row.querySelector("[data-fixture-venue]").value.trim(),status:row.querySelector("[data-fixture-status]").value};
     });
-    const contacts=["A","B","C","D","E"].map(teamId=>({teamId,emails:$('[data-contact-emails="'+teamId+'"]').value.split(/[\n,;]+/).map(x=>x.trim()).filter(Boolean),enabled:$('[data-contact-enabled="'+teamId+'"]').checked}));
+    const contacts=["A","B","C","D","E"].map(teamId=>({teamId,emails:document.querySelector('[data-contact-emails="'+teamId+'"]').value.split(/[\n,;]+/).map(x=>x.trim()).filter(Boolean),enabled:document.querySelector('[data-contact-enabled="'+teamId+'"]').checked}));
     const button=$("admin-matchday-form").querySelector('button[type="submit"]');button.disabled=true;setStatus("admin-matchday-status","Saving timetable and recipients…");
     try{
       await post({action:"saveMatchReminderSettings",adminToken,timetable:fixtures,contacts});
