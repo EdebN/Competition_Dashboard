@@ -275,7 +275,9 @@
     d.setDate(d.getDate()+days);return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
   }
   function playedFixtureIds() {
-    return new Set([...matchdayFixtures].sort((a,b)=>Number(a.matchId)-Number(b.matchId)).slice(0,4).map(m=>Number(m.matchId)));
+    // Only the opening Team A vs Team B fixture is already complete.
+    const first=[...matchdayFixtures].sort((a,b)=>Number(a.matchId)-Number(b.matchId))[0];
+    return new Set(first?[Number(first.matchId)]:[]);
   }
   function fixtureGroups() {
     const size=Math.max(1,Math.min(12,Number($("admin-session-games")?.value)||4));
@@ -330,7 +332,7 @@
       payload.forEach(v=>{const r=$("admin-timetable-fields").querySelector('[data-timetable-row="'+v.matchId+'"]');if(r){r.querySelector("[data-fixture-date]").value=v.date;r.querySelector("[data-fixture-time]").value=v.time;r.querySelector("[data-fixture-venue]").value=v.venue;r.querySelector("[data-fixture-status]").value=v.status;}});
       await persistTimetableOnly(payload,"Anchored class timetable saved: "+groups.length+" sessions, up to "+size+" games per session.");
       renderMatchdayCalendar(matchdayFixtures,currentTimetableMap(matchdayFixtures));renderSessionList();
-      setStatus("admin-session-plan-status","Saved "+groups.length+" sessions from the first-session anchor. First four fixtures marked Played. Session duration: "+duration+" minutes.");
+      setStatus("admin-session-plan-status","Saved "+groups.length+" sessions from the first-session anchor. Opening fixture marked Played. Session duration: "+duration+" minutes.");
     }catch(e){setStatus("admin-session-plan-status",e.message,"error");setStatus("admin-matchday-status",e.message,"error");log("ERROR","Session plan failed: "+e.message);}
     finally{button.disabled=false;}
   }
