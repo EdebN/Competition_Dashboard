@@ -227,6 +227,47 @@
     catch(e){setStatus("admin-moderation-status",e.message,"error");}finally{button.disabled=false;}
   }
 
+  let calendarMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+  function renderMatchdayCalendar(fixtures, saved) {
+    const host = $("admin-timetable-fields");
+    const year = calendarMonth.getFullYear(), month = calendarMonth.getMonth();
+    const first = new Date(year, month, 1), startOffset = (first.getDay() + 6) % 7;
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const monthLabel = calendarMonth.toLocaleDateString(undefined, {month:"long",year:"numeric"});
+    const byDate = new Map();
+    let unscheduled = 0;
+    fixtures.forEach(m => {
+      const id = Number(m.matchId), v = saved.get(id) || {};
+      if (!v.date || !/^\\d{4}-\\d{2}-\\d{2}$/.test(v.date)) { unscheduled++; return; }
+      if (!byDate.has(v.date)) byDate.set(v.date, []);
+      byDate.get(v.date).push({match:m,details:v});
+    });
+    const cells = [];
+    for (let i=0;i<startOffset;i++) cells.push('<div class="admin-calendar-day is-empty" aria-hidden="true"></div>');
+    for (let day=1;day<=daysInMonth;day++) {
+      const date = year+"-"+String(month+1).padStart(2,"0")+"-"+String(day).padStart(2,"0");
+      const items = (byDate.get(date)||[]).sort((a,b)=>String(a.details.time||"").localeCompare(String(b.details.time||"")));
+      const today = date === new Date().getFullYear()+"-"+String(new Date().getMonth()+1).padStart(2,"0")+"-"+String(new Date().getDate()).padStart(2,"0");
+      const eventsHTML = items.slice(0,3).map(({match,details}) => '<button type="button" class="admin-calendar-event '+(details.status==="Postponed"||details.status==="Cancelled"?"is-disrupted":"")+'" data-calendar-match="'+Number(match.matchId)+'"><span class="admin-calendar-event-time">'+escapeHTML(details.time||"Time TBC")+'</span><strong>'+escapeHTML(match.home||"Home")+' <i>vs</i> '+escapeHTML(match.away||"Away")+'</strong><small>'+escapeHTML(details.venue||"Venue TBC")+'</small></button>').join("");
+      cells.push('<div class="admin-calendar-day'+(today?' is-today':'')+'" data-calendar-date="'+date+'"><div class="admin-calendar-day-number">'+day+(today?'<span>TODAY</span>':"")+'</div><div class="admin-calendar-events">'+eventsHTML+(items.length>3?'<span class="admin-calendar-more">+'+(items.length-3)+' more</span>':"")+'</div></div>');
+    }
+    while(cells.length%7) cells.push('<div class="admin-calendar-day is-empty" aria-hidden="true"></div>');
+    host.innerHTML = '<div class="admin-calendar"><div class="admin-calendar-toolbar"><div><span class="admin-eyebrow">FIXTURE CALENDAR</span><h3>'+escapeHTML(monthLabel)+'</h3><p>'+fixtures.length+' fixtures · '+(fixtures.length-unscheduled)+' scheduled · '+unscheduled+' unscheduled</p></div><div class="admin-calendar-controls"><button type="button" data-calendar-nav="-1" aria-label="Previous month">‹</button><button type="button" data-calendar-today>Today</button><button type="button" data-calendar-nav="1" aria-label="Next month">›</button></div></div><div class="admin-calendar-weekdays">'+["Mon","Tue","Wed","Thu","Fri","Sat","Sun"].map(d=>'<span>'+d+'</span>').join("")+'</div><div class="admin-calendar-grid">'+cells.join("")+'</div><div class="admin-calendar-legend"><span><i></i> Scheduled fixture</span><span>Click a fixture to edit its details below</span></div></div><div class="admin-unscheduled-note"><strong>'+unscheduled+' unscheduled fixture'+(unscheduled===1?'':'s')+'</strong><span>Assign dates in “Edit fixture details” to place them on the calendar.</span></div>';
+    host.querySelectorAll("[data-calendar-nav]").forEach(button=>button.addEventListener("click",()=>{calendarMonth=new Date(year,month+Number(button.dataset.calendarNav),1);renderMatchdayCalendar(fixtures,currentTimetableMap(fixtures));}));
+    const todayButton=host.querySelector("[data-calendar-today]");
+    if(todayButton)todayButton.addEventListener("click",()=>{calendarMonth=new Date(new Date().getFullYear(),new Date().getMonth(),1);renderMatchdayCalendar(fixtures,currentTimetableMap(fixtures));});
+    host.querySelectorAll("[data-calendar-match]").forEach(button=>button.addEventListener("click",()=>{
+      const row=host.querySelector('[data-timetable-row="'+Number(button.dataset.calendarMatch)+'"]');
+      if(row){const details=row.closest("details");if(details)details.open=true;row.scrollIntoView({behavior:"smooth",block:"center"});row.classList.add("admin-fixture-highlight");setTimeout(()=>row.classList.remove("admin-fixture-highlight"),1800);}
+    }));
+  }
+  function currentTimetableMap(fixtures) {
+    return new Map(fixtures.map(m=>{
+      const id=Number(m.matchId),row=$("admin-timetable-fields")?.querySelector('[data-timetable-row="'+id+'"]');
+      return [id,row?{date:row.querySelector("[data-fixture-date]").value,time:row.querySelector("[data-fixture-time]").value,venue:row.querySelector("[data-fixture-venue]").value,status:row.querySelector("[data-fixture-status]").value}:{}];
+    }));
+  }
+
   async function loadMatchday() {
     setStatus("admin-matchday-status","Loading timetable and reminder contacts…");
     try{
@@ -237,10 +278,12 @@
       reminderSettings=settings;
       const saved=new Map((settings.timetable||[]).map(x=>[Number(x.matchId),x]));
       const fixtures=results.results;
-      $("admin-timetable-fields").innerHTML='<div class="admin-timetable-table-wrap" style="overflow:auto"><table class="admin-timetable-table" style="width:100%;min-width:760px;border-collapse:collapse"><thead><tr><th>Game</th><th>Fixture</th><th>Date</th><th>Time</th><th>Venue</th><th>Status</th></tr></thead><tbody>'+fixtures.map(m=>{
+      renderMatchdayCalendar(fixtures, saved);
+      $("admin-timetable-fields").insertAdjacentHTML("beforeend", '<details class="admin-fixture-editor"><summary>Edit fixture details</summary><div class="admin-timetable-table-wrap" style="overflow:auto"><table class="admin-timetable-table" style="width:100%;min-width:760px;border-collapse:collapse"><thead><tr><th>Game</th><th>Fixture</th><th>Date</th><th>Time</th><th>Venue</th><th>Status</th></tr></thead><tbody>'+fixtures.map(m=>{
         const id=Number(m.matchId),v=saved.get(id)||{date:"",time:"",venue:"",status:"Unscheduled"};
         return '<tr data-timetable-row="'+id+'"><td>'+id+'</td><td>'+escapeHTML(m.home||"Home")+' vs '+escapeHTML(m.away||"Away")+'</td><td><input class="admin-input" type="date" data-fixture-date="'+id+'" value="'+escapeHTML(v.date||"")+'"></td><td><input class="admin-input" type="time" data-fixture-time="'+id+'" value="'+escapeHTML(v.time||"")+'"></td><td><input class="admin-input" data-fixture-venue="'+id+'" maxlength="120" value="'+escapeHTML(v.venue||"")+'" placeholder="Venue"></td><td><select class="admin-input" data-fixture-status="'+id+'">'+["Unscheduled","Scheduled","Postponed","Cancelled","Skipped"].map(st=>'<option'+(st===(v.status||"Unscheduled")?' selected':'')+'>'+st+'</option>').join("")+'</select></td></tr>';
-      }).join("")+'</tbody></table></div>';
+      }).join("")+'</tbody></table></div></details>');
+      $("admin-timetable-fields").querySelectorAll("[data-fixture-date]").forEach(input=>input.addEventListener("change",()=>renderMatchdayCalendar(fixtures, new Map(fixtures.map(m=>{const row=$("admin-timetable-fields").querySelector('[data-timetable-row="'+Number(m.matchId)+'"]');return [Number(m.matchId),{date:row.querySelector("[data-fixture-date]").value,time:row.querySelector("[data-fixture-time]").value,venue:row.querySelector("[data-fixture-venue]").value,status:row.querySelector("[data-fixture-status]").value}]}))));
       $("admin-reminder-contact-fields").innerHTML=(settings.contacts||[]).map(c=>'<div class="admin-panel-card" style="margin:10px 0"><label>Team '+escapeHTML(c.teamId)+' email addresses<textarea class="admin-input" data-contact-emails="'+escapeHTML(c.teamId)+'" rows="3" placeholder="one@example.com, another@example.com">'+escapeHTML((c.emails||[]).join("\n"))+'</textarea></label><label style="display:flex;gap:8px;align-items:center;margin-top:8px"><input type="checkbox" data-contact-enabled="'+escapeHTML(c.teamId)+'" '+(c.enabled?'checked':'')+'> Send match-day reminders to this team</label></div>').join("");
       setStatus("admin-matchday-status","Loaded "+fixtures.length+" fixtures and five team contact settings.");
     }catch(e){setStatus("admin-matchday-status",e.message,"error");log("ERROR","Matchday settings failed: "+e.message);}
