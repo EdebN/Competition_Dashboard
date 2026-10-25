@@ -275,7 +275,7 @@
     d.setDate(d.getDate()+days);return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
   }
   function fixtureGroups() {
-    const size=Math.max(1,Math.min(12,Number($("admin-session-games")?.value)||4));
+    const size=Math.max(1,Math.min(12,Number($("admin-session-games")?.value)||1));
     const sorted=[...matchdayFixtures].sort((a,b)=>Number(a.matchId)-Number(b.matchId)),groups=[];
     for(let i=0;i<sorted.length;i+=size)groups.push(sorted.slice(i,i+size));return groups;
   }
@@ -313,7 +313,7 @@
     setStatus("admin-matchday-status",message);log("INFO",message);
   }
   async function applySessionPlan() {
-    const button=$("admin-session-apply"),start=$("admin-session-start-date")?.value,venue=$("admin-session-venue")?.value.trim()||"",size=Number($("admin-session-games")?.value)||4,duration=Number($("admin-session-duration")?.value)||50;
+    const button=$("admin-session-apply"),start=$("admin-session-start-date")?.value,venue=$("admin-session-venue")?.value.trim()||"",size=Number($("admin-session-games")?.value)||1,duration=Number($("admin-session-duration")?.value)||50;
     if(!start||Number.isNaN(new Date(start+"T12:00:00").getTime())||!Number.isInteger(size)||size<1||size>12||!Number.isInteger(duration)||duration<20||duration>120){setStatus("admin-session-plan-status","Choose the first session date, 1–12 games per session and a session duration of 20–120 minutes.","error");return;}
     if(!matchdayFixtures.length){setStatus("admin-session-plan-status","No fixtures are available to schedule.","error");return;}
     button.disabled=true;setStatus("admin-session-plan-status","Applying the anchored class cycle and saving fixtures…");
