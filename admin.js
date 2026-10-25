@@ -272,12 +272,20 @@
     setStatus("admin-matchday-status","Loading timetable and reminder contacts…");
     try{
       if(!moderationToken)await createModerationSession();
-      const [settings,results]=await Promise.all([jsonp("getMatchReminderSettings",{sessionToken:moderationToken}),jsonp("getMatchResults")]);
+      const [settings,results,teamResponse]=await Promise.all([jsonp("getMatchReminderSettings",{sessionToken:moderationToken}),jsonp("getMatchResults"),jsonp("getTeamSettings")]);
       if(!settings?.ok)throw new Error(settings?.error||"Could not load reminder settings.");
       if(!results?.ok||!Array.isArray(results.results))throw new Error(results?.error||"Could not load fixture list.");
       reminderSettings=settings;
       const saved=new Map((settings.timetable||[]).map(x=>[Number(x.matchId),x]));
-      const fixtures=results.results;
+      const displayNameById=new Map((teamResponse?.ok&&Array.isArray(teamResponse.teams)?teamResponse.teams:[]).map(t=>[String(t.teamId||"").trim().toUpperCase(),String(t.displayName||"").trim()]).filter(([id,name])=>id&&name));
+      const resolveTeamName=value=>{
+        const raw=String(value||"").trim();
+        const match=raw.match(/^(?:team\\s*)?([A-E])$/i);
+        if(match&&displayNameById.has(match[1].toUpperCase()))return displayNameById.get(match[1].toUpperCase());
+        for(const [id,name] of displayNameById){if(raw.toLowerCase()===name.toLowerCase())return name;if(raw.toLowerCase()===("team "+id).toLowerCase())return name;}
+        return raw;
+      };
+      const fixtures=results.results.map(m=>({...m,home:resolveTeamName(m.home),away:resolveTeamName(m.away)}));
       $("admin-timetable-calendar").innerHTML="";
       $("admin-timetable-fields").innerHTML='<details class="admin-fixture-editor"><summary>Edit fixture details</summary><div class="admin-timetable-table-wrap" style="overflow:auto"><table class="admin-timetable-table" style="width:100%;min-width:760px;border-collapse:collapse"><thead><tr><th>Game</th><th>Fixture</th><th>Date</th><th>Time</th><th>Venue</th><th>Status</th></tr></thead><tbody>'+fixtures.map(m=>{
         const id=Number(m.matchId),v=saved.get(id)||{date:"",time:"",venue:"",status:"Unscheduled"};
