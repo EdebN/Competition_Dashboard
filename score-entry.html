@@ -201,8 +201,14 @@ async function save(){
  }catch(e){status("saveStatus",e.message==="Could not confirm the save. Refresh before trying again."?e.message:"Could not save score. Refresh and try again.","bad");}
  finally{$("save").disabled=false;}
 }
-function lock(){scoreSessionToken="";$("code").value="";$("entryPanel").classList.add("hidden");$("loginPanel").classList.remove("hidden");status("loginStatus","Portal locked.");}
+function lock(){scoreSessionToken="";sessionStorage.removeItem("score-entry-session-token");$("code").value="";$("entryPanel").classList.add("hidden");$("loginPanel").classList.remove("hidden");status("loginStatus","Portal locked.");}
 $("unlock").addEventListener("click",unlock);$("code").addEventListener("keydown",e=>{if(e.key==="Enter")unlock();});$("fixture").addEventListener("change",fillScores);$("save").addEventListener("click",save);$("refresh").addEventListener("click",()=>loadData().catch(()=>status("saveStatus","Could not load matches. Refresh and try again.","bad")));$("lock").addEventListener("click",lock);
+const gatewaySession=sessionStorage.getItem("score-entry-session-token");
+if(/^[a-f0-9]{64}$/.test(gatewaySession||"")){
+ sessionStorage.removeItem("score-entry-session-token");scoreSessionToken=gatewaySession;
+ $("loginPanel").classList.add("hidden");$("entryPanel").classList.remove("hidden");
+ loadData().catch(()=>status("saveStatus","Signed in, but match data could not be loaded. Refresh and try again.","bad"));
+}
 </script>
 <script src="team-names.js"></script>
 <script src="image-editor.js"></script>
