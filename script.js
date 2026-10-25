@@ -2701,6 +2701,15 @@ function renderAdminPage() {
           </div>
         </div>
       </section>
+      <section class="card admin-card admin-portal-links-card" aria-label="Separate team tools">
+        <div class="section-title">SEPARATE PORTALS</div>
+        <h2>Team tools</h2>
+        <p class="admin-info">These tools stay separate from competition administration and use their own access controls.</p>
+        <div class="admin-portal-entry">
+          <a class="admin-button page-access-studio" href="team-editor.html">OPEN TEAM EDITOR PORTAL ↗</a>
+          <a class="admin-button score-entry-portal" href="score-entry.html">OPEN SCORE ENTRY PORTAL ↗</a>
+        </div>
+      </section>
     `;
 
     document.getElementById("adminUnlock").addEventListener("click", unlockAdmin);
