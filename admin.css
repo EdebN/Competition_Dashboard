@@ -118,3 +118,21 @@
 .admin-fixture-highlight td{background:#332b19!important;transition:background .2s}
 @media(max-width:850px){.admin-calendar{padding:10px}.admin-calendar-day{min-height:88px;padding:5px}.admin-calendar-event{padding:4px}.admin-calendar-event small{display:none}.admin-calendar-event strong{font-size:8px}.admin-calendar-toolbar h3{font-size:21px}}
 @media(max-width:560px){.admin-calendar-toolbar{align-items:flex-start;flex-direction:column}.admin-calendar-day{min-height:60px;padding:4px 2px}.admin-calendar-weekdays span{font-size:8px;padding:8px 1px}.admin-calendar-day-number{font-size:9px;justify-content:center}.admin-calendar-day-number span{display:none}.admin-calendar-event{border-left-width:2px;padding:3px 2px}.admin-calendar-event-time{font-size:7px}.admin-calendar-event strong{font-size:7px}.admin-calendar-event small{display:none}.admin-calendar-more{font-size:7px;padding:0}}
+
+/* Class session planner */
+.admin-session-planner{margin:0 0 18px;padding:16px;border:1px solid #2b3948;border-radius:12px;background:#101923}
+.admin-session-planner-head h3{margin:6px 0;font-size:18px;letter-spacing:-.025em}
+.admin-session-planner-head p{margin:0 0 14px;color:#93a2b4;font-size:11px;line-height:1.6;max-width:780px}
+.admin-session-plan-controls{display:grid;grid-template-columns:repeat(5,minmax(100px,1fr));gap:10px;align-items:end}
+.admin-session-plan-controls label{display:grid;gap:6px;color:#aab8c8;font-size:10px;font-weight:750}
+.admin-session-plan-controls button{grid-column:1/-1;justify-self:start}
+.admin-session-list{display:grid;gap:8px;margin-top:12px}
+.admin-session-card{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;padding:12px;border:1px solid #293746;border-radius:9px;background:#121e29}
+.admin-session-card h4{margin:0 0 5px;color:#e1e8f0;font-size:12px}
+.admin-session-card p{margin:0;color:#91a1b3;font-size:10px;line-height:1.5}
+.admin-session-card button{border:1px solid #77534a;border-radius:7px;padding:9px 11px;background:#2a1c1b;color:#efb7a9;font-size:9px;font-weight:850;cursor:pointer}
+.admin-session-card button:hover{background:#3a2422}
+.admin-session-card button:disabled{opacity:.5;cursor:wait}
+.admin-session-empty{padding:12px;border:1px dashed #344252;border-radius:8px;color:#9aa8b8;font-size:11px}
+@media(max-width:900px){.admin-session-plan-controls{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:560px){.admin-session-planner{padding:11px}.admin-session-plan-controls{grid-template-columns:1fr}.admin-session-plan-controls button{grid-column:auto;width:100%}.admin-session-card{grid-template-columns:1fr}.admin-session-card button{justify-self:start}}
