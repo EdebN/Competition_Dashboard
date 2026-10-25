@@ -280,17 +280,17 @@
     for(let i=0;i<sorted.length;i+=size)groups.push(sorted.slice(i,i+size));return groups;
   }
   function sessionPattern() {
-    const defs=[
-      {week:0,day:Number($("admin-session-a1-day")?.value??2),time:$("admin-session-a1-time")?.value||"13:35",label:"Week A · Session 1"},
-      {week:0,day:Number($("admin-session-a2-day")?.value??4),time:$("admin-session-a2-time")?.value||"12:05",label:"Week A · Session 2"},
-      {week:1,day:Number($("admin-session-b1-day")?.value??0),time:$("admin-session-b1-time")?.value||"13:35",label:"Week B · Session 1"},
-      {week:1,day:Number($("admin-session-b2-day")?.value??2),time:$("admin-session-b2-time")?.value||"13:35",label:"Week B · Session 2"}
+    // Anchor the sequence to the first actual session, Week B Wednesday.
+    return [
+      {offset:0,time:$("admin-session-b2-time")?.value||"13:35",label:"Week B · Session 2"},
+      {offset:7,time:$("admin-session-a1-time")?.value||"13:35",label:"Week A · Session 1"},
+      {offset:9,time:$("admin-session-a2-time")?.value||"12:05",label:"Week A · Session 2"},
+      {offset:12,time:$("admin-session-b1-time")?.value||"13:35",label:"Week B · Session 1"}
     ];
-    return defs.map(x=>({...x,offset:x.week*7+Math.max(0,Math.min(6,x.day))})).sort((a,b)=>a.offset-b.offset);
   }
   function sessionAt(index) {
     const pattern=sessionPattern(),cycle=Math.floor(index/pattern.length),slot=pattern[index%pattern.length];
-    const anchor=$("admin-session-start-date")?.value||new Date().toISOString().slice(0,10);
+    const anchor=$("admin-session-start-date")?.value||"2026-10-21";
     return {...slot,date:dateShift(anchor,cycle*14+slot.offset)};
   }
   function renderSessionList() {
@@ -312,19 +312,19 @@
   }
   async function applySessionPlan() {
     const button=$("admin-session-apply"),start=$("admin-session-start-date")?.value,venue=$("admin-session-venue")?.value.trim()||"",size=Number($("admin-session-games")?.value)||4,duration=Number($("admin-session-duration")?.value)||50;
-    if(!start||new Date(start+"T12:00:00").getDay()!==1||!Number.isInteger(size)||size<1||size>12||!Number.isInteger(duration)||duration<20||duration>120){setStatus("admin-session-plan-status","Choose a Monday for the start of Week A, 1–12 games per session and a session duration of 20–120 minutes.","error");return;}
+    if(!start||Number.isNaN(new Date(start+"T12:00:00").getTime())||!Number.isInteger(size)||size<1||size>12||!Number.isInteger(duration)||duration<20||duration>120){setStatus("admin-session-plan-status","Choose the first session date, 1–12 games per session and a session duration of 20–120 minutes.","error");return;}
     if(!matchdayFixtures.length){setStatus("admin-session-plan-status","No fixtures are available to schedule.","error");return;}
-    button.disabled=true;setStatus("admin-session-plan-status","Applying the two-week class cycle and saving fixtures…");
+    button.disabled=true;setStatus("admin-session-plan-status","Applying the anchored class cycle and saving fixtures…");
     try{
-      const groups=fixtureGroups(),planned=[];
-      groups.forEach((group,index)=>{const slot=sessionAt(index);group.forEach(m=>planned.push({matchId:Number(m.matchId),date:slot.date,time:slot.time,venue,status:"Scheduled"}));});
+      const groups=fixtureGroups(),planned=[],playedIds=new Set([...matchdayFixtures].sort((a,b)=>Number(a.matchId)-Number(b.matchId)).slice(0,4).map(m=>Number(m.matchId)));
+      groups.forEach((group,index)=>{const slot=sessionAt(index);group.forEach(m=>planned.push({matchId:Number(m.matchId),date:slot.date,time:slot.time,venue,status:playedIds.has(Number(m.matchId))?"Played":"Scheduled"}));});
       const ids=new Set(planned.map(x=>x.matchId));
       const extras=[...document.querySelectorAll("[data-timetable-row]")].filter(r=>!ids.has(Number(r.dataset.timetableRow))).map(r=>({matchId:Number(r.dataset.timetableRow),date:r.querySelector("[data-fixture-date]").value,time:r.querySelector("[data-fixture-time]").value,venue:r.querySelector("[data-fixture-venue]").value.trim(),status:r.querySelector("[data-fixture-status]").value}));
       const payload=[...planned,...extras].sort((a,b)=>a.matchId-b.matchId);
       payload.forEach(v=>{const r=$("admin-timetable-fields").querySelector('[data-timetable-row="'+v.matchId+'"]');if(r){r.querySelector("[data-fixture-date]").value=v.date;r.querySelector("[data-fixture-time]").value=v.time;r.querySelector("[data-fixture-venue]").value=v.venue;r.querySelector("[data-fixture-status]").value=v.status;}});
-      await persistTimetableOnly(payload,"Fortnightly class timetable saved: "+groups.length+" sessions, up to "+size+" games per session.");
+      await persistTimetableOnly(payload,"Anchored class timetable saved: "+groups.length+" sessions, up to "+size+" games per session.");
       renderMatchdayCalendar(matchdayFixtures,currentTimetableMap(matchdayFixtures));renderSessionList();
-      setStatus("admin-session-plan-status","Saved "+groups.length+" sessions on the repeating Week A / Week B cycle. Session duration: "+duration+" minutes.");
+      setStatus("admin-session-plan-status","Saved "+groups.length+" sessions from the first-session anchor. First four fixtures marked Played. Session duration: "+duration+" minutes.");
     }catch(e){setStatus("admin-session-plan-status",e.message,"error");setStatus("admin-matchday-status",e.message,"error");log("ERROR","Session plan failed: "+e.message);}
     finally{button.disabled=false;}
   }
