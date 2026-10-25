@@ -274,6 +274,7 @@
     const d=new Date(dateString+"T12:00:00");if(Number.isNaN(d.getTime()))return "";
     d.setDate(d.getDate()+days);return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
   }
+  function addMinutesToTime(value,minutes) { const [h,m]=String(value||"12:00").split(":").map(Number);const total=(h*60+m+minutes+1440)%1440;return String(Math.floor(total/60)).padStart(2,"0")+":"+String(total%60).padStart(2,"0"); }
   function fixtureGroups() {
     const size=Math.max(1,Math.min(12,Number($("admin-session-games")?.value)||4));
     const sorted=[...matchdayFixtures].sort((a,b)=>Number(a.matchId)-Number(b.matchId)),groups=[];
@@ -287,8 +288,8 @@
     if(!groups.length){host.innerHTML='<div class="admin-session-empty">No fixtures are available to group into sessions.</div>';return;}
     host.innerHTML=groups.map((group,index)=>{
       const first=rows.get(Number(group[0].matchId))||{},date=first.date||dateShift(start,index*interval*7)||"Date not set";
-      const time=first.time||$("admin-session-start-time")?.value||"Time TBC",venue=first.venue||$("admin-session-venue")?.value||"Venue TBC";
-      const list=group.map(m=>escapeHTML(m.home||"Home")+" vs "+escapeHTML(m.away||"Away")).join(" · ");
+      const time=first.time||$("admin-session-start-time")?.value||"Time TBC",venue=first.venue||$("admin-session-venue")?.value||"Venue TBC",duration=Math.max(5,Math.min(60,Number($("admin-session-game-minutes")?.value)||15));
+      const list=group.map((m,slot)=>{const mt=rows.get(Number(m.matchId))||{};return "<span class=\"admin-session-game\"><b>"+escapeHTML(mt.time||addMinutesToTime(time,slot*duration))+"</b> "+escapeHTML(m.home||"Home")+" vs "+escapeHTML(m.away||"Away")+"</span>";}).join("");
       return '<article class="admin-session-card"><div><h4>Session '+(index+1)+' · '+escapeHTML(date)+' · '+escapeHTML(time)+'</h4><p>'+group.length+' game'+(group.length===1?'':'s')+' · '+escapeHTML(venue)+'</p><p>'+list+'</p></div><button type="button" data-skip-session="'+index+'">SKIP DATE + SHIFT LATER</button></article>';
     }).join("");
     host.querySelectorAll("[data-skip-session]").forEach(b=>b.addEventListener("click",()=>skipSession(Number(b.dataset.skipSession),b)));
@@ -300,12 +301,12 @@
   }
   async function applySessionPlan() {
     const button=$("admin-session-apply"),start=$("admin-session-start-date")?.value,time=$("admin-session-start-time")?.value||"12:00",venue=$("admin-session-venue")?.value.trim()||"",size=Number($("admin-session-games")?.value)||4,interval=Number($("admin-session-interval")?.value)||1;
-    if(!start||!Number.isInteger(size)||size<1||size>12||!Number.isInteger(interval)||interval<1||interval>8){setStatus("admin-session-plan-status","Choose a start date, 1–12 games per session and an interval of 1–8 weeks.","error");return;}
+    if(!start||!Number.isInteger(size)||size<1||size>12||!Number.isInteger(interval)||interval<1||interval>8||!Number.isInteger(duration)||duration<5||duration>60){setStatus("admin-session-plan-status","Choose a start date, 1–12 games per session, a 5–60 minute game slot and an interval of 1–8 weeks.","error");return;}
     if(!matchdayFixtures.length){setStatus("admin-session-plan-status","No fixtures are available to schedule.","error");return;}
     button.disabled=true;setStatus("admin-session-plan-status","Grouping fixtures and saving the session plan…");
     try{
       const groups=fixtureGroups(),planned=[];
-      groups.forEach((group,index)=>group.forEach(m=>planned.push({matchId:Number(m.matchId),date:dateShift(start,index*interval*7),time,venue,status:"Scheduled"})));
+      groups.forEach((group,index)=>group.forEach((m,slot)=>planned.push({matchId:Number(m.matchId),date:dateShift(start,index*interval*7),time:addMinutesToTime(time,slot*duration),venue,status:"Scheduled"})));
       const ids=new Set(planned.map(x=>x.matchId));
       const extras=[...document.querySelectorAll("[data-timetable-row]")].filter(r=>!ids.has(Number(r.dataset.timetableRow))).map(r=>({matchId:Number(r.dataset.timetableRow),date:r.querySelector("[data-fixture-date]").value,time:r.querySelector("[data-fixture-time]").value,venue:r.querySelector("[data-fixture-venue]").value.trim(),status:r.querySelector("[data-fixture-status]").value}));
       const payload=[...planned,...extras].sort((a,b)=>a.matchId-b.matchId);
@@ -444,7 +445,7 @@
   if($("admin-access-refresh"))$("admin-access-refresh").addEventListener("click",loadTeamAccess);
   if($("admin-matchday-form"))$("admin-matchday-form").addEventListener("submit",saveMatchday);
   if($("admin-session-apply"))$("admin-session-apply").addEventListener("click",applySessionPlan);
-  ["admin-session-games","admin-session-interval","admin-session-start-date","admin-session-start-time","admin-session-venue"].forEach(id=>{const el=$(id);if(el)el.addEventListener("change",renderSessionList);});
+  ["admin-session-games","admin-session-interval","admin-session-game-minutes","admin-session-start-date","admin-session-start-time","admin-session-venue"].forEach(id=>{const el=$(id);if(el)el.addEventListener("change",renderSessionList);});
   window.addEventListener("error",e=>{clientErrors++;log("ERROR","Browser error: "+(e.message||"Unknown error")+" ("+(e.filename||"unknown file")+":"+e.lineno+")");});
   window.addEventListener("unhandledrejection",e=>{clientErrors++;log("ERROR","Unhandled promise rejection: "+String(e.reason?.message||e.reason||"Unknown rejection"));});
   log("INFO","Admin Control Room loaded. Credential handoff consumed; no token is stored by this page.");
