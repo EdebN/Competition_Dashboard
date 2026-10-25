@@ -2701,7 +2701,6 @@ function renderAdminPage() {
           </div>
         </div>
       </section>
-      <div class="admin-portal-entry"><a class="admin-button page-access-studio" href="team-editor.html">OPEN TEAM EDITOR PORTAL ↗</a><a class="admin-button score-entry-portal" href="score-entry.html">OPEN SCORE ENTRY PORTAL ↗</a></div>
     `;
 
     document.getElementById("adminUnlock").addEventListener("click", unlockAdmin);
@@ -2742,7 +2741,6 @@ function renderAdminPage() {
       </div>
       <div class="admin-quick-nav-links">
         <a href="#admin-competition-settings">Team &amp; season</a>
-        <a href="#admin-match-results">Match results</a>
         <a href="#admin-match-reminders">Timetable &amp; emails</a>
         <a href="#admin-team-access">Team access</a>
         <a href="#socialModerationPanel">Social moderation</a>
@@ -2885,27 +2883,6 @@ function renderAdminPage() {
 
         </div>
 
-
-
-        <!-- OFFICIAL MATCH RESULTS -->
-        <div class="admin-setting admin-results-setting" id="admin-match-results">
-          <div class="admin-setting-header">
-            <div class="admin-setting-name">Official match result</div>
-            <span class="admin-setting-value">GOOGLE SHEETS</span>
-          </div>
-          <p class="admin-info">Enter or correct a score here. The result is written to the official results sheet, then the dashboard refreshes its ratings and standings.</p>
-          <div class="admin-result-form">
-            <label class="admin-label" for="adminResultMatch">MATCH</label>
-            <select id="adminResultMatch" class="admin-input"></select>
-            <div class="admin-result-scores">
-              <div><label class="admin-label" for="adminResultHome">HOME SCORE</label><input id="adminResultHome" class="admin-input" type="number" min="0" max="99" step="1" inputmode="numeric" placeholder="0"></div>
-              <div><label class="admin-label" for="adminResultAway">AWAY SCORE</label><input id="adminResultAway" class="admin-input" type="number" min="0" max="99" step="1" inputmode="numeric" placeholder="0"></div>
-            </div>
-            <div class="admin-info">Existing scores can be corrected. Saving replaces only the two score cells; fixture assignments and referee details stay untouched.</div>
-            <button type="button" id="adminSaveResult" class="admin-button">SAVE MATCH RESULT</button>
-            <div id="adminResultStatus" class="admin-info" role="status" aria-live="polite"></div>
-          </div>
-        </div>
 
 
         <!-- MATCH-DAY REMINDERS AND TIMETABLE -->
@@ -3227,63 +3204,6 @@ function renderAdminPage() {
      SAVE COMPETITION SETTING
   ───────────────────────────── */
 
-
-  /* SAVE OFFICIAL MATCH RESULT */
-  const resultMatch = document.getElementById("adminResultMatch");
-  const resultHome = document.getElementById("adminResultHome");
-  const resultAway = document.getElementById("adminResultAway");
-  const resultStatus = document.getElementById("adminResultStatus");
-  const resultSave = document.getElementById("adminSaveResult");
-  if (resultMatch && resultMatch.options.length === 0) {
-    games.slice().sort((a,b) => a.id-b.id).forEach(game => {
-      const option = document.createElement("option");
-      option.value = String(game.id);
-      option.textContent = "Game " + game.id + " · " + (game.home || "Home TBD") + " vs " + (game.away || "Away TBD") + " · " + (normalizeStage(game.stage) === "REGULAR" ? "REGULAR" : normalizeStage(game.stage));
-      resultMatch.appendChild(option);
-    });
-  }
-  function fillResultInputs() {
-    const id = Number(resultMatch?.value), current = scores[id];
-    if (resultHome) resultHome.value = current && current.home !== "" ? current.home : "";
-    if (resultAway) resultAway.value = current && current.away !== "" ? current.away : "";
-    if (resultStatus) {
-      resultStatus.className = "admin-info";
-      resultStatus.textContent = current ? "Current saved score: " + current.home + "–" + current.away + "." : "No result is currently recorded for this match.";
-    }
-  }
-  if (resultMatch) { resultMatch.addEventListener("change", fillResultInputs); fillResultInputs(); }
-  if (resultSave) resultSave.addEventListener("click", async () => {
-    const matchId = Number(resultMatch?.value), homeScore = resultHome?.value, awayScore = resultAway?.value;
-    const fixture = games.find(game => Number(game.id) === matchId);
-    if (!adminToken || !fixture) { if (resultStatus) resultStatus.textContent = "Admin session or selected fixture is unavailable. Unlock Admin again."; return; }
-    if (homeScore === "" || awayScore === "" || !Number.isInteger(Number(homeScore)) || !Number.isInteger(Number(awayScore)) ||
-        Number(homeScore) < 0 || Number(awayScore) < 0 || Number(homeScore) > 99 || Number(awayScore) > 99) {
-      if (resultStatus) resultStatus.textContent = "Enter whole-number scores from 0 to 99 for both teams.";
-      return;
-    }
-    if (!confirm("Save Game " + matchId + " (" + fixture.home + " " + homeScore + "–" + awayScore + " " + fixture.away + ")? This will update the official result.")) return;
-    resultSave.disabled = true; resultSave.textContent = "SAVING…";
-    if (resultStatus) { resultStatus.className = "admin-info"; resultStatus.textContent = "Writing the score to Google Sheets and verifying the saved values…"; }
-    try {
-      await postCommunityAction({ action: "submitMatchResult", adminToken, matchId, homeScore: Number(homeScore), awayScore: Number(awayScore) });
-      let verified = false;
-      for (let attempt = 0; attempt < 8; attempt++) {
-        await new Promise(resolve => setTimeout(resolve, 500));
-        try {
-          const response = await readCommunityApi("getMatchResults");
-          const saved = response?.ok && Array.isArray(response.results) ? response.results.find(row => Number(row.matchId) === matchId) : null;
-          if (saved && Number(saved.homeScore) === Number(homeScore) && Number(saved.awayScore) === Number(awayScore)) { verified = true; break; }
-        } catch (_) {}
-      }
-      if (!verified) throw new Error("The save could not be verified. Check the Apps Script deployment and RESULTS_* Script Properties.");
-      scores[matchId] = { home: Number(homeScore), away: Number(awayScore) };
-      await loadScoresFromSheet();
-      if (resultStatus) { resultStatus.className = "admin-success"; resultStatus.textContent = "Saved and verified in Google Sheets. The ladder, ratings and match pages have been refreshed."; }
-    } catch (error) {
-      console.error("Official match result save failed:", error);
-      if (resultStatus) { resultStatus.className = "admin-warning"; resultStatus.textContent = "Could not verify the result: " + (error?.message || "Unknown error"); }
-    } finally { resultSave.disabled = false; resultSave.textContent = "SAVE MATCH RESULT"; }
-  });
 
   document
     .getElementById("adminSave")
