@@ -523,7 +523,19 @@
   if($("admin-run-checks"))$("admin-run-checks").addEventListener("click",runHealth);
   if($("admin-clear-console"))$("admin-clear-console").addEventListener("click",()=>{events.length=0;renderConsole();log("INFO","Console events cleared.");});
   if($("admin-console-run"))$("admin-console-run").addEventListener("click",runCommand);
-  if($("admin-console-input"))$("admin-console-input").addEventListener("keydown",e=>{if(e.key==="Enter")runCommand();});
+  if($("admin-console-input"))$("admin-console-input").addEventListener("keydown",e=>{
+    const input=$("admin-console-input");
+    if(e.key==="Enter"){e.preventDefault();runCommand();return;}
+    if(e.key==="ArrowUp"){e.preventDefault();if(historyCursor>0)historyCursor--;input.value=commandHistory[historyCursor]||"";return;}
+    if(e.key==="ArrowDown"){e.preventDefault();if(historyCursor<commandHistory.length)historyCursor++;input.value=commandHistory[historyCursor]||"";return;}
+    if(e.key==="Tab"){
+      e.preventDefault();
+      const current=input.value.trim().toLowerCase();
+      const matches=commandNames.filter(name=>name.startsWith(current));
+      if(matches.length===1)input.value=matches[0]+" ";
+      else if(matches.length>1)log("INFO",matches.join("    "));
+    }
+  });
   if($("admin-team-settings-form"))$("admin-team-settings-form").addEventListener("submit",saveTeamSettings);
   if($("admin-season-form"))$("admin-season-form").addEventListener("submit",saveSeason);
   if($("admin-competition-refresh"))$("admin-competition-refresh").addEventListener("click",loadCompetition);
