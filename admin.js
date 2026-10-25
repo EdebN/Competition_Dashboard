@@ -443,16 +443,79 @@
     finally{button.disabled=false;}
   }
 
+  const commandHistory = [];
+  let historyCursor = 0;
+  const commandNames = ["help","clear","health","status","settings","teams","competition","moderation","matchday","access","bugs","history","whoami","pwd","date","uname","ls","man"];
   function runCommand() {
-    const input=$("admin-console-input"),command=input.value.trim().toLowerCase();if(!command)return;input.value="";log("INFO","> "+command);
-    if(command==="help")log("INFO","Commands: help, health, settings, moderation, matchday, access, clear.");
-    else if(command==="health")runHealth();
-    else if(command==="settings")loadCompetition();
-    else if(command==="moderation")loadModeration();
-    else if(command==="matchday")loadMatchday();
-    else if(command==="access")loadTeamAccess();
-    else if(command==="clear"){events.length=0;renderConsole();log("INFO","Console events cleared.");}
-    else log("WARN","Unknown command. Type help to list supported commands.");
+    const input=$("admin-console-input");
+    const raw=input.value.trim();
+    if(!raw)return;
+    input.value="";
+    commandHistory.push(raw);
+    if(commandHistory.length>100)commandHistory.shift();
+    historyCursor=commandHistory.length;
+    const parts=raw.match(/(?:[^\s"]+|"[^"]*")+/g)||[];
+    const command=(parts.shift()||"").toLowerCase();
+    const args=parts.map(x=>x.replace(/^"|"$/g,""));
+    log("INFO","admin@competition:~$ "+raw);
+    const view=(name)=>showView(name);
+    const commands={
+      help:()=>log("INFO","Commands: help, man [command], clear, history, whoami, pwd, date, uname, ls, health, status, settings, teams, competition, moderation, matchday, access, bugs. Navigation and diagnostics only; this is not a general-purpose Linux shell."),
+      man:()=>{
+        const pages={
+          help:"help · List available terminal commands.",
+          clear:"clear · Clear visible console events. Does not delete server data.",
+          history:"history · Show commands entered in this browser session.",
+          whoami:"whoami · Show the current dashboard role context.",
+          pwd:"pwd · Show the virtual working directory.",
+          date:"date · Show this browser's local date and time.",
+          uname:"uname · Show the dashboard runtime identity. Not the host operating system.",
+          ls:"ls [section] · List available dashboard sections, or inspect one section.",
+          health:"health · Run the live Apps Script health and shared-team-settings checks.",
+          status:"status · Show the latest client diagnostics summary; run health for a fresh API check.",
+          settings:"settings · Open competition settings and load shared values.",
+          teams:"teams · Alias for settings.",
+          competition:"competition · Open competition settings.",
+          moderation:"moderation · Open the moderation queue.",
+          matchday:"matchday · Open the timetable and reminder settings.",
+          access:"access · Open team access status.",
+          bugs:"bugs · Open browser errors and reporting information."
+        };
+        const name=(args[0]||"").toLowerCase();
+        if(name)log(pages[name]?"INFO":"WARN",pages[name]||("No manual entry for '"+name+"'. Try man or help."));
+        else log("INFO","Manual pages available: "+Object.keys(pages).join(", ")+". Use man <command>.");
+      },
+      clear:()=>{events.length=0;renderConsole();log("INFO","Console display cleared. Session command history retained.");},
+      history:()=>{if(!commandHistory.length)log("INFO","No commands in this session.");else commandHistory.forEach((entry,index)=>log("INFO",String(index+1).padStart(3," ")+"  "+entry));},
+      whoami:()=>log("INFO","admin · authenticated dashboard session; server permissions are enforced by Apps Script."),
+      pwd:()=>log("INFO","/competition-dashboard/admin"),
+      date:()=>log("INFO",new Date().toString()),
+      uname:()=>log("INFO","Competition Dashboard Web Runtime · browser JavaScript · Apps Script API backend"),
+      ls:()=>{
+        const sections={"":commandNames,"/":["index.html","admin.html","admin.js","admin.css","script.js","apps-script/"],"competition":["team names","season length"],"operations":["matchday timetable","email reminders"],"permissions":["team access"],"diagnostics":["system console","browser errors","issue tracker"]};
+        const key=(args[0]||"").replace(/^\.\//,"").replace(/^\//,"");
+        const list=sections[key]||sections[key.replace(/\/$/,"")];
+        if(list)log("INFO",list.join("    "));
+        else log("WARN","No such virtual path: "+args[0]+". Try ls, ls competition, ls operations, ls permissions, or ls diagnostics.");
+      },
+      health:()=>runHealth(),
+      status:()=>{
+        const lastError=[...events].reverse().find(e=>e.level==="ERROR");
+        log("INFO","Client events: "+events.length+" · captured JS errors: "+clientErrors+" · API endpoint configured: yes.");
+        log(lastError?"WARN":"INFO",lastError?"Latest error at "+lastError.time+": "+lastError.message:"No errors recorded in the current console buffer.");
+        log("INFO","Run 'health' to test the live API. A configured endpoint does not guarantee a successful write.");
+      },
+      settings:()=>{view("competition");loadCompetition();},
+      teams:()=>{view("competition");loadCompetition();},
+      competition:()=>{view("competition");loadCompetition();},
+      moderation:()=>{view("moderation");loadModeration();},
+      matchday:()=>{view("matchday");loadMatchday();},
+      access:()=>{view("access");loadTeamAccess();},
+      bugs:()=>view("bugs")
+    };
+    if(commands[command])commands[command]();
+    else if(command==="sudo"||command==="rm"||command==="reboot"||command==="shutdown")log("WARN","Command blocked. This console exposes dashboard diagnostics, not operating-system access or destructive controls.");
+    else log("WARN","Command not found: "+command+". Type help or man "+command+".");
   }
 
   document.querySelectorAll("[data-admin-view]").forEach(b=>b.addEventListener("click",()=>showView(b.dataset.adminView)));
