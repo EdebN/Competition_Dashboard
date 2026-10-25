@@ -238,7 +238,7 @@
     let unscheduled = 0;
     fixtures.forEach(m => {
       const id = Number(m.matchId), v = saved.get(id) || {};
-      if (!v.date || !/^\\d{4}-\\d{2}-\\d{2}$/.test(v.date)) { unscheduled++; return; }
+      if (!v.date || !/^\d{4}-\d{2}-\d{2}$/.test(v.date)) { unscheduled++; return; }
       if (!byDate.has(v.date)) byDate.set(v.date, []);
       byDate.get(v.date).push({match:m,details:v});
     });
