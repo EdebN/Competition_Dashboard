@@ -22,6 +22,7 @@
         <button data-admin-view="moderation"><span>◉</span> Moderation <b class="side-live-dot"></b></button>
         <button data-admin-view="competition"><span>⌘</span> Competition</button>
         <button data-admin-view="matchday"><span>▦</span> Matchday &amp; email</button>
+        <button data-admin-view="rating-lab"><span>⌁</span> Rating Lab</button>
         <button data-admin-view="access"><span>⌑</span> Team access</button>
         <button data-admin-view="bugs"><span>⚑</span> Bugs &amp; reports</button>
         <button data-admin-view="console"><span>›_</span> System console</button>
@@ -85,6 +86,28 @@
         <p id="admin-matchday-status" class="admin-note-card" role="status" aria-live="polite"></p>
       </section>
 
+
+      <section class="admin-view" data-admin-panel="rating-lab">
+        <div class="admin-page-intro"><div><div class="admin-eyebrow">RESEARCH / RATING SYSTEM</div><h1>Rating Lab</h1><p>Replay historical NFL regular-season results chronologically. Predictions are scored before each week's ratings are updated.</p></div></div>
+        <div class="admin-metric-grid">
+          <article class="admin-metric-card"><div class="admin-metric-top"><span>DATASET</span></div><strong>1999+</strong><p>Completed NFL regular-season games from nflverse.</p></article>
+          <article class="admin-metric-card"><div class="admin-metric-top"><span>REPLAY MODE</span></div><strong>CHRONOLOGICAL</strong><p>No future results are used to predict earlier games.</p></article>
+          <article class="admin-metric-card"><div class="admin-metric-top"><span>LIVE RATINGS</span></div><strong>ISOLATED</strong><p>Backtests never modify competition ratings.</p></article>
+        </div>
+        <div class="admin-panel-card" id="historicalNFL">
+          <div class="admin-panel-heading"><div><span class="admin-eyebrow">HISTORICAL VALIDATION</span><h2>NFL backtest</h2></div><span class="admin-metric-status" id="nflStatus">READY</span></div>
+          <p id="nflMeta" class="admin-note-card">Historical data loads from nflverse when you run the test.</p>
+          <button class="admin-primary-button" id="runNFLBtn" type="button">RUN HISTORICAL BACKTEST</button>
+          <div class="admin-table-wrap"><table class="admin-data-table"><thead><tr><th>Model</th><th>Brier (lower)</th><th>Log loss (lower)</th><th>Accuracy</th><th>Games</th></tr></thead><tbody id="nflResultsBody"><tr><td colspan="5">No results yet.</td></tr></tbody></table></div>
+          <p id="nflVerdict" class="admin-note-card">Run the backtest to compare custom margin-weighted Glicko-2 with standard Glicko-2 and Elo.</p>
+          <p id="nflGuardMeta" class="admin-note-card">Numerical guard counts will appear here.</p>
+          <h3>Implementation tests</h3><div class="admin-table-wrap"><table class="admin-data-table"><thead><tr><th>Status</th><th>Test</th><th>Detail</th></tr></thead><tbody id="nflTestsBody"><tr><td colspan="3">Tests run with the backtest.</td></tr></tbody></table></div>
+          <h3>Custom model calibration</h3><p class="admin-note-card">Predicted home-win probability versus observed home-win frequency.</p>
+          <div class="admin-table-wrap"><table class="admin-data-table"><thead><tr><th>Predicted bin</th><th>Mean prediction</th><th>Observed home wins</th><th>Games</th></tr></thead><tbody id="nflCalibrationBody"><tr><td colspan="4">No calibration data yet.</td></tr></tbody></table></div>
+          <p class="admin-note-card is-warning">This is an external NFL validation dataset, not a direct calibration target for the local low-scoring flag-football competition. It does not change live ratings.</p>
+        </div>
+      </section>
+
       <section class="admin-view" data-admin-panel="access">
         <div class="admin-page-intro"><div><div class="admin-eyebrow">PERMISSIONS / TEAM CONTENT</div><h1>Team access</h1><p>Check whether each team has a PIN configured and generate new six-digit PINs.</p></div><button class="admin-refresh-button" id="admin-access-refresh" type="button">Refresh access status</button></div>
         <div id="admin-team-access-content" class="admin-live-content">Loading team access…</div>
@@ -113,6 +136,7 @@
       </section>
     </main>
   </div>
-  <script src="admin.js?v=opening-fixture-excluded-v2-20261025"></script>
+  <script src="admin.js?v=rating-lab-restore-20261106"></script>
+  <script src="historical-tester.js?v=historical-nfl-restore-20261106"></script>
 </body>
 </html>
