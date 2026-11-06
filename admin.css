@@ -175,3 +175,15 @@
 .admin-terminal-shortcuts span{display:flex;align-items:center;gap:5px}
 .admin-terminal-shortcuts kbd{min-width:17px;padding:2px 4px;text-align:center;border:1px solid #344252;border-radius:4px;background:#151f2a;color:#c1cbd5;font:10px ui-monospace,SFMono-Regular,Menlo,monospace}
 @media(max-width:560px){.admin-terminal-meta{gap:7px 12px;font-size:8px}.admin-terminal-host{display:none}.admin-terminal-frame .admin-console-output{height:48vh;padding:13px 10px}.admin-terminal-frame .admin-console-line{grid-template-columns:45px 49px minmax(0,1fr);gap:5px;font-size:10px}.admin-terminal-frame .admin-console-line time{font-size:9px}.admin-terminal-prompt{font-size:10px}.admin-terminal-frame .admin-console-command{gap:7px;padding:10px}.admin-terminal-frame .admin-console-command button{padding:7px 8px;font-size:8px}.admin-terminal-shortcuts{gap:8px 12px}}
+
+
+/* Rating Lab historical backtest */
+#historicalNFL .admin-table-wrap{width:100%;overflow-x:auto;margin:14px 0 22px}
+#historicalNFL .admin-data-table{width:100%;border-collapse:collapse;min-width:620px;font-variant-numeric:tabular-nums}
+#historicalNFL .admin-data-table th,#historicalNFL .admin-data-table td{padding:11px 12px;border-bottom:1px solid #293747;text-align:right;white-space:nowrap}
+#historicalNFL .admin-data-table th:first-child,#historicalNFL .admin-data-table td:first-child{text-align:left}
+#historicalNFL .admin-data-table th{color:#93a2b4;font-size:10px;letter-spacing:.07em;text-transform:uppercase}
+#historicalNFL .admin-data-table tbody tr:hover{background:#172331}
+#historicalNFL .nfl-test-pass td:first-child{color:#75d7a4;font-weight:800}
+#historicalNFL .nfl-test-fail td:first-child{color:#ff9999;font-weight:800}
+#historicalNFL h3{margin:26px 0 10px;font-size:14px}
