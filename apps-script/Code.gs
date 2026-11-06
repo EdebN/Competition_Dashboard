@@ -1,6 +1,6 @@
 const SERVICE_NAME = "competition-community-api";
 const API_VERSION = 1;
-const BUILD_ID = "2026-10-26-matchday-email-diagnostics";
+const BUILD_ID = "2026-11-06-rating-lab-and-matchday-sender";
 
 // Keep the public action inventory in one place. The health endpoint and
 // POST allowlist both use these constants so they cannot silently drift apart.
@@ -1574,7 +1574,7 @@ function sendMatchReminderTest_(body) {
       subject: "TEST: Competition Dashboard matchday email",
       body: "This is a test email from the Competition Dashboard matchday reminder system.\n\nSent: " + now + " (Perth time)\n\nThis test was sent only to the address entered in the admin panel. No team contacts were emailed and no reminder delivery records were changed.",
       htmlBody: '<div style="font-family:Arial,sans-serif;max-width:560px;margin:auto;color:#18202b"><p style="font-size:10px;letter-spacing:2px;color:#788596;font-weight:700">COMPETITION DASHBOARD</p><h1 style="font-size:24px">Email delivery test</h1><p>The matchday email service successfully processed a test message.</p><p><strong>Sent:</strong> ' + escapeEmailHtml_(now) + ' (Perth time)</p><p style="padding:12px 14px;background:#eef6f0;border-radius:8px;color:#285a3e">This message was sent only to the address entered in the admin panel. No team contacts were emailed, and no reminder delivery records were changed.</p></div>',
-      name: "Competition Dashboard"
+      name: "Competition Matchday"
     });
     Logger.log("[matchday-test] MailApp.sendEmail returned successfully.");
     return jsonResponse_({ok:true, action:"sendMatchReminderTest", sent:true});
