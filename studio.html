@@ -583,7 +583,8 @@ function setCodeMode(enabled){
 $("visualModeBtn").addEventListener("click",()=>setCodeMode(false));$("codeModeBtn").addEventListener("click",()=>setCodeMode(true));
 document.querySelectorAll("[data-page-code-tab]").forEach(button=>button.addEventListener("click",()=>{pageCodeTab=button.dataset.pageCodeTab;document.querySelectorAll("[data-page-code-tab]").forEach(tab=>tab.classList.toggle("is-active",tab===button));if(htmlCodeEditor){htmlCodeEditor.getWrapperElement().style.display=pageCodeTab==="html"?"":"none";cssCodeEditor.getWrapperElement().style.display=pageCodeTab==="css"?"":"none";setTimeout(()=>{(pageCodeTab==="html"?htmlCodeEditor:cssCodeEditor).refresh();},0);}else{$("pageHtmlSource").hidden=pageCodeTab!=="html";$("pageCssSource").hidden=pageCodeTab!=="css";}}));
 ["pageHtmlSource","pageCssSource"].forEach(id=>$(id).addEventListener("input",updatePageCodePreview));
-$("ideVisualModeBtn").addEventListener("click",()=>setCodeMode(false));\n$("ideRefreshPreview").addEventListener("click",()=>{refreshCodePreview();renderCodeDiagnostics();});
+$("ideVisualModeBtn").addEventListener("click",()=>setCodeMode(false));
+$("ideRefreshPreview").addEventListener("click",()=>{refreshCodePreview();renderCodeDiagnostics();});
 $("ideClearDiagnostics").addEventListener("click",()=>{$("ideDiagnosticsList").innerHTML='<div class="ide-diagnostic-empty">Diagnostics cleared. Edit code to run checks again.</div>';$("ideProblemCount").textContent="0 issues";});
 
 function snapshot(){return JSON.stringify({blocks,selected,pageTitle:$("pageTitle").value,pageBg:$("pageBg").value,pagePadding:$("pagePadding").value,pageCode});}
