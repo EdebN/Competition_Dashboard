@@ -167,6 +167,15 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
 .modal-actions button{min-height:42px}
 #socialPostStatus{color:var(--accent2);font-size:12px;line-height:1.6;margin:4px 0}
 .muted{color:var(--muted)}
+.stagebar-actions{display:flex;align-items:center;gap:7px;flex-wrap:wrap}.mode-switch{padding:6px 10px;font-size:10px;font-weight:850}.mode-switch.is-active{background:#e0b95a;color:#101b2a;border-color:#e0b95a}
+.page-code-view{flex:1;min-height:700px;padding:16px;background:#0a1421;color:var(--text);display:flex;flex-direction:column;gap:12px}.page-code-view[hidden]{display:none!important}
+.page-code-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px;border:1px solid #263d57;border-radius:9px;background:#101e2e}.page-code-toolbar>div{display:grid;gap:3px}.page-code-toolbar strong{font-size:12px}.page-code-toolbar small,.page-code-toolbar>span{font-size:10px;color:var(--muted)}
+.page-code-layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;flex:1;min-height:560px}.page-code-editors,.page-code-preview{min-width:0;display:flex;flex-direction:column;border:1px solid #2b4057;border-radius:10px;overflow:hidden;background:#08111e}
+.page-code-tabs{display:flex;gap:5px;padding:8px;border-bottom:1px solid #263d57;background:#101e2e}.code-tab{font-size:10px;padding:6px 12px}.code-tab.is-active{background:#e0b95a;color:#101b2a;border-color:#e0b95a}
+.page-code-editors textarea{display:block;flex:1;width:100%;min-height:520px;resize:vertical;border:0;outline:0;padding:15px;background:#08111e;color:#dce8f5;font:12px/1.65 ui-monospace,SFMono-Regular,Menlo,monospace;tab-size:2;white-space:pre;overflow:auto}
+.page-code-preview-head{padding:10px 12px;border-bottom:1px solid #263d57;color:#93a7c0;font-size:9px;font-weight:900;letter-spacing:.12em}.page-code-preview iframe{width:100%;flex:1;min-height:560px;border:0;background:white}.page-code-note{margin:0;color:#8ea2b9;font-size:10px;line-height:1.6}
+.custom-code-preview{display:block;width:100%;min-height:180px;border:1px solid #36516b;border-radius:9px;background:white}.custom-code-editor{width:100%;min-height:130px;resize:vertical;background:#081522;color:#dce8f5;border:1px solid #304760;border-radius:8px;padding:9px;font:11px/1.55 ui-monospace,SFMono-Regular,Menlo,monospace}
+@media(max-width:900px){.page-code-layout{grid-template-columns:1fr}.page-code-preview iframe{min-height:420px}.page-code-view{min-height:0}}@media(max-width:760px){.stagebar-actions{width:100%;justify-content:space-between}.page-code-layout{min-height:0}.page-code-editors textarea{min-height:360px}.page-code-preview iframe{min-height:360px}}
 
 @media(max-width:1180px){.sidebar.right{position:static;max-height:none;overflow:visible}.workspace{grid-template-columns:210px minmax(0,1fr)}.right{grid-column:2/-1;border-left:0;border-top:1px solid var(--line);display:block}.right-section{min-width:0}.stage{min-height:700px}}
 @media(max-width:760px){.top-actions .workspace-link{flex:1 1 auto}.top{position:relative;align-items:flex-start;flex-direction:column;padding:14px}.brand{min-width:0}.top-actions{justify-content:flex-start;width:100%}.top-actions button{flex:1 1 auto}.workspace{grid-template-columns:1fr}.left-tools{display:flex;gap:9px;padding:12px;border-right:0;border-bottom:1px solid var(--line);overflow:visible}.left-tools .eyebrow{margin:0}.tool-grid{grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}.tool-category{margin-top:2px}.tool{min-height:64px;padding:9px 8px;gap:8px}.tool span:first-child{font-size:19px}.tool small{font-size:10px}.tool-search{padding:9px 10px}.stage{min-height:580px}.right{grid-column:auto;display:block}.right-section+ .right-section{border-top:1px solid var(--line)}.viewport{padding:14px}.page{padding:18px;gap:12px;min-height:560px}.stagebar{padding:10px 14px;align-items:flex-start;flex-direction:column}.stagebar-main{flex-wrap:wrap}}
@@ -341,14 +350,16 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
     <button class="tool" data-add="ratingGraph" title="Add rating history graph"><span>⌁</span><small>Rating graph</small></button>
     <button class="tool" data-add="recentForm" title="Add recent results infographic"><span>▥</span><small>Recent form</small></button>
     <button class="tool" data-add="formation" title="Add player field and lineup"><span>⚑</span><small>Player field</small></button>
-    <button class="tool" data-add="divider title="Add divider"><span>━</span><small>Line</small></button>
+    <button class="tool" data-add="customCode" title="Add a custom HTML and CSS widget"><span>&lt;/&gt;</span><small>Custom code</small></button>
+    <button class="tool" data-add="divider" title="Add divider"><span>━</span><small>Line</small></button>
     <button class="tool" data-add="spacer" title="Add spacing"><span>↕</span><small>Space</small></button>
   </div>
   <div id="toolEmpty" class="tool-empty">No matching elements. Try a shorter search.</div>
 </aside>
 <section class="stage">
-  <div class="stagebar"><div class="stagebar-main"><span class="live-dot" aria-hidden="true"></span><strong>Page canvas</strong><span id="blockCount" class="muted"></span></div><span id="workspaceStatus" data-state="saved" role="status" aria-live="polite">Ready to edit</span><span class="muted">Double-click text to edit · Drag to reorder</span></div>
-  <div class="viewport"><main id="canvas" class="page" aria-label="Page canvas"></main></div>
+  <div class="stagebar"><div class="stagebar-main"><span class="live-dot" aria-hidden="true"></span><strong id="stageModeTitle">Page canvas</strong><span id="blockCount" class="muted"></span></div><div class="stagebar-actions"><span id="workspaceStatus" data-state="saved" role="status" aria-live="polite">Ready to edit</span><button type="button" id="visualModeBtn" class="mode-switch is-active">Visual</button><button type="button" id="codeModeBtn" class="mode-switch">Code view</button></div></div>
+  <div class="viewport" id="visualViewport"><main id="canvas" class="page" aria-label="Page canvas"></main></div>
+  <section id="pageCodeView" class="page-code-view" hidden aria-label="Full page HTML and CSS editor"><div class="page-code-toolbar"><div><strong>Page source</strong><small>HTML and CSS · scripts are disabled in published pages</small></div><span id="pageCodeStatus">Editing source</span></div><div class="page-code-layout"><div class="page-code-editors"><div class="page-code-tabs"><button type="button" class="code-tab is-active" data-page-code-tab="html">HTML</button><button type="button" class="code-tab" data-page-code-tab="css">CSS</button></div><textarea id="pageHtmlSource" spellcheck="false" autocapitalize="off" autocomplete="off" aria-label="Page HTML source"></textarea><textarea id="pageCssSource" spellcheck="false" autocapitalize="off" autocomplete="off" aria-label="Page CSS source" hidden></textarea></div><div class="page-code-preview"><div class="page-code-preview-head">LIVE PREVIEW</div><iframe id="pageCodePreview" title="Full page code preview" sandbox=""></iframe></div></div><p class="page-code-note">Code view replaces the visual layout when published. Existing visual blocks remain saved and can be restored by switching back to Visual before publishing.</p></section>
 </section>
 <aside class="sidebar right" aria-label="Page settings">
   <section class="right-section">
@@ -402,6 +413,7 @@ const defaults={
  badge:{text:"NEW SEASON",fontSize:12,color:"#f4d57f",bg:"#26351f",align:"left",padding:8,radius:99,width:100},
  quote:{text:"“A team is more than a name on a ladder.”\n— Team motto",fontSize:23,color:"#e8eff8",bg:"#12243a",align:"left",padding:24,radius:12,width:100},
  formation:{text:"Starting lineup",fontSize:16,color:"#edf4fb",bg:"#0b1726",align:"left",padding:12,radius:14,width:100,players:[]},
+ customCode:{text:"Custom HTML + CSS",html:"<section class='custom-panel'>\\n  <h2>Your custom component</h2>\\n  <p>Build something that does not exist in the standard element library.</p>\\n</section>",css:".custom-panel {\\n  padding: 24px;\\n  border-radius: 14px;\\n  background: #101e2e;\\n  color: #edf3fb;\\n  font-family: system-ui, sans-serif;\\n}\\n.custom-panel h2 { margin: 0 0 8px; }\\n.custom-panel p { margin: 0; color: #a9bed4; }",height:240,width:100},
  playerCard:{text:"Player card",fontSize:16,color:"#edf4fb",bg:"transparent",align:"center",padding:0,radius:12,width:50,playerCard:null}
 };
 const STAT_METRICS=[
@@ -497,7 +509,17 @@ function startStatsPreview(){
  document.body.appendChild(statsFrame);
 }
 
-function snapshot(){return JSON.stringify({blocks,selected,pageTitle:$("pageTitle").value,pageBg:$("pageBg").value,pagePadding:$("pagePadding").value});}
+let codeMode=false,pageCodeTab="html",pageCodeDirty=false;
+const DEFAULT_PAGE_HTML="<main class='team-page'>\\n  <span class='eyebrow'>TEAM PROFILE</span>\\n  <h1>Your page, your identity.</h1>\\n  <p>Use HTML and CSS to build a completely custom team page.</p>\\n</main>";
+const DEFAULT_PAGE_CSS="* { box-sizing: border-box; }\\nbody { margin: 0; font-family: system-ui, sans-serif; }\\n.team-page { padding: 32px; border-radius: 16px; background: #101e2e; color: #edf3fb; }\\n.eyebrow { color: #e0b95a; font-size: 11px; font-weight: 800; letter-spacing: .14em; }\\nh1 { margin: 12px 0; font-size: clamp(28px, 5vw, 48px); }\\np { color: #a9bed4; line-height: 1.7; }";
+function buildCodeDocument(html,css){return "<!doctype html><html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><style>html,body{margin:0;min-height:100%;}"+String(css||"")+"\\n</style></head><body>"+String(html||"")+"</body></html>";}
+function updatePageCodePreview(){const frame=$("pageCodePreview");if(frame)frame.srcdoc=buildCodeDocument($("pageHtmlSource").value,$("pageCssSource").value);pageCodeDirty=true;$("pageCodeStatus").textContent="Unsaved source changes";setWorkspaceStatus("Unsaved code changes","dirty");}
+let pageCode={enabled:false,html:DEFAULT_PAGE_HTML,css:DEFAULT_PAGE_CSS};
+function setCodeMode(enabled){codeMode=!!enabled;$("visualViewport").hidden=codeMode;$("pageCodeView").hidden=!codeMode;$("visualModeBtn").classList.toggle("is-active",!codeMode);$("codeModeBtn").classList.toggle("is-active",codeMode);$("stageModeTitle").textContent=codeMode?"Code editor":"Page canvas";$("blockCount").textContent=codeMode?"· full-page source":("· "+blocks.length+" blocks");floatingToolbar.hidden=codeMode||!selected;if(codeMode){$("pageHtmlSource").value=pageCode.html||DEFAULT_PAGE_HTML;$("pageCssSource").value=pageCode.css||DEFAULT_PAGE_CSS;const f=$("pageCodePreview");if(f)f.srcdoc=buildCodeDocument(pageCode.html,pageCode.css);}else{render();if(pageCodeDirty){pageCode.enabled=false;pageCodeDirty=false;}}}
+$("visualModeBtn").addEventListener("click",()=>setCodeMode(false));$("codeModeBtn").addEventListener("click",()=>setCodeMode(true));
+document.querySelectorAll("[data-page-code-tab]").forEach(button=>button.addEventListener("click",()=>{pageCodeTab=button.dataset.pageCodeTab;document.querySelectorAll("[data-page-code-tab]").forEach(tab=>tab.classList.toggle("is-active",tab===button));$("pageHtmlSource").hidden=pageCodeTab!=="html";$("pageCssSource").hidden=pageCodeTab!=="css";}));
+["pageHtmlSource","pageCssSource"].forEach(id=>$(id).addEventListener("input",()=>{pageCode.html=$("pageHtmlSource").value;pageCode.css=$("pageCssSource").value;updatePageCodePreview();}));
+function snapshot(){return JSON.stringify({blocks,selected,pageTitle:$("pageTitle").value,pageBg:$("pageBg").value,pagePadding:$("pagePadding").value,pageCode});}
 function setWorkspaceStatus(message,state="saved"){const el=$("workspaceStatus");if(el){el.textContent=message;el.dataset.state=state;}}
 const studioOrbit=(()=>{
  const host=$("studioOrbitWait"),canvas=$("studioOrbitCanvas"),ctx=canvas.getContext("2d");
@@ -605,7 +627,7 @@ const studioOrbit=(()=>{
  return {show,hide};
 })();
 function pushHistory(){if(suppressHistory)return;const s=snapshot();if(history[historyIndex]===s)return;history=history.slice(0,historyIndex+1);history.push(s);if(history.length>80)history.shift();historyIndex=history.length-1;updateHistoryButtons();setWorkspaceStatus("Unsaved changes","dirty");}
-function restore(s){suppressHistory=true;const d=JSON.parse(s);blocks=d.blocks||[];selected=d.selected||null;$("pageTitle").value=d.pageTitle||"My page";$("pageBg").value=d.pageBg||"#0b0e14";$("pagePadding").value=d.pagePadding||30;seq=Math.max(seq,...blocks.map(b=>Number(b.id.slice(1))||0));render();suppressHistory=false;updateHistoryButtons();setWorkspaceStatus("Unsaved changes","dirty");}
+function restore(s){suppressHistory=true;const d=JSON.parse(s);blocks=d.blocks||[];selected=d.selected||null;pageCode=d.pageCode&&typeof d.pageCode==="object"?{enabled:!!d.pageCode.enabled,html:String(d.pageCode.html||DEFAULT_PAGE_HTML),css:String(d.pageCode.css||DEFAULT_PAGE_CSS)}:{enabled:false,html:DEFAULT_PAGE_HTML,css:DEFAULT_PAGE_CSS};$("pageTitle").value=d.pageTitle||"My page";$("pageBg").value=d.pageBg||"#0b0e14";$("pagePadding").value=d.pagePadding||30;seq=Math.max(seq,...blocks.map(b=>Number(b.id.slice(1))||0));if(pageCode.enabled)setCodeMode(true);else render();suppressHistory=false;updateHistoryButtons();setWorkspaceStatus("Unsaved changes","dirty");}
 function undo(){if(historyIndex>0){historyIndex--;restore(history[historyIndex]);}}
 function redo(){if(historyIndex<history.length-1){historyIndex++;restore(history[historyIndex]);}}
 function updateHistoryButtons(){$("undoBtn").disabled=historyIndex<=0;$("redoBtn").disabled=historyIndex>=history.length-1;}
@@ -651,7 +673,8 @@ function blockInner(b){
  if(b.type==="stat"){const metric=STAT_METRICS.find(m=>m.key===b.metric)||STAT_METRICS[0];return "<div class='stat' data-stat='"+esc(metric.key)+"' style='"+css(b)+"'><span data-editable-part='text' contenteditable='false' spellcheck='false'>"+esc(b.text||metric.label)+"</span><strong>—</strong><small style='display:block;margin-top:5px;font-size:10px;letter-spacing:.08em;text-transform:uppercase;opacity:.65'>Value fills on the team page</small></div>";}
  if(b.type==="ratingGraph")return "<div class='studio-infographic' style='"+css(b)+"'><div class='studio-infographic-title' data-editable-part='text' contenteditable='false' spellcheck='false'>"+esc(b.text||"Rating trajectory")+"</div><div class='studio-rating-graph-preview'><div class='placeholder'>Loading live rating history…</div></div></div>";
  if(b.type==="recentForm")return "<div class='studio-infographic' style='"+css(b)+"'><div class='studio-infographic-title' data-editable-part='text' contenteditable='false' spellcheck='false'>"+esc(b.text||"Recent form")+"</div><div class='studio-recent-form-preview'><div class='placeholder'>Loading recent results…</div></div></div>";
-  if(b.type==="formation")return formationHTML(b);
+  if(b.type==="customCode")return "<div class='custom-code-widget'><iframe class='custom-code-preview' title='Custom HTML and CSS widget preview' sandbox='' data-custom-code-preview></iframe><div class='field-note'>HTML and CSS are rendered in an isolated frame. JavaScript is disabled.</div></div>";
+ if(b.type==="formation")return formationHTML(b);
  if(b.type==="playerCard")return standalonePlayerCardHTML(b.playerCard);
  if(b.type==="divider")return "<div class='divider' style='background:"+b.color+";margin:"+b.padding+"px 0'></div>";
  if(b.type==="spacer")return "<div style='height:"+Math.max(8,Number(b.height)||48)+"px'></div>";
@@ -673,7 +696,7 @@ function render(options={}){
  canvas.classList.toggle("mobile",$("pageWidth").value==="mobile");canvas.classList.toggle("tablet",$("pageWidth").value==="tablet");
  canvas.innerHTML="";
  if(!blocks.length)canvas.innerHTML='<div class="empty"><strong>Your canvas is empty</strong>Add a block from the left, then make it yours.</div>';
- blocks.forEach((b,i)=>{const el=document.createElement("section");el.className="block"+(b.id===selected?" selected":"")+(b.verticalAlign==="middle"?" align-middle":b.verticalAlign==="bottom"?" align-bottom":"")+(["left","center","right"].includes(b.position)?" position-"+b.position:"");el.dataset.id=b.id;el.draggable=false;el.style.cssText=positionStyle(b);el.style.transform="translate("+(Number(b.moveX)||0)+"%, "+(Number(b.moveY)||0)+"%)";el.innerHTML=blockInner(b);if(b.type==="formation"){const pitch=el.querySelector("[data-formation-pitch]");el.querySelectorAll(".formation-player:not(.bench)").forEach(player=>player.addEventListener("pointerdown",e=>startFormationPlayerDrag(e,b.id,Number(player.dataset.playerIndex),player,pitch)));}
+ blocks.forEach((b,i)=>{const el=document.createElement("section");el.className="block"+(b.id===selected?" selected":"")+(b.verticalAlign==="middle"?" align-middle":b.verticalAlign==="bottom"?" align-bottom":"")+(["left","center","right"].includes(b.position)?" position-"+b.position:"");el.dataset.id=b.id;el.draggable=false;el.style.cssText=positionStyle(b);el.style.transform="translate("+(Number(b.moveX)||0)+"%, "+(Number(b.moveY)||0)+"%)";el.innerHTML=blockInner(b);if(b.type==="customCode"){const frame=el.querySelector("[data-custom-code-preview]");if(frame)frame.srcdoc=buildCodeDocument(b.html||"",b.css||"");}if(b.type==="formation"){const pitch=el.querySelector("[data-formation-pitch]");el.querySelectorAll(".formation-player:not(.bench)").forEach(player=>player.addEventListener("pointerdown",e=>startFormationPlayerDrag(e,b.id,Number(player.dataset.playerIndex),player,pitch)));}
   if(b.type==="image"&&b.src)el.querySelector("img")?.addEventListener("click",()=>select(b.id));
   el.addEventListener("click",e=>{e.stopPropagation();if(e.target.closest('[data-editing="true"]'))return;select(b.id);});
   el.addEventListener("pointerdown",e=>startBlockDrag(e,b.id,el));
@@ -687,7 +710,7 @@ function render(options={}){
  });
  $("blockCount").textContent="· "+blocks.length+" block"+(blocks.length===1?"":"s");
  renderSelectionHandles();
- if(!options.keepToolbar)renderToolbar();updateHistoryButtons();refreshStatPreviews();refreshInfographicPreviews();positionToolbar();
+ if(!options.keepToolbar&&!codeMode)renderToolbar();updateHistoryButtons();refreshStatPreviews();refreshInfographicPreviews();positionToolbar();
 }
 canvas.addEventListener("click",()=>select(null));
 const viewport=document.querySelector(".viewport");
@@ -767,8 +790,8 @@ function renderToolbar(){
  const alignTypes=["heading","text","button","card","stat","quote"];
  const contentTypes=["heading","text","button","card","stat","quote","badge"];
  const index=blocks.findIndex(x=>x.id===b.id)+1;
- const label=b.type.charAt(0).toUpperCase()+b.type.slice(1);
- const mark={heading:"H",text:"T",image:"▧",button:"▰",card:"▣",stat:"↗",divider:"━",spacer:"↕",badge:"✳",quote:"❝"}[b.type]||"•";
+ const label=b.type==="customCode"?"Custom code":b.type.charAt(0).toUpperCase()+b.type.slice(1);
+ const mark={heading:"H",text:"T",image:"▧",button:"▰",card:"▣",stat:"↗",divider:"━",spacer:"↕",badge:"✳",quote:"❝",customCode:"</>"}[b.type]||"•";
  let html='<div class="toolbar-main"><span class="toolbar-type"><span class="toolbar-type-mark">'+mark+'</span>'+esc(label)+' · '+index+'/'+blocks.length+'</span>';
  if(b.type!=="image")html+='<button type="button" class="toolbar-icon-button" id="tb-insert-image" title="Insert a new image block" aria-label="Insert image">＋ Image</button>';
  if(fontTypes.includes(b.type)){
@@ -792,7 +815,11 @@ function renderToolbar(){
  if(b.type==="stat")html+='<select class="toolbar-select" id="tb-metric" aria-label="Competition statistic">'+STAT_METRICS.map(m=>'<option value="'+m.key+'" '+((b.metric||"wins")===m.key?"selected":"")+'>'+m.label+'</option>').join("")+'</select>';
  html+='<span class="toolbar-separator"></span><details class="toolbar-more"><summary>More ▾</summary><div class="toolbar-more-panel">';
  html+='<div class="toolbar-panel-heading">Content</div>';
- if(b.type==="image"){
+ if(b.type==="customCode"){
+  html+='<div class="field"><label for="tb-custom-html">Widget HTML</label><textarea class="custom-code-editor" id="tb-custom-html" spellcheck="false">'+esc(b.html||"")+'</textarea></div>';
+  html+='<div class="field"><label for="tb-custom-css">Widget CSS</label><textarea class="custom-code-editor" id="tb-custom-css" spellcheck="false">'+esc(b.css||"")+'</textarea></div>';
+  html+='<div class="field"><label for="tb-custom-height">Preview height (px)</label><input id="tb-custom-height" type="number" min="100" max="900" value="'+esc(b.height||240)+'"></div><div class="field-note">Sandboxed HTML/CSS only. Scripts and access to the dashboard are blocked.</div>';
+ }else if(b.type==="image"){
   html+='<div class="field"><label for="tb-alt">Image description</label><input id="tb-alt" type="text" value="'+esc(b.alt||"")+'" placeholder="Describe the image"></div>';
   html+='<div class="field"><label for="tb-src">Image URL</label><input id="tb-src" type="url" value="'+esc((b.src||"").startsWith("data:")?"":b.src||"")+'" placeholder="'+((b.src||"").startsWith("data:")?"Embedded upload · paste URL to replace":"Paste an image URL")+'"></div>';
   html+='<button type="button" class="toolbar-upload" id="tb-upload-more">Upload image…</button><div class="toolbar-inline-note">Uploaded images are embedded in the draft and exported design.</div>';
@@ -870,6 +897,8 @@ function renderToolbar(){
   input.addEventListener("change",()=>{apply();commit();});
  };
  bindValue("tb-src","src");
+ bindValue("tb-custom-height","height",v=>Math.max(100,Math.min(900,Number(v)||240)));
+ ["tb-custom-html","tb-custom-css"].forEach((id,index)=>{const input=$(id);if(!input)return;input.addEventListener("input",()=>{const current=blocks.find(x=>x.id===selected);if(!current||current.type!=="customCode")return;current[index===0?"html":"css"]=input.value;const frame=canvas.querySelector('[data-id="'+current.id+'"] iframe[data-custom-code-preview]');if(frame){const h=current.html||"",c=current.css||"";clearTimeout(frame._previewTimer);frame._previewTimer=setTimeout(()=>{frame.srcdoc=buildCodeDocument(h,c);},180);}setWorkspaceStatus("Unsaved widget code","dirty");});input.addEventListener("change",()=>{pushHistory();updateHistoryButtons();});});
  bindValue("tb-alt","alt");
  bindValue("tb-fontSize","fontSize",v=>Math.max(8,Math.min(100,Number(v)||16)));
  bindValue("tb-color","color");
@@ -1115,6 +1144,7 @@ publishButton.onclick=async()=>{
  if(!validStudioTeam){toast("Open the Studio from your team's editor to publish.");return;}
  if(!confirm("Update the live Team "+validStudioTeam+" page with the design currently on this canvas? The original page will be replaced for this team."))return;
  const design=JSON.parse(snapshot());
+ if(codeMode){pageCode.html=$("pageHtmlSource").value;pageCode.css=$("pageCssSource").value;pageCode.enabled=true;design.pageCode=pageCode;}
  publishButton.disabled=true;publishButton.textContent="Publishing…";setWorkspaceStatus("Publishing page…","dirty");studioOrbit.show("Saving the design, publishing it, and verifying the live page…","Publishing your team page");
  try{
   localStorage.setItem(studioDraftKey,snapshot());
@@ -1123,7 +1153,7 @@ publishButton.onclick=async()=>{
   await new Promise(resolve=>setTimeout(resolve,1100));
   const result=await sharedDesignRequest("getPublishedTeamPage");
   if(!result||!result.ok||JSON.stringify(result.design)!==JSON.stringify(design))throw new Error(result&&result.error||"The published page could not be verified. Check that the Apps Script deployment is updated.");
-  toast("Team "+validStudioTeam+" page updated. The public page may take a minute to refresh.");setWorkspaceStatus("Published successfully","saved");
+  toast("Team "+validStudioTeam+" page updated. The public page may take a minute to refresh.");setWorkspaceStatus("Published successfully","saved");pageCode.enabled=!!design.pageCode?.enabled;pageCodeDirty=false;
  }catch(error){toast("Could not update the live page: "+error.message);setWorkspaceStatus("Publish failed","error");}
  finally{studioOrbit.hide();publishButton.disabled=false;publishButton.textContent="Update team page";}
 };
