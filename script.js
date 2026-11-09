@@ -4403,7 +4403,11 @@ function publishedBlockHTML(block, team) {
   const lines = text.split("\n");
   let inner = "";
 
-  if (type === "formation") {
+  if (type === "customCode") {
+    const html=String(b.html||"").slice(0,18000),css=String(b.css||"").slice(0,18000);
+    const srcdoc="<!doctype html><html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><style>html,body{margin:0;min-height:100%;}"+css+"</style></head><body>"+html+"</body></html>";
+    inner="<iframe title='Custom team page component' sandbox='' loading='lazy' style='display:block;width:100%;height:"+publishedNumber(b.height,240,100,900)+"px;border:0;border-radius:"+radius+"px;background:white' srcdoc='"+escapeHTML(srcdoc)+"'></iframe>";
+  } else if (type === "formation") {
     inner = publishedFormationHTML(b);
   } else if (type === "playerCard") {
     inner = publishedStandalonePlayerCardHTML(b.playerCard);
@@ -4463,6 +4467,12 @@ function publishedBlockHTML(block, team) {
 
 function renderPublishedTeamPage(container, design, team) {
   if (!design || !Array.isArray(design.blocks)) return;
+  if(design.pageCode&&design.pageCode.enabled){
+    const html=String(design.pageCode.html||"").slice(0,18000),css=String(design.pageCode.css||"").slice(0,18000);
+    const srcdoc="<!doctype html><html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><style>html,body{margin:0;min-height:100%;}"+css+"</style></head><body>"+html+"</body></html>";
+    container.innerHTML="<iframe title='Custom team page' sandbox='' loading='lazy' style='display:block;width:100%;height:900px;border:0;background:white;border-radius:16px' srcdoc='"+escapeHTML(srcdoc)+"'></iframe>";
+    renderTeamNewsSection(container,String(team.team||"").slice(-1).toUpperCase());return;
+  }
   const pageBg = safePublishedColor(design.pageBg, "#f5f7fb");
   const pagePadding = publishedNumber(design.pagePadding, 30, 0, 100);
   const pageTitle = String(design.pageTitle || "").trim();
