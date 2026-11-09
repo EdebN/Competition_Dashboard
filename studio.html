@@ -520,6 +520,7 @@ function setCodeMode(enabled){codeMode=!!enabled;if(codeMode)pageCode.enabled=tr
 $("visualModeBtn").addEventListener("click",()=>setCodeMode(false));$("codeModeBtn").addEventListener("click",()=>setCodeMode(true));
 document.querySelectorAll("[data-page-code-tab]").forEach(button=>button.addEventListener("click",()=>{pageCodeTab=button.dataset.pageCodeTab;document.querySelectorAll("[data-page-code-tab]").forEach(tab=>tab.classList.toggle("is-active",tab===button));$("pageHtmlSource").hidden=pageCodeTab!=="html";$("pageCssSource").hidden=pageCodeTab!=="css";}));
 ["pageHtmlSource","pageCssSource"].forEach(id=>$(id).addEventListener("input",()=>{pageCode.html=$("pageHtmlSource").value;pageCode.css=$("pageCssSource").value;updatePageCodePreview();}));
+["pageHtmlSource","pageCssSource"].forEach(id=>$(id).addEventListener("change",()=>{pushHistory();updateHistoryButtons();}));
 function snapshot(){return JSON.stringify({blocks,selected,pageTitle:$("pageTitle").value,pageBg:$("pageBg").value,pagePadding:$("pagePadding").value,pageCode});}
 function setWorkspaceStatus(message,state="saved"){const el=$("workspaceStatus");if(el){el.textContent=message;el.dataset.state=state;}}
 const studioOrbit=(()=>{
