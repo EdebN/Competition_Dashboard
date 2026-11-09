@@ -317,7 +317,28 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
 .standalone-player-card.spc-nfl .spc-stat span{color:#fff}
 .standalone-player-card.spc-nfl .spc-footer{left:6%;top:91%;width:88%;color:#fff;border-color:#dce7f1}
 @media(max-width:760px){.standalone-player-card .spc-rating{font-size:clamp(28px,7vw,42px)}.standalone-player-card .spc-stat b{font-size:clamp(8px,2.3vw,12px)}.standalone-player-card .spc-stat span{font-size:5px}}
+
+/* Dedicated IDE workspace */
+.app.code-mode .workspace{grid-template-columns:minmax(0,1fr);min-height:calc(100vh - 64px);height:calc(100vh - 64px)}
+.app.code-mode .sidebar,.app.code-mode .stagebar,.app.code-mode #floatingToolbar{display:none!important}
+.app.code-mode .stage{min-height:0;height:100%;overflow:hidden;background:#0b111b;color:var(--text);background-image:none}
+.app.code-mode .page-code-view{display:flex!important;min-height:0;height:100%;padding:0;gap:0;overflow:hidden;background:#0b111b}
+.app.code-mode .page-code-view[hidden]{display:none!important}
+.ide-toolbar{height:43px;flex:0 0 43px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 14px;background:#111a27;border-bottom:1px solid #263547}
+.ide-file,.ide-toolbar-actions{display:flex;align-items:center;gap:9px;min-width:0}.ide-file strong{font:600 12px ui-monospace,monospace;color:#dce7f4}.ide-file-muted{font-size:11px;color:#72849a}.ide-file-dot{width:8px;height:8px;border-radius:50%;background:#e0b95a}.ide-toolbar-actions button{padding:5px 9px;font-size:10px}.ide-save-state{font-size:10px;color:#91a5bc}
+.ide-workbench{display:grid;grid-template-columns:minmax(360px,1.08fr) minmax(320px,.92fr);flex:1;min-height:0;overflow:hidden}
+.ide-editor-pane,.ide-preview-pane{display:flex;flex-direction:column;min-width:0;min-height:0;background:#0b111b}.ide-editor-pane{border-right:1px solid #263547}
+.ide-tabs{height:39px;flex:0 0 39px;display:flex;align-items:stretch;gap:2px;padding:0 10px;background:#111a27;border-bottom:1px solid #263547}
+.ide-tab{position:relative;padding:0 14px;border:0;border-radius:0;background:transparent;color:#8295aa;font:11px ui-monospace,monospace}.ide-tab:hover:not(:disabled){background:#192638;color:#e7eef8}.ide-tab.is-active{background:#0b111b;color:#f0f5fb}.ide-tab.is-active:after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:2px;background:#e0b95a}
+.ide-editor-host{position:relative;flex:1;min-height:0;overflow:hidden}.ide-editor-host textarea[hidden]{display:none!important}.ide-editor-host .CodeMirror{height:100%;font:12px/1.65 ui-monospace,SFMono-Regular,Menlo,monospace;background:#0b111b;color:#dce7f4}.ide-editor-host .CodeMirror-gutters{background:#0b111b;border-right:1px solid #1d2b3c}.ide-editor-host .CodeMirror-linenumber{color:#53667c}.ide-editor-host .CodeMirror-cursor{border-left:1px solid #f4d57f}.ide-editor-host .CodeMirror-selected{background:#29415b!important}
+.ide-preview-pane{background:#e7edf4}.ide-pane-head{height:39px;flex:0 0 39px;display:flex;align-items:center;justify-content:space-between;padding:0 13px;background:#111a27;border-bottom:1px solid #263547;color:#aabbd0}.ide-pane-head strong{font-size:9px;letter-spacing:.13em}.ide-pane-head span{font-size:10px;color:#71859b}.ide-preview-pane iframe{display:block;width:100%;height:100%;flex:1;min-height:0;border:0;background:white}
+.ide-diagnostics{height:150px;flex:0 0 150px;display:flex;flex-direction:column;border-top:1px solid #263547;background:#0e1723;min-height:0}.ide-diagnostics-head{height:34px;flex:0 0 34px;display:flex;align-items:center;gap:12px;padding:0 12px;border-bottom:1px solid #202e3e}.ide-diagnostics-head strong{font-size:9px;letter-spacing:.12em;color:#a9bbce}.ide-diagnostics-head span{font-size:10px;color:#93a7c0}.ide-diagnostics-head button{margin-left:auto;padding:3px 7px;font-size:9px}.ide-diagnostics-list{overflow:auto;padding:5px 0}.ide-diagnostic-empty{padding:9px 12px;color:#75889d;font-size:10px}.ide-diagnostic{display:flex;align-items:center;gap:9px;padding:5px 12px;color:#b9c8d8;font:10px/1.45 ui-monospace,monospace}.ide-diagnostic:hover{background:#172536}.ide-diagnostic-kind{width:13px;flex:0 0 13px;font-weight:900}.ide-diagnostic.error .ide-diagnostic-kind{color:#ff8e96}.ide-diagnostic.warning .ide-diagnostic-kind{color:#e8bf68}.ide-diagnostic-meta{margin-left:auto;color:#71859b;white-space:nowrap}.page-code-note{flex:0 0 auto;padding:6px 12px;margin:0;background:#111a27;border-top:1px solid #263547;font-size:9px}
+@media(max-width:900px){.app.code-mode .workspace{height:auto;min-height:calc(100vh - 64px)}.ide-workbench{grid-template-columns:1fr;grid-template-rows:minmax(360px,1fr) minmax(260px,.8fr)}.ide-editor-pane{border-right:0;border-bottom:1px solid #263547}.ide-diagnostics{height:110px;flex-basis:110px}}
+@media(max-width:760px){.app.code-mode .workspace{min-height:calc(100vh - 160px)}.ide-workbench{grid-template-rows:minmax(340px,1fr) minmax(240px,.8fr)}.ide-toolbar{padding:0 9px}.ide-file-muted{display:none}}
+
 </style>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/material-darker.min.css">
 </head>
 <body>
 <div class="app">
@@ -360,7 +381,18 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
 <section class="stage">
   <div class="stagebar"><div class="stagebar-main"><span class="live-dot" aria-hidden="true"></span><strong id="stageModeTitle">Page canvas</strong><span id="blockCount" class="muted"></span></div><div class="stagebar-actions"><span id="workspaceStatus" data-state="saved" role="status" aria-live="polite">Ready to edit</span><button type="button" id="visualModeBtn" class="mode-switch is-active">Visual</button><button type="button" id="codeModeBtn" class="mode-switch">Code view</button></div></div>
   <div class="viewport" id="visualViewport"><main id="canvas" class="page" aria-label="Page canvas"></main></div>
-  <section id="pageCodeView" class="page-code-view" hidden aria-label="Full page HTML and CSS editor"><div class="page-code-toolbar"><div><strong>Page source</strong><small>HTML and CSS · scripts are disabled in published pages</small></div><span id="pageCodeStatus">Editing source</span></div><div class="page-code-editors page-code-editors-full"><div class="page-code-tabs"><button type="button" class="code-tab is-active" data-page-code-tab="html">HTML</button><button type="button" class="code-tab" data-page-code-tab="css">CSS</button></div><textarea id="pageHtmlSource" spellcheck="false" autocapitalize="off" autocomplete="off" aria-label="Page HTML source"></textarea><textarea id="pageCssSource" spellcheck="false" autocapitalize="off" autocomplete="off" aria-label="Page CSS source" hidden></textarea></div><p class="page-code-note">Code view replaces the visual layout when published. Existing visual blocks remain saved and can be restored by switching back to Visual before publishing.</p></section>
+  <section id="pageCodeView" class="page-code-view" hidden aria-label="Code workspace">
+ <div class="ide-toolbar"><div class="ide-file"><span class="ide-file-dot"></span><strong>team-page.html</strong><span class="ide-file-muted">/</span><span class="ide-file-muted">Team page source</span></div><div class="ide-toolbar-actions"><span id="pageCodeStatus" class="ide-save-state">Ready</span><button type="button" id="ideRefreshPreview">Refresh preview</button></div></div>
+ <div class="ide-workbench">
+  <section class="ide-editor-pane" aria-label="Source editor">
+   <div class="ide-tabs"><button type="button" class="ide-tab is-active" data-page-code-tab="html">index.html</button><button type="button" class="ide-tab" data-page-code-tab="css">styles.css</button></div>
+   <div class="ide-editor-host"><textarea id="pageHtmlSource" spellcheck="false" autocapitalize="off" autocomplete="off" aria-label="HTML source"></textarea><textarea id="pageCssSource" spellcheck="false" autocapitalize="off" autocomplete="off" aria-label="CSS source" hidden></textarea></div>
+   <section class="ide-diagnostics"><div class="ide-diagnostics-head"><strong>PROBLEMS</strong><span id="ideProblemCount">0 issues</span><button type="button" id="ideClearDiagnostics">Clear</button></div><div id="ideDiagnosticsList" class="ide-diagnostics-list"><div class="ide-diagnostic-empty">No diagnostics yet. Edit your code to run checks.</div></div></section>
+  </section>
+  <section class="ide-preview-pane" aria-label="Live preview"><div class="ide-pane-head"><strong>PREVIEW</strong><span id="idePreviewState">Live · isolated</span></div><iframe id="idePreviewFrame" title="Live page preview" sandbox="" referrerpolicy="no-referrer"></iframe></section>
+ </div>
+ <p class="page-code-note">HTML and CSS only. Scripts are disabled in both the preview and published custom page. Your visual blocks remain saved separately.</p>
+</section>
 </section>
 <aside class="sidebar right" aria-label="Page settings">
   <section class="right-section">
@@ -380,6 +412,13 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
 <div id="toast" class="toast" role="status"></div>
 <div id="studioOrbitWait" aria-hidden="true" role="status" aria-live="polite"><canvas id="studioOrbitCanvas" aria-hidden="true"></canvas><div class="studio-orbit-status"><span class="studio-orbit-kicker">TEAM PAGE STUDIO</span><span class="studio-orbit-title" id="studioOrbitTitle">Your design is in motion</span><span class="studio-orbit-message" id="studioOrbitMessage">Saving your design…</span><span class="studio-orbit-progress" aria-hidden="true"><i></i></span></div></div>
 <div id="requestFeatureModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="requestFeatureTitle"><form id="requestFeatureForm" class="request-modal"><h2 id="requestFeatureTitle">Request a feature</h2><p>Suggest an improvement for the Team Page Studio. Requests are saved to the private competition spreadsheet.</p><label class="field"><span>What should we add or improve?</span><textarea id="featureRequestText" minlength="8" maxlength="1500" required placeholder="Describe the feature and what it would help you do…"></textarea></label><div class="modal-actions"><button id="cancelFeatureRequest" type="button">Cancel</button><button class="primary" type="submit">Submit request</button></div></form></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/xml/xml.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/javascript/javascript.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/css/css.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/htmlmixed/htmlmixed.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/htmlhint/1.1.4/htmlhint.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/csslint/1.0.5/csslint.min.js"></script>
 <script>
 const studioParams = new URLSearchParams(location.search);
 const studioTeamId = studioParams.get("team");
@@ -510,17 +549,42 @@ function startStatsPreview(){
  document.body.appendChild(statsFrame);
 }
 
-let codeMode=false,pageCodeTab="html",pageCodeDirty=false;
+let codeMode=false,pageCodeTab="html",pageCodeDirty=false,htmlCodeEditor=null,cssCodeEditor=null,diagnosticTimer=0;
 const DEFAULT_PAGE_HTML="<main class='team-page'>\n  <span class='eyebrow'>TEAM PROFILE</span>\n  <h1>Your page, your identity.</h1>\n  <p>Use HTML and CSS to build a completely custom team page.</p>\n</main>";
 const DEFAULT_PAGE_CSS="* { box-sizing: border-box; }\nbody { margin: 0; font-family: system-ui, sans-serif; }\n.team-page { padding: 32px; border-radius: 16px; background: #101e2e; color: #edf3fb; }\n.eyebrow { color: #e0b95a; font-size: 11px; font-weight: 800; letter-spacing: .14em; }\nh1 { margin: 12px 0; font-size: clamp(28px, 5vw, 48px); }\np { color: #a9bed4; line-height: 1.7; }";
 function buildCodeDocument(html,css){return "<!doctype html><html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><style>html,body{margin:0;min-height:100%;}"+String(css||"")+"\n</style></head><body>"+String(html||"")+"</body></html>";}
-function updatePageCodePreview(){pageCodeDirty=true;$("pageCodeStatus").textContent="Unsaved source changes";setWorkspaceStatus("Unsaved code changes","dirty");}
 let pageCode={enabled:false,html:DEFAULT_PAGE_HTML,css:DEFAULT_PAGE_CSS};
-function setCodeMode(enabled){codeMode=!!enabled;if(codeMode)pageCode.enabled=true;$("visualViewport").hidden=codeMode;$("pageCodeView").hidden=!codeMode;$("visualModeBtn").classList.toggle("is-active",!codeMode);$("codeModeBtn").classList.toggle("is-active",codeMode);$("stageModeTitle").textContent=codeMode?"Code editor":"Page canvas";$("blockCount").textContent=codeMode?"· full-page source":("· "+blocks.length+" blocks");floatingToolbar.hidden=codeMode||!selected;if(codeMode){$("pageHtmlSource").value=pageCode.html||DEFAULT_PAGE_HTML;$("pageCssSource").value=pageCode.css||DEFAULT_PAGE_CSS;}else{pageCode.enabled=false;pageCodeDirty=false;render();}}
+function readCodeEditors(){if(htmlCodeEditor)pageCode.html=htmlCodeEditor.getValue();else pageCode.html=$("pageHtmlSource").value;if(cssCodeEditor)pageCode.css=cssCodeEditor.getValue();else pageCode.css=$("pageCssSource").value;}
+function updatePageCodePreview(){readCodeEditors();pageCodeDirty=true;$("pageCodeStatus").textContent="Unsaved changes";$("pageCodeStatus").style.color="#e8bf68";setWorkspaceStatus("Unsaved code changes","dirty");clearTimeout(diagnosticTimer);diagnosticTimer=setTimeout(()=>{renderCodeDiagnostics();refreshCodePreview();},320);}
+function ensureCodeEditors(){
+ if(!window.CodeMirror||htmlCodeEditor||cssCodeEditor)return;
+ htmlCodeEditor=CodeMirror.fromTextArea($("pageHtmlSource"),{mode:"htmlmixed",theme:"material-darker",lineNumbers:true,lineWrapping:false,indentUnit:2,tabSize:2,indentWithTabs:false,autoCloseTags:true,matchBrackets:true});
+ cssCodeEditor=CodeMirror.fromTextArea($("pageCssSource"),{mode:"css",theme:"material-darker",lineNumbers:true,lineWrapping:false,indentUnit:2,tabSize:2,indentWithTabs:false,matchBrackets:true});
+ htmlCodeEditor.on("change",updatePageCodePreview);cssCodeEditor.on("change",updatePageCodePreview);
+}
+function refreshCodePreview(){readCodeEditors();const frame=$("idePreviewFrame");if(frame)frame.srcdoc=buildCodeDocument(pageCode.html,pageCode.css);$("idePreviewState").textContent="Live · refreshed";}
+function renderCodeDiagnostics(){
+ readCodeEditors();const issues=[];
+ if(window.HTMLHint){const found=HTMLHint.verify(pageCode.html,{"tag-pair":true,"attr-no-duplication":true,"id-unique":true,"doctype-first":false,"tagname-lowercase":true,"attr-lowercase":true,"src-not-empty":true,"alt-require":false});for(const x of found)issues.push({type:x.type==="error"?"error":"warning",message:x.message,line:x.line,col:x.col,source:"HTML"});}
+ else {const stack=[];const re=/<\\/?([a-z][\\w-]*)\\b[^>]*>/gi;let m;while((m=re.exec(pageCode.html))){if(/^<\\//.test(m[0])){if(stack.length&&stack[stack.length-1]===m[1].toLowerCase())stack.pop();}else if(!/\\b(void|area|base|br|col|embed|hr|img|input|link|meta|param|source|track|wbr)\\b/i.test(m[1])&&!/\\/>$/.test(m[0]))stack.push(m[1].toLowerCase());}if(stack.length)issues.push({type:"warning",message:"Possible unclosed HTML tag: "+stack[stack.length-1],line:1,col:1,source:"HTML"});}
+ if(window.CSSLint){for(const x of CSSLint.verify(pageCode.css).messages)issues.push({type:x.type===2?"error":"warning",message:x.message,line:x.line||1,col:x.col||1,source:"CSS"});}
+ else {let depth=0;for(let i=0;i<pageCode.css.length;i++){if(pageCode.css[i]==="{")depth++;if(pageCode.css[i]==="}")depth--;if(depth<0){issues.push({type:"error",message:"Unexpected closing brace",line:pageCode.css.slice(0,i).split("\\n").length,col:1,source:"CSS"});break;}}if(depth>0)issues.push({type:"error",message:"Missing closing brace in CSS",line:pageCode.css.split("\\n").length,col:1,source:"CSS"});}
+ const host=$("ideDiagnosticsList"),count=$("ideProblemCount");count.textContent=issues.length+" "+(issues.length===1?"issue":"issues");
+ host.innerHTML=issues.length?issues.map((x,i)=>'<button type="button" class="ide-diagnostic '+x.type+'" data-diagnostic="'+i+'"><span class="ide-diagnostic-kind">'+(x.type==="error"?"×":"!")+'</span><span>'+escapeHTML(x.message)+'</span><span class="ide-diagnostic-meta">'+x.source+':'+x.line+':'+x.col+'</span></button>').join(""):'<div class="ide-diagnostic-empty">No issues detected by the available checks.</div>';
+ host.querySelectorAll("[data-diagnostic]").forEach((button,i)=>button.addEventListener("click",()=>{const x=issues[i],editor=x.source==="CSS"?cssCodeEditor:htmlCodeEditor;if(editor){editor.focus();editor.setCursor(Math.max(0,x.line-1),Math.max(0,x.col-1));}}));
+}
+function setCodeMode(enabled){
+ codeMode=!!enabled;document.querySelector(".app").classList.toggle("code-mode",codeMode);
+ if(codeMode){pageCode.enabled=true;$("pageHtmlSource").value=pageCode.html||DEFAULT_PAGE_HTML;$("pageCssSource").value=pageCode.css||DEFAULT_PAGE_CSS;ensureCodeEditors();if(htmlCodeEditor){htmlCodeEditor.setValue(pageCode.html||DEFAULT_PAGE_HTML);cssCodeEditor.setValue(pageCode.css||DEFAULT_PAGE_CSS);setTimeout(()=>{htmlCodeEditor.refresh();cssCodeEditor.refresh();},0);}refreshCodePreview();renderCodeDiagnostics();}
+ $("visualViewport").hidden=codeMode;$("pageCodeView").hidden=!codeMode;$("visualModeBtn").classList.toggle("is-active",!codeMode);$("codeModeBtn").classList.toggle("is-active",codeMode);$("stageModeTitle").textContent=codeMode?"Code editor":"Page canvas";$("blockCount").textContent=codeMode?"· HTML + CSS":("· "+blocks.length+" blocks");floatingToolbar.hidden=codeMode||!selected;
+ if(!codeMode){pageCode.enabled=false;pageCodeDirty=false;document.querySelector(".app").classList.remove("code-mode");render();}
+}
 $("visualModeBtn").addEventListener("click",()=>setCodeMode(false));$("codeModeBtn").addEventListener("click",()=>setCodeMode(true));
-document.querySelectorAll("[data-page-code-tab]").forEach(button=>button.addEventListener("click",()=>{pageCodeTab=button.dataset.pageCodeTab;document.querySelectorAll("[data-page-code-tab]").forEach(tab=>tab.classList.toggle("is-active",tab===button));$("pageHtmlSource").hidden=pageCodeTab!=="html";$("pageCssSource").hidden=pageCodeTab!=="css";}));
-["pageHtmlSource","pageCssSource"].forEach(id=>$(id).addEventListener("input",()=>{pageCode.html=$("pageHtmlSource").value;pageCode.css=$("pageCssSource").value;updatePageCodePreview();}));
-["pageHtmlSource","pageCssSource"].forEach(id=>$(id).addEventListener("change",()=>{pushHistory();updateHistoryButtons();}));
+document.querySelectorAll("[data-page-code-tab]").forEach(button=>button.addEventListener("click",()=>{pageCodeTab=button.dataset.pageCodeTab;document.querySelectorAll("[data-page-code-tab]").forEach(tab=>tab.classList.toggle("is-active",tab===button));if(htmlCodeEditor){htmlCodeEditor.getWrapperElement().style.display=pageCodeTab==="html"?"":"none";cssCodeEditor.getWrapperElement().style.display=pageCodeTab==="css"?"":"none";setTimeout(()=>{(pageCodeTab==="html"?htmlCodeEditor:cssCodeEditor).refresh();},0);}else{$("pageHtmlSource").hidden=pageCodeTab!=="html";$("pageCssSource").hidden=pageCodeTab!=="css";}}));
+["pageHtmlSource","pageCssSource"].forEach(id=>$(id).addEventListener("input",updatePageCodePreview));
+$("ideRefreshPreview").addEventListener("click",()=>{refreshCodePreview();renderCodeDiagnostics();});
+$("ideClearDiagnostics").addEventListener("click",()=>{$("ideDiagnosticsList").innerHTML='<div class="ide-diagnostic-empty">Diagnostics cleared. Edit code to run checks again.</div>';$("ideProblemCount").textContent="0 issues";});
+
 function snapshot(){return JSON.stringify({blocks,selected,pageTitle:$("pageTitle").value,pageBg:$("pageBg").value,pagePadding:$("pagePadding").value,pageCode});}
 function setWorkspaceStatus(message,state="saved"){const el=$("workspaceStatus");if(el){el.textContent=message;el.dataset.state=state;}}
 const studioOrbit=(()=>{
@@ -1145,8 +1209,9 @@ if(!validStudioTeam){publishButton.disabled=true;publishButton.title="Open the S
 publishButton.onclick=async()=>{
  if(!validStudioTeam){toast("Open the Studio from your team's editor to publish.");return;}
  if(!confirm("Update the live Team "+validStudioTeam+" page with the design currently on this canvas? The original page will be replaced for this team."))return;
+ if(codeMode){readCodeEditors();pageCode.enabled=true;}
  const design=JSON.parse(snapshot());
- if(codeMode){pageCode.html=$("pageHtmlSource").value;pageCode.css=$("pageCssSource").value;pageCode.enabled=true;design.pageCode=pageCode;}
+ if(codeMode){design.pageCode=pageCode;}
  publishButton.disabled=true;publishButton.textContent="Publishing…";setWorkspaceStatus("Publishing page…","dirty");studioOrbit.show("Saving the design, publishing it, and verifying the live page…","Publishing your team page");
  try{
   localStorage.setItem(studioDraftKey,snapshot());
