@@ -320,7 +320,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
 
 /* Dedicated IDE workspace */
 .app.code-mode .workspace{grid-template-columns:minmax(0,1fr);min-height:calc(100vh - 64px);height:calc(100vh - 64px)}
-.app.code-mode .sidebar,.app.code-mode .stagebar,.app.code-mode #floatingToolbar{display:none!important}
+.app.code-mode .sidebar,.app.code-mode .stagebar,.app.code-mode #floatingToolbar{display:none!important}\n.app.code-mode #undoBtn,.app.code-mode #redoBtn,.app.code-mode #loadBtn,.app.code-mode #importBtn,.app.code-mode #exportJsonBtn,.app.code-mode #revertTeamPageBtn,.app.code-mode .top-actions a[href="team-posts.html"]{display:none!important}
 .app.code-mode .stage{min-height:0;height:100%;overflow:hidden;background:#0b111b;color:var(--text);background-image:none}
 .app.code-mode .page-code-view{display:flex!important;min-height:0;height:100%;padding:0;gap:0;overflow:hidden;background:#0b111b}
 .app.code-mode .page-code-view[hidden]{display:none!important}
@@ -382,7 +382,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
   <div class="stagebar"><div class="stagebar-main"><span class="live-dot" aria-hidden="true"></span><strong id="stageModeTitle">Page canvas</strong><span id="blockCount" class="muted"></span></div><div class="stagebar-actions"><span id="workspaceStatus" data-state="saved" role="status" aria-live="polite">Ready to edit</span><button type="button" id="visualModeBtn" class="mode-switch is-active">Visual</button><button type="button" id="codeModeBtn" class="mode-switch">Code view</button></div></div>
   <div class="viewport" id="visualViewport"><main id="canvas" class="page" aria-label="Page canvas"></main></div>
   <section id="pageCodeView" class="page-code-view" hidden aria-label="Code workspace">
- <div class="ide-toolbar"><div class="ide-file"><span class="ide-file-dot"></span><strong>team-page.html</strong><span class="ide-file-muted">/</span><span class="ide-file-muted">Team page source</span></div><div class="ide-toolbar-actions"><span id="pageCodeStatus" class="ide-save-state">Ready</span><button type="button" id="ideRefreshPreview">Refresh preview</button></div></div>
+ <div class="ide-toolbar"><div class="ide-file"><span class="ide-file-dot"></span><strong>team-page.html</strong><span class="ide-file-muted">/</span><span class="ide-file-muted">Team page source</span></div><div class="ide-toolbar-actions"><span id="pageCodeStatus" class="ide-save-state">Ready</span><button type="button" id="ideVisualModeBtn">Visual editor</button><button type="button" id="ideRefreshPreview">Refresh preview</button></div></div>
  <div class="ide-workbench">
   <section class="ide-editor-pane" aria-label="Source editor">
    <div class="ide-tabs"><button type="button" class="ide-tab is-active" data-page-code-tab="html">index.html</button><button type="button" class="ide-tab" data-page-code-tab="css">styles.css</button></div>
@@ -583,7 +583,7 @@ function setCodeMode(enabled){
 $("visualModeBtn").addEventListener("click",()=>setCodeMode(false));$("codeModeBtn").addEventListener("click",()=>setCodeMode(true));
 document.querySelectorAll("[data-page-code-tab]").forEach(button=>button.addEventListener("click",()=>{pageCodeTab=button.dataset.pageCodeTab;document.querySelectorAll("[data-page-code-tab]").forEach(tab=>tab.classList.toggle("is-active",tab===button));if(htmlCodeEditor){htmlCodeEditor.getWrapperElement().style.display=pageCodeTab==="html"?"":"none";cssCodeEditor.getWrapperElement().style.display=pageCodeTab==="css"?"":"none";setTimeout(()=>{(pageCodeTab==="html"?htmlCodeEditor:cssCodeEditor).refresh();},0);}else{$("pageHtmlSource").hidden=pageCodeTab!=="html";$("pageCssSource").hidden=pageCodeTab!=="css";}}));
 ["pageHtmlSource","pageCssSource"].forEach(id=>$(id).addEventListener("input",updatePageCodePreview));
-$("ideRefreshPreview").addEventListener("click",()=>{refreshCodePreview();renderCodeDiagnostics();});
+$("ideVisualModeBtn").addEventListener("click",()=>setCodeMode(false));\n$("ideRefreshPreview").addEventListener("click",()=>{refreshCodePreview();renderCodeDiagnostics();});
 $("ideClearDiagnostics").addEventListener("click",()=>{$("ideDiagnosticsList").innerHTML='<div class="ide-diagnostic-empty">Diagnostics cleared. Edit code to run checks again.</div>';$("ideProblemCount").textContent="0 issues";});
 
 function snapshot(){return JSON.stringify({blocks,selected,pageTitle:$("pageTitle").value,pageBg:$("pageBg").value,pagePadding:$("pagePadding").value,pageCode});}
