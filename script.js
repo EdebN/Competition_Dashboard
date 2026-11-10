@@ -5511,19 +5511,12 @@ function calculate() {
   renderHomeSpotlight();
 
 
-  if (
-    currentPage !== "home" &&
-    currentPage !== "matches" &&
-    currentPage !== "finals" &&
-    currentPage !== "admin"
-  ) {
-
-    renderTeamPage(
-      getTeamNameFromPage(
-        currentPage
-      )
-    );
-
+  // Only render a team profile when the active route is one of the five
+  // actual team-profile pages. Team Studio is also a ".page" route, but its
+  // container holds the editor iframe; treating it as a team profile replaces
+  // the entire editor with the "Team not found" fallback during async refreshes.
+  if (/^team-[a-e]$/.test(currentPage)) {
+    renderTeamPage(getTeamNameFromPage(currentPage));
   }
 
 }
