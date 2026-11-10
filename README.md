@@ -222,6 +222,10 @@ async function loadMatchday() {
 loadMatchday().then(console.table).catch(console.error);
 ```
 
+## Code Studio preview console
+
+The Code Studio preview has a built-in console beneath the rendered page. It captures `console.log`, `console.info`, `console.warn`, `console.error`, `console.debug` and `console.table`, plus uncaught JavaScript errors and unhandled Promise rejections. API calls also appear as request/success/failure entries. This console is separate from the browser developer console and is the intended place to inspect output from preview code.
+
 ## Runtime and security model
 
 - Custom JavaScript runs in the Code Studio preview's sandboxed iframe.
