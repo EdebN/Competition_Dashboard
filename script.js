@@ -3631,6 +3631,15 @@ function setPrimaryMenuOpen(open) {
 }
 
 function showPage(pageName) {
+  // Team Studio is a locked dashboard route. A stale team-profile click or
+  // delayed handler must never replace the editor with a profile page while
+  // the Team Studio route is active.
+  const studioRouteActive = readDashboardHashRoute() === "team-studio";
+  if (studioRouteActive && /^team-[a-e]$/.test(pageName)) {
+    console.warn("Ignored team-profile navigation while Team Studio is active:", pageName);
+    pageName = "team-studio";
+  }
+
   updateTeamNavNames();
   setPrimaryMenuOpen(false);
 
