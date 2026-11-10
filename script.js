@@ -3635,10 +3635,29 @@ function showPage(pageName) {
   setPrimaryMenuOpen(false);
 
   const isTeamProfile = /^team-[a-e]$/.test(pageName);
-  const navPageName = isTeamProfile ? "teams" : pageName === "finals" ? "matches" : pageName;
+  const isTeamStudio = pageName === "team-studio";
+  const navPageName = isTeamProfile || isTeamStudio ? "teams" : pageName === "finals" ? "matches" : pageName;
   const page = document.getElementById(`${pageName}-page`);
   const button = document.querySelector(`.nav-button[data-page="${navPageName}"]`);
   if (!page || !button) return;
+
+  // Team Studio is a view inside this document. Its editor runs in an isolated
+  // iframe, while the dashboard URL and page system remain in control.
+  if (isTeamStudio) {
+    const teamId = sessionStorage.getItem("team-editor-authorized-team") || "";
+    const token = sessionStorage.getItem("team-editor-session-token") || "";
+    const frame = document.getElementById("teamStudioFrame");
+    if (!/^[A-E]$/.test(teamId) || !token) {
+      page.innerHTML = '<div class="team-studio-access"><h2>Team workspace access required</h2><p>Open your team workspace and verify your PIN before launching the page editor.</p><a href="team-editor.html">Open team access</a></div>';
+      if (frame) frame.hidden = true;
+    } else if (frame) {
+      frame.hidden = false;
+      const expectedSrc = "studio.html?team=" + encodeURIComponent(teamId);
+      if (!frame.getAttribute("src") || !frame.getAttribute("src").endsWith(expectedSrc)) {
+        frame.src = expectedSrc;
+      }
+    }
+  }
 
   const commitPageChange = () => {
     document.querySelectorAll(".page").forEach(item => item.classList.remove("active-page"));
@@ -3691,6 +3710,20 @@ function showPage(pageName) {
 
 document.querySelectorAll("[data-page]").forEach(button => {
   button.addEventListener("click", () => showPage(button.dataset.page));
+});
+
+// Restore the requested in-app view when Team Workspace opens the dashboard.
+// The hash is only a view selector; Home, Matches and Team Studio remain in
+// the same index.html document.
+function readDashboardHashRoute() {
+  const match = window.location.hash.match(/^#dashboard\/(home|teams|matches|finals|socials|team-studio)$/);
+  return match ? match[1] : null;
+}
+const initialDashboardRoute = readDashboardHashRoute();
+if (initialDashboardRoute) showPage(initialDashboardRoute);
+window.addEventListener("hashchange", () => {
+  const route = readDashboardHashRoute();
+  if (route && route !== currentPage) showPage(route);
 });
 
 
