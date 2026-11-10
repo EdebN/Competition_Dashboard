@@ -393,13 +393,13 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
  <div class="ide-toolbar"><div class="ide-file"><span class="ide-file-dot"></span><strong>team-page.html</strong><span class="ide-file-muted">/</span><span class="ide-file-muted">Team page source</span></div><div class="ide-toolbar-actions"><span id="pageCodeStatus" class="ide-save-state">Ready</span><button type="button" id="ideVisualModeBtn">Visual editor</button><button type="button" id="ideRefreshPreview">Refresh preview</button></div></div>
  <div class="ide-workbench">
   <section class="ide-editor-pane" aria-label="Source editor">
-   <div class="ide-tabs"><button type="button" class="ide-tab is-active" data-page-code-tab="html">index.html</button><button type="button" class="ide-tab" data-page-code-tab="css">styles.css</button></div>
-   <div class="ide-editor-host"><textarea id="pageHtmlSource" spellcheck="false" autocapitalize="off" autocomplete="off" aria-label="HTML source"></textarea><textarea id="pageCssSource" spellcheck="false" autocapitalize="off" autocomplete="off" aria-label="CSS source" hidden></textarea></div>
+   <div class="ide-tabs"><button type="button" class="ide-tab is-active" data-page-code-tab="html">index.html</button><button type="button" class="ide-tab" data-page-code-tab="css">styles.css</button><button type="button" class="ide-tab" data-page-code-tab="js">script.js</button></div>
+   <div class="ide-editor-host"><textarea id="pageHtmlSource" spellcheck="false" autocapitalize="off" autocomplete="off" aria-label="HTML source"></textarea><textarea id="pageCssSource" spellcheck="false" autocapitalize="off" autocomplete="off" aria-label="CSS source" hidden></textarea><textarea id="pageJsSource" spellcheck="false" autocapitalize="off" autocomplete="off" aria-label="JavaScript source" hidden></textarea></div>
    <section class="ide-diagnostics"><div class="ide-diagnostics-head"><strong>PROBLEMS</strong><span id="ideProblemCount">0 issues</span><button type="button" id="ideClearDiagnostics">Clear</button></div><div id="ideDiagnosticsList" class="ide-diagnostics-list"><div class="ide-diagnostic-empty">No diagnostics yet. Edit your code to run checks.</div></div></section>
   </section>
-  <section class="ide-preview-pane" aria-label="Live preview"><div class="ide-pane-head"><strong>PREVIEW</strong><span id="idePreviewState">Live · isolated</span></div><iframe id="idePreviewFrame" title="Live page preview" sandbox="" referrerpolicy="no-referrer"></iframe></section>
+  <section class="ide-preview-pane" aria-label="Live preview"><div class="ide-pane-head"><strong>PREVIEW</strong><span id="idePreviewState">Live · isolated</span></div><iframe id="idePreviewFrame" title="Live page preview" sandbox="allow-scripts" referrerpolicy="no-referrer"></iframe></section>
  </div>
- <p class="page-code-note">HTML and CSS only. Scripts are disabled in both the preview and published custom page. Your visual blocks remain saved separately.</p>
+ <p class="page-code-note">HTML, CSS and JavaScript. JavaScript runs only inside the isolated preview. Your visual blocks remain saved separately.</p>
 </section>
 </section>
 <aside class="sidebar right" aria-label="Page settings">
@@ -557,21 +557,21 @@ function startStatsPreview(){
  document.body.appendChild(statsFrame);
 }
 
-let codeMode=false,pageCodeTab="html",pageCodeDirty=false,htmlCodeEditor=null,cssCodeEditor=null,diagnosticTimer=0;
+let codeMode=false,pageCodeTab="html",pageCodeDirty=false,htmlCodeEditor=null,cssCodeEditor=null,jsCodeEditor=null,diagnosticTimer=0;
 const DEFAULT_PAGE_HTML="<main class='team-page'>\n  <span class='eyebrow'>TEAM PROFILE</span>\n  <h1>Your page, your identity.</h1>\n  <p>Use HTML and CSS to build a completely custom team page.</p>\n</main>";
 const DEFAULT_PAGE_CSS="* { box-sizing: border-box; }\nbody { margin: 0; font-family: system-ui, sans-serif; }\n.team-page { padding: 32px; border-radius: 16px; background: #101e2e; color: #edf3fb; }\n.eyebrow { color: #e0b95a; font-size: 11px; font-weight: 800; letter-spacing: .14em; }\nh1 { margin: 12px 0; font-size: clamp(28px, 5vw, 48px); }\np { color: #a9bed4; line-height: 1.7; }";
-function buildCodeDocument(html,css){return "<!doctype html><html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><style>html,body{margin:0;min-height:100%;}"+String(css||"")+"\n</style></head><body>"+String(html||"")+"</body></html>";}
-let pageCode={enabled:false,html:DEFAULT_PAGE_HTML,css:DEFAULT_PAGE_CSS};
-function readCodeEditors(){if(htmlCodeEditor)pageCode.html=htmlCodeEditor.getValue();else pageCode.html=$("pageHtmlSource").value;if(cssCodeEditor)pageCode.css=cssCodeEditor.getValue();else pageCode.css=$("pageCssSource").value;}
+function buildCodeDocument(html,css,js){const safeJs=String(js||"").replace(/<\\/script/gi,"<\\\\/script");return "<!doctype html><html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><style>html,body{margin:0;min-height:100%;}"+String(css||"")+"\n</style></head><body>"+String(html||"")+"<script>\n"+safeJs+"\n<\\/script></body></html>";}
+let pageCode={enabled:false,html:DEFAULT_PAGE_HTML,css:DEFAULT_PAGE_CSS,js:""};
+function readCodeEditors(){pageCode.html=htmlCodeEditor?htmlCodeEditor.getValue():$("pageHtmlSource").value;pageCode.css=cssCodeEditor?cssCodeEditor.getValue():$("pageCssSource").value;pageCode.js=jsCodeEditor?jsCodeEditor.getValue():$("pageJsSource").value;}
 function updatePageCodePreview(){readCodeEditors();pageCodeDirty=true;$("pageCodeStatus").textContent="Unsaved changes";$("pageCodeStatus").style.color="#e8bf68";setWorkspaceStatus("Unsaved code changes","dirty");clearTimeout(diagnosticTimer);diagnosticTimer=setTimeout(()=>{renderCodeDiagnostics();refreshCodePreview();},320);}
 function ensureCodeEditors(){
- if(!window.CodeMirror||htmlCodeEditor||cssCodeEditor)return;
+ if(!window.CodeMirror||htmlCodeEditor||cssCodeEditor||jsCodeEditor)return;
  htmlCodeEditor=CodeMirror.fromTextArea($("pageHtmlSource"),{mode:"htmlmixed",theme:"material-darker",lineNumbers:true,lineWrapping:false,indentUnit:2,tabSize:2,indentWithTabs:false,autoCloseTags:true,matchBrackets:true});
- cssCodeEditor=CodeMirror.fromTextArea($("pageCssSource"),{mode:"css",theme:"material-darker",lineNumbers:true,lineWrapping:false,indentUnit:2,tabSize:2,indentWithTabs:false,matchBrackets:true});
- cssCodeEditor.getWrapperElement().style.display="none";
- htmlCodeEditor.on("change",updatePageCodePreview);cssCodeEditor.on("change",updatePageCodePreview);
+ cssCodeEditor=CodeMirror.fromTextArea($("pageCssSource"),{mode:"css",theme:"material-darker",lineNumbers:true,lineWrapping:false,indentUnit:2,tabSize:2,indentWithTabs:false,matchBrackets:true});\n jsCodeEditor=CodeMirror.fromTextArea($("pageJsSource"),{mode:"javascript",theme:"material-darker",lineNumbers:true,lineWrapping:false,indentUnit:2,tabSize:2,indentWithTabs:false,matchBrackets:true,autoCloseBrackets:true});
+ cssCodeEditor.getWrapperElement().style.display="none";\n jsCodeEditor.getWrapperElement().style.display="none";
+ htmlCodeEditor.on("change",updatePageCodePreview);cssCodeEditor.on("change",updatePageCodePreview);jsCodeEditor.on("change",updatePageCodePreview);
 }
-function refreshCodePreview(){readCodeEditors();const frame=$("idePreviewFrame");if(frame)frame.srcdoc=buildCodeDocument(pageCode.html,pageCode.css);$("idePreviewState").textContent="Live · refreshed";}
+function refreshCodePreview(){readCodeEditors();const frame=$("idePreviewFrame");if(frame)frame.srcdoc=buildCodeDocument(pageCode.html,pageCode.css,pageCode.js);$("idePreviewState").textContent="Live · refreshed";}
 function renderCodeDiagnostics(){
  readCodeEditors();const issues=[];
  if(window.HTMLHint){const found=HTMLHint.verify(pageCode.html,{"tag-pair":true,"attr-no-duplication":true,"id-unique":true,"doctype-first":false,"tagname-lowercase":true,"attr-lowercase":true,"src-not-empty":true,"alt-require":false});for(const x of found)issues.push({type:x.type==="error"?"error":"warning",message:x.message,line:x.line,col:x.col,source:"HTML"});}
@@ -589,12 +589,12 @@ function setCodeMode(enabled){
   $("visualViewport").hidden=true;
   $("pageCodeView").hidden=false;
   $("pageHtmlSource").value=pageCode.html||DEFAULT_PAGE_HTML;
-  $("pageCssSource").value=pageCode.css||DEFAULT_PAGE_CSS;
+  $("pageCssSource").value=pageCode.css||DEFAULT_PAGE_CSS;$("pageJsSource").value=pageCode.js||"";
   ensureCodeEditors();
   if(htmlCodeEditor){
    htmlCodeEditor.setValue(pageCode.html||DEFAULT_PAGE_HTML);
-   cssCodeEditor.setValue(pageCode.css||DEFAULT_PAGE_CSS);
-   requestAnimationFrame(()=>{htmlCodeEditor.refresh();cssCodeEditor.refresh();});
+   cssCodeEditor.setValue(pageCode.css||DEFAULT_PAGE_CSS);jsCodeEditor.setValue(pageCode.js||"");
+   requestAnimationFrame(()=>{htmlCodeEditor.refresh();cssCodeEditor.refresh();jsCodeEditor.refresh();});
   }
   refreshCodePreview();renderCodeDiagnostics();
  }
@@ -602,8 +602,8 @@ function setCodeMode(enabled){
  if(!codeMode){pageCode.enabled=false;pageCodeDirty=false;document.querySelector(".app").classList.remove("code-mode");render();}
 }
 $("visualModeBtn").addEventListener("click",()=>setCodeMode(false));$("codeModeBtn").addEventListener("click",()=>setCodeMode(true));
-document.querySelectorAll("[data-page-code-tab]").forEach(button=>button.addEventListener("click",()=>{pageCodeTab=button.dataset.pageCodeTab;document.querySelectorAll("[data-page-code-tab]").forEach(tab=>tab.classList.toggle("is-active",tab===button));if(htmlCodeEditor){htmlCodeEditor.getWrapperElement().style.display=pageCodeTab==="html"?"":"none";cssCodeEditor.getWrapperElement().style.display=pageCodeTab==="css"?"":"none";setTimeout(()=>{(pageCodeTab==="html"?htmlCodeEditor:cssCodeEditor).refresh();},0);}else{$("pageHtmlSource").hidden=pageCodeTab!=="html";$("pageCssSource").hidden=pageCodeTab!=="css";}}));
-["pageHtmlSource","pageCssSource"].forEach(id=>$(id).addEventListener("input",updatePageCodePreview));
+function switchPageCodeTab(tab){pageCodeTab=tab;document.querySelectorAll("[data-page-code-tab]").forEach(button=>button.classList.toggle("is-active",button.dataset.pageCodeTab===tab));const editors={html:htmlCodeEditor,css:cssCodeEditor,js:jsCodeEditor};const ids={html:"pageHtmlSource",css:"pageCssSource",js:"pageJsSource"};for(const key of ["html","css","js"]){const editor=editors[key],textarea=$(ids[key]);if(editor){editor.getWrapperElement().style.display=key===tab?"block":"none";}else{textarea.hidden=key!==tab;}}const active=editors[tab];if(active)requestAnimationFrame(()=>active.refresh());}\ndocument.querySelectorAll("[data-page-code-tab]").forEach(button=>button.addEventListener("click",()=>switchPageCodeTab(button.dataset.pageCodeTab)));
+["pageHtmlSource","pageCssSource","pageJsSource"].forEach(id=>$(id).addEventListener("input",updatePageCodePreview));
 $("ideVisualModeBtn").addEventListener("click",()=>setCodeMode(false));
 $("ideRefreshPreview").addEventListener("click",()=>{refreshCodePreview();renderCodeDiagnostics();});
 $("ideClearDiagnostics").addEventListener("click",()=>{$("ideDiagnosticsList").innerHTML='<div class="ide-diagnostic-empty">Diagnostics cleared. Edit code to run checks again.</div>';$("ideProblemCount").textContent="0 issues";});
@@ -716,7 +716,7 @@ const studioOrbit=(()=>{
  return {show,hide};
 })();
 function pushHistory(){if(suppressHistory)return;const s=snapshot();if(history[historyIndex]===s)return;history=history.slice(0,historyIndex+1);history.push(s);if(history.length>80)history.shift();historyIndex=history.length-1;updateHistoryButtons();setWorkspaceStatus("Unsaved changes","dirty");}
-function restore(s){suppressHistory=true;const d=JSON.parse(s);blocks=d.blocks||[];selected=d.selected||null;pageCode=d.pageCode&&typeof d.pageCode==="object"?{enabled:!!d.pageCode.enabled,html:String(d.pageCode.html||DEFAULT_PAGE_HTML),css:String(d.pageCode.css||DEFAULT_PAGE_CSS)}:{enabled:false,html:DEFAULT_PAGE_HTML,css:DEFAULT_PAGE_CSS};$("pageTitle").value=d.pageTitle||"My page";$("pageBg").value=d.pageBg||"#0b0e14";$("pagePadding").value=d.pagePadding||30;seq=Math.max(seq,...blocks.map(b=>Number(b.id.slice(1))||0));setCodeMode(!!pageCode.enabled);suppressHistory=false;updateHistoryButtons();setWorkspaceStatus("Unsaved changes","dirty");}
+function restore(s){suppressHistory=true;const d=JSON.parse(s);blocks=d.blocks||[];selected=d.selected||null;pageCode=d.pageCode&&typeof d.pageCode==="object"?{enabled:!!d.pageCode.enabled,html:String(d.pageCode.html||DEFAULT_PAGE_HTML),css:String(d.pageCode.css||DEFAULT_PAGE_CSS),js:String(d.pageCode.js||"")}:{enabled:false,html:DEFAULT_PAGE_HTML,css:DEFAULT_PAGE_CSS,js:""};$("pageTitle").value=d.pageTitle||"My page";$("pageBg").value=d.pageBg||"#0b0e14";$("pagePadding").value=d.pagePadding||30;seq=Math.max(seq,...blocks.map(b=>Number(b.id.slice(1))||0));setCodeMode(!!pageCode.enabled);suppressHistory=false;updateHistoryButtons();setWorkspaceStatus("Unsaved changes","dirty");}
 function undo(){if(historyIndex>0){historyIndex--;restore(history[historyIndex]);}}
 function redo(){if(historyIndex<history.length-1){historyIndex++;restore(history[historyIndex]);}}
 function updateHistoryButtons(){$("undoBtn").disabled=historyIndex<=0;$("redoBtn").disabled=historyIndex>=history.length-1;}
