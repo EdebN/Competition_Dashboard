@@ -1,5 +1,30 @@
 # Competition Dashboard
 
+## Want a custom team page but do not know how to code?
+
+You do not need to learn HTML, CSS or JavaScript first. Use an AI assistant as your page designer.
+
+1. Open your team's **Team Page Studio** and choose **Code view**.
+2. At the top of Code view, click **Copy AI instructions**.
+3. Paste the copied instructions into ChatGPT or another AI assistant.
+4. Describe the page you want in ordinary language. Include the layout, colours, sections, features and overall style.
+5. Ask the AI to return the three complete files separately: **HTML**, **CSS** and **JavaScript**.
+6. Paste each returned code block into its matching Studio tab: `index.html`, `styles.css` and `script.js`.
+7. Check the live preview. If something is wrong, copy the console error and ask the AI to fix it.
+8. Save your draft, then use **Update team page** when you are ready to publish.
+
+You can ask for changes in plain language. For example:
+
+> Make the page feel like a professional sports club website. Add a large team identity header, our current roster, recent results and upcoming fixtures. Use our real team name and colours from Competition Dashboard. Keep it clean on mobile.
+
+### Give the AI access to real competition data
+
+The preview includes the read-only `CompDashboard` API. Tell the AI to use it whenever the page needs live fixtures, scores, team details, standings, posts or other supported data. The API reference and examples are below. The AI should fetch the data instead of making up sample teams or fixtures.
+
+**Important:** the Code Studio preview is isolated and the API is read-only. It cannot publish posts, edit scores, change team settings or write to competition data. The custom JavaScript preview is not automatically executed by the public team page renderer; check the current publishing support before relying on custom JavaScript in the live page.
+
+---
+
 Competition Dashboard is a GitHub Pages competition site backed by Google Sheets and Google Apps Script.
 
 ## Code Studio API
