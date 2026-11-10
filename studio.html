@@ -569,7 +569,8 @@ function ensureCodeEditors(){
  htmlCodeEditor=CodeMirror.fromTextArea($("pageHtmlSource"),{mode:"htmlmixed",theme:"material-darker",lineNumbers:true,lineWrapping:false,indentUnit:2,tabSize:2,indentWithTabs:false,autoCloseTags:true,matchBrackets:true});
  cssCodeEditor=CodeMirror.fromTextArea($("pageCssSource"),{mode:"css",theme:"material-darker",lineNumbers:true,lineWrapping:false,indentUnit:2,tabSize:2,indentWithTabs:false,matchBrackets:true});
  jsCodeEditor=CodeMirror.fromTextArea($("pageJsSource"),{mode:"javascript",theme:"material-darker",lineNumbers:true,lineWrapping:false,indentUnit:2,tabSize:2,indentWithTabs:false,matchBrackets:true,autoCloseBrackets:true});
- cssCodeEditor.getWrapperElement().style.display="none";\n jsCodeEditor.getWrapperElement().style.display="none";
+ cssCodeEditor.getWrapperElement().style.display="none";
+ jsCodeEditor.getWrapperElement().style.display="none";
  htmlCodeEditor.on("change",updatePageCodePreview);cssCodeEditor.on("change",updatePageCodePreview);jsCodeEditor.on("change",updatePageCodePreview);
 }
 function refreshCodePreview(){readCodeEditors();const frame=$("idePreviewFrame");if(frame)frame.srcdoc=buildCodeDocument(pageCode.html,pageCode.css,pageCode.js);$("idePreviewState").textContent="Live · refreshed";}
