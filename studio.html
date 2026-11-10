@@ -336,6 +336,13 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
 .ide-diagnostics{height:150px;flex:0 0 150px;display:flex;flex-direction:column;border-top:1px solid #263547;background:#0e1723;min-height:0}.ide-diagnostics-head{height:34px;flex:0 0 34px;display:flex;align-items:center;gap:12px;padding:0 12px;border-bottom:1px solid #202e3e}.ide-diagnostics-head strong{font-size:9px;letter-spacing:.12em;color:#a9bbce}.ide-diagnostics-head span{font-size:10px;color:#93a7c0}.ide-diagnostics-head button{margin-left:auto;padding:3px 7px;font-size:9px}.ide-diagnostics-list{overflow:auto;padding:5px 0}.ide-diagnostic-empty{padding:9px 12px;color:#75889d;font-size:10px}.ide-diagnostic{display:flex;align-items:center;gap:9px;padding:5px 12px;color:#b9c8d8;font:10px/1.45 ui-monospace,monospace}.ide-diagnostic:hover{background:#172536}.ide-diagnostic-kind{width:13px;flex:0 0 13px;font-weight:900}.ide-diagnostic.error .ide-diagnostic-kind{color:#ff8e96}.ide-diagnostic.warning .ide-diagnostic-kind{color:#e8bf68}.ide-diagnostic-meta{margin-left:auto;color:#71859b;white-space:nowrap}.page-code-note{flex:0 0 auto;padding:6px 12px;margin:0;background:#111a27;border-top:1px solid #263547;font-size:9px}
 @media(max-width:900px){.app.code-mode .workspace{height:auto;min-height:calc(100vh - 64px)}.ide-workbench{grid-template-columns:1fr;grid-template-rows:minmax(360px,1fr) minmax(260px,.8fr)}.ide-editor-pane{border-right:0;border-bottom:1px solid #263547}.ide-diagnostics{height:110px;flex-basis:110px}}
 @media(max-width:760px){.app.code-mode .workspace{min-height:calc(100vh - 160px)}.ide-workbench{grid-template-rows:minmax(340px,1fr) minmax(240px,.8fr)}.ide-toolbar{padding:0 9px}.ide-file-muted{display:none}}
+/* Keep the source pane present even when the editor is initialised after a hidden-mode switch. */
+.app.code-mode .ide-workbench{display:grid!important;grid-template-columns:minmax(320px,1fr) minmax(320px,1fr);grid-template-rows:minmax(0,1fr);min-width:0;min-height:0}
+.app.code-mode .ide-editor-pane{display:flex!important;visibility:visible!important;opacity:1!important;min-width:0;min-height:0}
+.app.code-mode .ide-editor-host{display:block;flex:1 1 auto;min-width:0;min-height:220px;height:auto}
+.app.code-mode .ide-editor-host textarea:not([hidden]),.app.code-mode .ide-editor-host .CodeMirror{display:block!important;visibility:visible!important;width:100%;height:100%;min-height:220px}
+@media(max-width:760px){.app.code-mode .ide-workbench{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(340px,1fr) minmax(240px,.8fr)}}
+
 
 </style>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
@@ -577,7 +584,20 @@ function renderCodeDiagnostics(){
 }
 function setCodeMode(enabled){
  codeMode=!!enabled;document.querySelector(".app").classList.toggle("code-mode",codeMode);
- if(codeMode){pageCode.enabled=true;$("pageHtmlSource").value=pageCode.html||DEFAULT_PAGE_HTML;$("pageCssSource").value=pageCode.css||DEFAULT_PAGE_CSS;ensureCodeEditors();if(htmlCodeEditor){htmlCodeEditor.setValue(pageCode.html||DEFAULT_PAGE_HTML);cssCodeEditor.setValue(pageCode.css||DEFAULT_PAGE_CSS);setTimeout(()=>{htmlCodeEditor.refresh();cssCodeEditor.refresh();},0);}refreshCodePreview();renderCodeDiagnostics();}
+ if(codeMode){
+  pageCode.enabled=true;
+  $("visualViewport").hidden=true;
+  $("pageCodeView").hidden=false;
+  $("pageHtmlSource").value=pageCode.html||DEFAULT_PAGE_HTML;
+  $("pageCssSource").value=pageCode.css||DEFAULT_PAGE_CSS;
+  ensureCodeEditors();
+  if(htmlCodeEditor){
+   htmlCodeEditor.setValue(pageCode.html||DEFAULT_PAGE_HTML);
+   cssCodeEditor.setValue(pageCode.css||DEFAULT_PAGE_CSS);
+   requestAnimationFrame(()=>{htmlCodeEditor.refresh();cssCodeEditor.refresh();});
+  }
+  refreshCodePreview();renderCodeDiagnostics();
+ }
  $("visualViewport").hidden=codeMode;$("pageCodeView").hidden=!codeMode;$("visualModeBtn").classList.toggle("is-active",!codeMode);$("codeModeBtn").classList.toggle("is-active",codeMode);$("stageModeTitle").textContent=codeMode?"Code editor":"Page canvas";$("blockCount").textContent=codeMode?"· HTML + CSS":("· "+blocks.length+" blocks");floatingToolbar.hidden=codeMode||!selected;
  if(!codeMode){pageCode.enabled=false;pageCodeDirty=false;document.querySelector(".app").classList.remove("code-mode");render();}
 }
