@@ -81,7 +81,7 @@ if(!["A","B","C","D","E"].includes(teamId)||!token){
  location.replace("team-editor.html");
 }else{
  document.getElementById("teamLabel").textContent="TEAM "+teamId+" WORKSPACE";
- document.getElementById("studioLink").href="studio.html?team="+encodeURIComponent(teamId);
+ document.getElementById("studioLink").href="index.html#dashboard/team-studio";
  document.getElementById("assetStudioLink").href="asset-studio.html?team="+encodeURIComponent(teamId);
 }
 </script>
