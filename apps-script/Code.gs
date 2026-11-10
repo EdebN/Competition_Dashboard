@@ -1,6 +1,6 @@
 const SERVICE_NAME = "competition-community-api";
 const API_VERSION = 1;
-const BUILD_ID = "2026-11-06-rating-lab-and-matchday-sender";
+const BUILD_ID = "2026-11-10-code-studio-public-api";
 
 // Keep the public action inventory in one place. The health endpoint and
 // POST allowlist both use these constants so they cannot silently drift apart.
