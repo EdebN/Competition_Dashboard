@@ -3647,10 +3647,12 @@ function showPage(pageName) {
     const teamId = sessionStorage.getItem("team-editor-authorized-team") || "";
     const token = sessionStorage.getItem("team-editor-session-token") || "";
     const frame = document.getElementById("teamStudioFrame");
+    const access = document.getElementById("teamStudioAccess");
     if (!/^[A-E]$/.test(teamId) || !token) {
-      page.innerHTML = '<div class="team-studio-access"><h2>Team workspace access required</h2><p>Open your team workspace and verify your PIN before launching the page editor.</p><a href="team-editor.html">Open team access</a></div>';
       if (frame) frame.hidden = true;
+      if (access) access.hidden = false;
     } else if (frame) {
+      if (access) access.hidden = true;
       frame.hidden = false;
       const expectedSrc = "studio.html?team=" + encodeURIComponent(teamId);
       if (!frame.getAttribute("src") || !frame.getAttribute("src").endsWith(expectedSrc)) {
