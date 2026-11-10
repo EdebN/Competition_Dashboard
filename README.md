@@ -64,6 +64,9 @@ Every method returns a Promise. Use `await` or `.then()`. Methods return data, n
 | `CompDashboard.schedule.list()` | `ScheduleEntry[]` | Matchday date, time, venue and status |
 | `CompDashboard.polls.list()` | `object` | Vote counts indexed by match ID, then team ID |
 | `CompDashboard.assets.list()` | `Asset[]` | Public competition asset library |
+| `CompDashboard.standings.list()` | `Standing[]` | Current standings calculated by the dashboard rating engine |
+| `CompDashboard.players.list()` | `PlayerCard[]` | Saved player cards for the team currently authenticated in Studio |
+| `CompDashboard.teamAssets.list()` | `Asset[]` | Asset library for the currently authenticated team |
 | `CompDashboard.pages.getPublished(teamId)` | `object \| null` | Published page design for team A–E |
 
 ### Fixtures and results
@@ -162,6 +165,14 @@ if (page) {
 ```
 
 The returned value is the saved page design object, or `null` if no page has been published.
+
+### Standings
+
+`standings.list()` runs the dashboard's own Glicko-based rating and ladder calculation in a same-origin, hidden dashboard data frame. It returns the same ranking and team statistics used by the main dashboard, rather than a separately invented win-percentage table. The first request can take a moment while the dashboard loads its official results.
+
+### Team-only data
+
+`players.list()` and `teamAssets.list()` are available only when Code Studio was opened from an authenticated Team Editor session. They return data for that signed-in team only. They do not accept a team ID argument, so custom code cannot use them to inspect another team's private editor library.
 
 ## Example: render live Socials posts
 
