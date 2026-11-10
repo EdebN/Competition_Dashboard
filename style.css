@@ -4228,3 +4228,17 @@ select {
   .admin-gateway-intro { margin-top: 18px; }
   .admin-gateway-card > .admin-info { min-height: 0; }
 }
+
+
+/* Team Page Studio is a first-class dashboard view. The editor itself stays isolated in its iframe. */
+#team-studio-page { padding: 0 !important; min-height: calc(100vh - 90px); overflow: hidden; background: #08111e; }
+#team-studio-page.active-page { display: flex; flex-direction: column; }
+#teamStudioFrame { display: block; width: 100%; height: calc(100vh - 90px); min-height: 720px; border: 0; background: #08111e; }
+#teamStudioFrame[hidden] { display: none !important; }
+.team-studio-access { width: min(620px, calc(100% - 36px)); margin: 12vh auto; padding: 32px; border: 1px solid #304760; border-radius: 18px; background: #0d1a2b; color: #edf3fb; }
+.team-studio-access p { color: #93a7c0; line-height: 1.7; }
+.team-studio-access a { display: inline-flex; margin-top: 12px; padding: 10px 14px; border-radius: 9px; background: #e0b95a; color: #101b2a; font-weight: 800; text-decoration: none; }
+@media (max-width: 700px) {
+  #team-studio-page { min-height: calc(100vh - 70px); }
+  #teamStudioFrame { height: calc(100vh - 70px); min-height: 680px; }
+}
