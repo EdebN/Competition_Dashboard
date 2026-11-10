@@ -4554,6 +4554,7 @@ function loadPublishedTeamPage(teamName, container, team) {
   publishedTeamPageRequests.set(teamId, request);
 }
 function renderTeamPage(teamName) {
+  if (new URLSearchParams(window.location.search).has("studioStatsPreview")) return;
   console.log("RENDERING TEAM:", teamName);
   const container =
   document.getElementById(
@@ -5045,16 +5046,23 @@ function parseCSV(text) {
 ========================================================= */
 
 
+async function readOfficialResultsFromApi_() {
+  const response = await readCommunityApi("getMatchResults");
+  if (!response?.ok || !Array.isArray(response.results)) throw new Error("The official results API returned an invalid fixture list.");
+  return response.results.map(result => ({
+    id: Number(result.matchId), home: String(result.home || "").trim(), away: String(result.away || "").trim(),
+    stage: String(result.stage || "REGULAR").trim().toUpperCase() || "REGULAR",
+    referee: String(result.referee || "").trim(), homeScore: result.homeScore, awayScore: result.awayScore
+  })).filter(game => Number.isInteger(game.id) && game.id > 0);
+}
 async function overlayMatchResultsFromApi_() {
   try {
-    const response = await readCommunityApi("getMatchResults");
-    if (!response?.ok || !Array.isArray(response.results)) return;
-    response.results.forEach(result => {
-      const id = Number(result.matchId), home = Number(result.homeScore), away = Number(result.awayScore);
-      if (!Number.isInteger(id) || !Number.isInteger(home) || !Number.isInteger(away) ||
-          home < 0 || away < 0 || result.homeScore === null || result.awayScore === null) return;
-      if (!games.some(item => Number(item.id) === id)) return;
-      scores[id] = { home, away };
+    const results = await readOfficialResultsFromApi_();
+    results.forEach(result => {
+      const home = Number(result.homeScore), away = Number(result.awayScore);
+      if (!Number.isInteger(home) || !Number.isInteger(away) || home < 0 || away < 0 || result.homeScore === null || result.awayScore === null) return;
+      if (!games.some(item => Number(item.id) === result.id)) return;
+      scores[result.id] = { home, away };
     });
   } catch (error) { console.warn("Could not overlay official results from the community API:", error); }
 }
@@ -5258,8 +5266,6 @@ game.referee =
 
     await overlayMatchResultsFromApi_();
 
-    await overlayMatchResultsFromApi_();
-
     calculate();
     renderGames();
     renderFinalsPage();
@@ -5271,20 +5277,24 @@ game.referee =
   }
 
   catch (error) {
-
-    console.error(
-      "Could not load Google Sheet:",
-      error
-    );
-
-
-    calculate();
-    renderGames();
-    renderFinalsPage();
-    if (typeof renderMatchCentre === "function") renderMatchCentre();
-
-    showSheetStatus(false);
-
+    try {
+      const officialResults = await readOfficialResultsFromApi_();
+      games = officialResults.map(result => ({id:result.id,home:result.home,away:result.away,stage:result.stage,referee:result.referee}));
+      Object.keys(scores).forEach(id => delete scores[id]);
+      officialResults.forEach(result => {
+        const home=Number(result.homeScore),away=Number(result.awayScore);
+        if(result.homeScore!==null&&result.awayScore!==null&&Number.isInteger(home)&&Number.isInteger(away)&&home>=0&&away>=0)scores[result.id]={home,away};
+      });
+      console.warn("Published CSV unavailable; loaded fixtures and scores from the official results API.",error);
+      calculate();renderGames();renderFinalsPage();
+      if(typeof renderMatchCentre==="function")renderMatchCentre();
+      showSheetStatus(true);
+    } catch(apiError) {
+      console.error("Could not load Google Sheet or official results API:",error,apiError);
+      calculate();renderGames();renderFinalsPage();
+      if(typeof renderMatchCentre==="function")renderMatchCentre();
+      showSheetStatus(false);
+    }
   }
 
 }
