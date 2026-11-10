@@ -5849,3 +5849,12 @@ function animateEloGraphLines(root, teamsToAnimate = null) {
   });
 }
 
+
+
+// Shareable routes used by the Team Page Studio preview shell.
+function readDashboardRouteFromHash() {
+  const match = /^#dashboard\/(home|teams|matches|finals|socials|admin)$/.exec(window.location.hash);
+  if (match && typeof showPage === "function") showPage(match[1]);
+}
+window.addEventListener("hashchange", readDashboardRouteFromHash);
+if (window.location.hash.startsWith("#dashboard/")) readDashboardRouteFromHash();
