@@ -19,7 +19,7 @@ You can ask for changes in plain language. For example:
 
 ### Give the AI access to real competition data
 
-The preview includes the read-only `CompDashboard` API. Tell the AI to use it whenever the page needs live fixtures, scores, team details, standings, posts or other supported data. The API reference and examples are below. The AI should fetch the data instead of making up sample teams or fixtures.
+The preview includes the read-only `CompDashboard` API. Call `await CompDashboard.context.getTeam()` to discover the team currently being edited. Tell the AI to use it whenever the page needs live fixtures, scores, team details, standings, posts or other supported data. The API reference and examples are below. The AI should fetch the data instead of making up sample teams or fixtures.
 
 **Important:** the Code Studio preview is isolated and the API is read-only. It cannot publish posts, edit scores, change team settings or write to competition data. The custom JavaScript preview is not automatically executed by the public team page renderer; check the current publishing support before relying on custom JavaScript in the live page.
 
@@ -93,6 +93,7 @@ Every method returns a Promise. Use `await` or `.then()`. Methods return data, n
 | `CompDashboard.players.list()` | `PlayerCard[]` | Saved player cards for the team currently authenticated in Studio |
 | `CompDashboard.teamAssets.list()` | `Asset[]` | Asset library for the currently authenticated team |
 | `CompDashboard.pages.getPublished(teamId)` | `object \| null` | Published page design for team A–E |
+| `CompDashboard.context.getTeam()` | `Team \| null` | Current team identity for the Studio session |
 
 ### Fixtures and results
 
@@ -130,7 +131,7 @@ A fixture has this shape:
 }
 ```
 
-Team IDs remain stable A–E even if display names change.
+Team IDs remain stable A–E even if display names change. `context.getTeam()` returns the current Studio team record, so a custom page does not need a hardcoded team name or ID.
 
 ### Social posts
 
