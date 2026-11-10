@@ -110,7 +110,9 @@ A fixture has this shape:
 }
 ```
 
-- `home` and `away` are the official team labels stored with the result row.
+- `home` and `away` preserve the official team labels stored with the result row.
+- `homeTeamId` and `awayTeamId` resolve those labels to stable IDs (`A`–`E`), or `null` if a label cannot be matched.
+- `homeTeamName` and `awayTeamName` provide current display names when a team ID is recognised. Filter fixtures using a stable ID, such as `fixture.homeTeamId === "A"`, rather than comparing display-name strings.
 - `homeScore` and `awayScore` are numbers when a score exists, otherwise `null`.
 - `stage` is the competition stage, such as `REGULAR` or `FINAL`.
 - `results.list()` filters out fixtures that do not have both scores.
