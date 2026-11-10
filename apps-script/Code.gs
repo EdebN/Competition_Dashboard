@@ -6,6 +6,7 @@ const BUILD_ID = "2026-11-06-rating-lab-and-matchday-sender";
 // POST allowlist both use these constants so they cannot silently drift apart.
 const GET_ACTIONS = [
   "health",
+  "getMatchSchedule",
   "getTeamSettings",
   "getCompetitionSettings",
   "getMatchResults",
@@ -126,6 +127,8 @@ function doGet(e) {
         getActions: GET_ACTIONS,
         postActions: POST_ACTIONS
       };
+    } else if (action === "getMatchSchedule") {
+      result = { ok: true, service: SERVICE_NAME, apiVersion: API_VERSION, action: action, schedule: readPublicMatchSchedule_() };
     } else if (action === "getMatchResults") {
       result = { ok: true, service: SERVICE_NAME, apiVersion: API_VERSION, action: action, results: readMatchResults_() };
     } else if (action === "getMatchPolls") {
@@ -1483,6 +1486,21 @@ function reminderSheet_(tab, headers) {
 }
 function getMatchTimetableSheet_() { return reminderSheet_(MATCH_TIMETABLE_TAB, MATCH_TIMETABLE_HEADERS); }
 function getMatchReminderContactsSheet_() { return reminderSheet_(MATCH_CONTACTS_TAB, MATCH_CONTACT_HEADERS); }
+
+// Public IDE/API schedule reader. Deliberately excludes reminder email contacts.
+function readPublicMatchSchedule_() {
+  const sh = getMatchTimetableSheet_(), last = sh.getLastRow();
+  if (last < 2) return [];
+  return sh.getRange(2, 1, last - 1, 8).getDisplayValues()
+    .filter(r => Number.isInteger(Number(r[0])) && Number(r[0]) > 0)
+    .map(r => ({
+      matchId: Number(r[0]),
+      date: String(r[1] || ""),
+      time: String(r[2] || ""),
+      venue: String(r[3] || ""),
+      status: String(r[4] || "Unscheduled")
+    }));
+}
 
 function readMatchReminderSettings_() {
   const sh=getMatchTimetableSheet_(),last=sh.getLastRow();
