@@ -1430,7 +1430,7 @@ function renderLadder(
 ========================================================= */
 
 function renderGames() {
-  console.log(
+  if (!new URLSearchParams(window.location.search).has("studioStatsPreview")) console.log(
     "MATCH SETTINGS:",
     "games/team =", getGamesPerTeam(),
     "regular games =", getRegularGameCount(),
