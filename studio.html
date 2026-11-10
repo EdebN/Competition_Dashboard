@@ -582,7 +582,7 @@ const IDE_API_METHODS={
  "results.list":async()=>{const data=await ideReadApi("getMatchResults");return(Array.isArray(data.results)?data.results:[]).filter(match=>match.homeScore!==null&&match.awayScore!==null);},
  "teams.list":async()=>{const data=await ideReadApi("getTeamSettings");return Array.isArray(data.teams)?data.teams:[];},
  "settings.get":async()=>{const data=await ideReadApi("getCompetitionSettings");return{gamesPerTeam:data.gamesPerTeam};},
- "posts.list":async()=>{const data=await ideReadApi("getSocialPosts");return Array.isArray(data.posts)?data.posts:[];},
+ "posts.list":async()=>{const data=await ideReadApi("getSocialPosts");return(Array.isArray(data.posts)?data.posts:[]).map(post=>({postId:post.postId,teamId:post.teamId,title:post.title,body:post.body,category:post.category,publishedAt:post.publishedAt,featured:!!post.featured}));},
  "schedule.list":async()=>{const data=await ideReadApi("getMatchSchedule");return Array.isArray(data.schedule)?data.schedule:[];},
  "polls.list":async()=>{const data=await ideReadApi("getMatchPolls");return data.polls||{};},
  "assets.list":async()=>{const data=await ideReadApi("getCompetitionAssets");return Array.isArray(data.assets)?data.assets:[];},
