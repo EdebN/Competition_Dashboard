@@ -3600,6 +3600,7 @@ async function unlockAdmin() {
 ========================================================= */
 
 let currentPage = "home";
+let teamStudioRouteLocked = false;
 let selectedTeamIndex = 0;
 let teamWheelRotation = 0;
 
@@ -3634,10 +3635,17 @@ function showPage(pageName) {
   // Team Studio is a locked dashboard route. A stale team-profile click or
   // delayed handler must never replace the editor with a profile page while
   // the Team Studio route is active.
-  const studioRouteActive = readDashboardHashRoute() === "team-studio";
-  if (studioRouteActive && currentPage === "team-studio" && /^team-[a-e]$/.test(pageName)) {
-    console.warn("Ignored team-profile navigation while Team Studio is active:", pageName);
-    pageName = "team-studio";
+  const isRequestedTeamProfile = /^team-[a-e]$/.test(pageName);
+  if (pageName === "team-studio") {
+    // Lock synchronously, before the View Transition commits the page change.
+    // This prevents delayed handlers from replacing the editor during startup.
+    teamStudioRouteLocked = true;
+  } else if (teamStudioRouteLocked && isRequestedTeamProfile) {
+    console.warn("Ignored stale team-profile navigation while Team Studio is active:", pageName);
+    return;
+  } else if (pageName !== "team-studio") {
+    // A deliberate move to another dashboard section releases the lock.
+    teamStudioRouteLocked = false;
   }
 
   updateTeamNavNames();
