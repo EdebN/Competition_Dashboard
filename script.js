@@ -3635,7 +3635,7 @@ function showPage(pageName) {
   // delayed handler must never replace the editor with a profile page while
   // the Team Studio route is active.
   const studioRouteActive = readDashboardHashRoute() === "team-studio";
-  if (studioRouteActive && /^team-[a-e]$/.test(pageName)) {
+  if (studioRouteActive && currentPage === "team-studio" && /^team-[a-e]$/.test(pageName)) {
     console.warn("Ignored team-profile navigation while Team Studio is active:", pageName);
     pageName = "team-studio";
   }
