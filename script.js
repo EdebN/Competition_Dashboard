@@ -3671,7 +3671,7 @@ function showPage(pageName) {
     } else if (frame) {
       if (access) access.hidden = true;
       frame.hidden = false;
-      const expectedSrc = "studio.html?team=" + encodeURIComponent(teamId);
+      const expectedSrc = "studio.html?team=" + encodeURIComponent(teamId) + "&v=northstar-20261111";
       if (!frame.getAttribute("src") || !frame.getAttribute("src").endsWith(expectedSrc)) {
         frame.src = expectedSrc;
       }
